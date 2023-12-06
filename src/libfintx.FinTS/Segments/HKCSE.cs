@@ -50,7 +50,7 @@ namespace libfintx.FinTS
 
             SEG sEG = new SEG();
 
-            if (client.HISPAS == 1)
+            if (client.HISPAS_Pain == 1)
             {
                 StringBuilder sb = new StringBuilder();
                 sb.Append(connectionDetails.Iban);
@@ -69,7 +69,7 @@ namespace libfintx.FinTS
                 sepaMessage = pain00100103.Create(connectionDetails.AccountHolder, connectionDetails.Iban,
                     connectionDetails.Bic, ReceiverName, ReceiverIBAN, ReceiverBIC, Amount, Usage, ExecutionDay);
             }
-            else if (client.HISPAS == 2)
+            else if (client.HISPAS_Pain == 2)
             {
                 StringBuilder sb = new StringBuilder();
                 sb.Append(connectionDetails.Iban);
@@ -88,7 +88,7 @@ namespace libfintx.FinTS
                 sepaMessage = pain00100203.Create(connectionDetails.AccountHolder, connectionDetails.Iban,
                     connectionDetails.Bic, ReceiverName, ReceiverIBAN, ReceiverBIC, Amount, Usage, ExecutionDay);
             }
-            else if (client.HISPAS == 3)
+            else if (client.HISPAS_Pain == 3)
             {
                 StringBuilder sb = new StringBuilder();
                 sb.Append(connectionDetails.Iban);
