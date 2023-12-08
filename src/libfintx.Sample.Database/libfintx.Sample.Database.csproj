@@ -3,7 +3,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>libfintx.Sample.Database</RootNamespace>
     <AssemblyName>libfintx.Sample.Database</AssemblyName>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <None Include="App.config" />
