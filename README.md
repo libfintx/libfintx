@@ -2,6 +2,10 @@
 
 # libfintx
 
+[![Build & Test](https://github.com/libfintx/libfintx/actions/workflows/dotnet.yml/badge.svg)](https://github.com/libfintx/libfintx/actions/workflows/dotnet.yml)
+[![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
+[![Slack Status](https://img.shields.io/badge/slack-join_chat-white.svg?logo=slack&style=social)](https://libfintx.slack.com)
+
 An C# based client library for **HBCI 2.2**, **FinTS 3.0**, **EBICS H004** and **EBICS H005**.
 
 In 1995 the ZKA announced a common online banking standard called *Homebanking Computer Interface* (HBCI). In 2003 they published the next generation of this protocol standard and named it *Financial Transaction Services* (FinTS).
