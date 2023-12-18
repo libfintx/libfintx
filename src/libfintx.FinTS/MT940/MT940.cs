@@ -848,6 +848,9 @@ namespace libfintx.FinTS.Statement
         }
     }
 
+    /// <summary>
+    /// MT940 account statement parser
+    /// </summary>
     // ReSharper disable once InconsistentNaming
     public static class MT940
     {
