@@ -31,9 +31,9 @@
 using libfintx.FinTS.Swift;
 using libfintx.Globals;
 using libfintx.Logger.Log;
-using libfintx.Logger.Trace;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -41,6 +41,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Path = System.IO.Path;
+using Trace = libfintx.Logger.Trace.Trace;
 
 namespace libfintx.FinTS.Statement
 {
@@ -56,8 +57,8 @@ namespace libfintx.FinTS.Statement
             Account = account;
         }
 
-        private readonly List<SwiftStatement> SWIFTStatements = new List<SwiftStatement>();
-        private SwiftStatement SWIFTStatement = null;
+        protected SwiftStatement PreviousSwiftStatement = null;
+        protected SwiftStatement CurrentSwiftStatement = null;
 
         public string Account { get; } = null;
         public bool SetPending { get; }= false;
@@ -76,11 +77,11 @@ namespace libfintx.FinTS.Statement
             }
         }
 
-        private void Data(string swiftTag, string swiftData)
+        private IEnumerable<SwiftStatement> Data(string swiftTag, string swiftData)
         {
-            if (SWIFTStatement != null)
+            if (CurrentSwiftStatement != null)
             {
-                SWIFTStatement.Lines.Add(new SwiftLine(swiftTag, swiftData));
+                CurrentSwiftStatement.Lines.Add(new SwiftLine(swiftTag, swiftData));
             }
 
             if (swiftTag == "OS")
@@ -91,10 +92,10 @@ namespace libfintx.FinTS.Statement
             {
                 // 20 is used for each "page" of the SWIFTStatement; but we want to put all SWIFTTransactions together
                 // the whole SWIFTStatement closes with 62F
-                if (SWIFTStatement == null)
+                if (CurrentSwiftStatement == null)
                 {
-                    SWIFTStatement = new SwiftStatement() { Type = swiftData };
-                    SWIFTStatement.Lines.Add(new SwiftLine(swiftTag, swiftData));
+                    CurrentSwiftStatement = new SwiftStatement() { Type = swiftData };
+                    CurrentSwiftStatement.Lines.Add(new SwiftLine(swiftTag, swiftData));
                 }
             }
             else if (swiftTag == "25")
@@ -102,9 +103,10 @@ namespace libfintx.FinTS.Statement
                 int posSlash = swiftData.IndexOf("/");
                 if (posSlash >= 0)
                 {
-                    SWIFTStatement.BankCode = swiftData.Substring(0, posSlash);
+                    Debug.Assert(CurrentSwiftStatement != null);
+                    CurrentSwiftStatement.BankCode = swiftData.Substring(0, posSlash);
                     if (posSlash < swiftData.Length)
-                        SWIFTStatement.AccountCode = LTrim(swiftData.Substring(posSlash + 1));
+                        CurrentSwiftStatement.AccountCode = LTrim(swiftData.Substring(posSlash + 1));
                 }
             }
             else if (swiftTag.StartsWith("60")) // Anfangssaldo
@@ -125,17 +127,18 @@ namespace libfintx.FinTS.Statement
 
                 // Next 3 characters: Currency
                 // Last characters: Balance with comma for decimal point
-                SWIFTStatement.Currency = swiftData.Substring(6, 3);
+                Debug.Assert(CurrentSwiftStatement != null);
+                CurrentSwiftStatement.Currency = swiftData.Substring(6, 3);
                 try
                 {
                     decimal balance = DebitCreditIndicator * Convert.ToDecimal(swiftData.Substring(9).Replace(",",
                             Thread.CurrentThread.CurrentCulture.NumberFormat.CurrencyDecimalSeparator));
 
                     // Use first start balance. If missing, use intermediate balance.
-                    if (swiftTag == "60F" || SWIFTStatement.StartBalance == 0 && swiftTag == "60M")
+                    if (swiftTag == "60F" || CurrentSwiftStatement.StartBalance == 0 && swiftTag == "60M")
                     {
-                        SWIFTStatement.StartBalance = balance;
-                        SWIFTStatement.EndBalance = balance;
+                        CurrentSwiftStatement.StartBalance = balance;
+                        CurrentSwiftStatement.EndBalance = balance;
                     }
                 }
                 catch (FormatException)
@@ -145,38 +148,39 @@ namespace libfintx.FinTS.Statement
 
                 if (swiftTag == "60F" || swiftTag == "60M")
                 {
-                    SWIFTStatement.StartDate = postingDate;
+                    CurrentSwiftStatement.StartDate = postingDate;
                 }
             }
             else if (swiftTag == "28C")
             {
                 // this contains the number of the SWIFTStatement and the number of the page
                 // only use for first page
-                if (SWIFTStatement.SwiftTransactions.Count == 0)
+                Debug.Assert(CurrentSwiftStatement != null);
+                if (CurrentSwiftStatement.SwiftTransactions.Count == 0)
                 {
                     if (swiftData.IndexOf("/") != -1)
                     {
-                        SWIFTStatement.Id = swiftData.Substring(0, swiftData.IndexOf("/"));
+                        CurrentSwiftStatement.Id = swiftData.Substring(0, swiftData.IndexOf("/"));
                     }
                     else
                     {
                         // Realtime SWIFTStatement.
                         // Not use SWIFTStatement number 0, because Sparkasse has 0/1 for valid SWIFTStatements
-                        SWIFTStatement.Id = string.Empty;
+                        CurrentSwiftStatement.Id = string.Empty;
                     }
                 }
             }
             else if (swiftTag == "61")
             {
                 // If there is no SWIFTStatement available, create one
-                if (SWIFTStatement == null)
+                if (CurrentSwiftStatement == null)
                 {
-                    SWIFTStatement = new SwiftStatement();
-                    SWIFTStatement.Lines.Add(new SwiftLine(swiftTag, swiftData));
+                    CurrentSwiftStatement = new SwiftStatement();
+                    CurrentSwiftStatement.Lines.Add(new SwiftLine(swiftTag, swiftData));
                 }
 
                 var SWIFTTransaction = new SwiftTransaction();
-                SWIFTStatement.SwiftTransactions.Add(SWIFTTransaction);
+                CurrentSwiftStatement.SwiftTransactions.Add(SWIFTTransaction);
 
                 // Valuta date (YYMMDD)
                 try
@@ -251,14 +255,14 @@ namespace libfintx.FinTS.Statement
                         debitCreditIndicator * Convert.ToDecimal(swiftData.Substring(0, swiftData.IndexOf("N")).Replace(",",
                                 Thread.CurrentThread.CurrentCulture.NumberFormat.CurrencyDecimalSeparator));
 
-                    SWIFTStatement.EndBalance += SWIFTTransaction.Amount;
+                    CurrentSwiftStatement.EndBalance += SWIFTTransaction.Amount;
 
                     var constIdx = swiftData.IndexOf("N");
                     swiftData = swiftData.Length > constIdx ? swiftData.Substring(constIdx) : string.Empty;
                 }
                 else
                 {
-                    return;
+                    yield break;
                 }
 
                 // Buchungsschlüssel
@@ -270,7 +274,7 @@ namespace libfintx.FinTS.Statement
                 }
                 else
                 {
-                    return;
+                    yield break;
                 }
 
                 // customer reference
@@ -289,7 +293,7 @@ namespace libfintx.FinTS.Statement
                 }
                 else
                 {
-                    return;
+                    yield break;
                 }
 
                 // Optional: bank reference; ends with CR/LF if followed by other data
@@ -319,7 +323,8 @@ namespace libfintx.FinTS.Statement
                 // Remove line breaks
                 swiftData = swiftData.Replace("\r\n", string.Empty);
 
-                SwiftTransaction SWIFTTransaction = SWIFTStatement.SwiftTransactions[SWIFTStatement.SwiftTransactions.Count - 1];
+                Debug.Assert(CurrentSwiftStatement != null);
+                SwiftTransaction SWIFTTransaction = CurrentSwiftStatement.SwiftTransactions[CurrentSwiftStatement.SwiftTransactions.Count - 1];
 
                 // Geschaeftsvorfallcode
                 SWIFTTransaction.TypeCode = swiftData.Substring(0, 3);
@@ -327,7 +332,7 @@ namespace libfintx.FinTS.Statement
                 swiftData = swiftData.Substring(3);
 
                 if (swiftData.Length == 0)
-                    return;
+                    yield break;
 
                 char separator = swiftData[0];
 
@@ -405,7 +410,7 @@ namespace libfintx.FinTS.Statement
                     else
                     {
                         // Unknown key
-                        return;
+                        yield break;
                     }
                 }
             }
@@ -426,6 +431,7 @@ namespace libfintx.FinTS.Statement
                 // Currency
                 if (swiftData.Length > 3) // Assure that currency and end balance are valid
                 {
+                    Debug.Assert(CurrentSwiftStatement != null);
                     swiftData = swiftData.Substring(3);
 
                     // Sometimes, this line is the last line, and it has -NULNULNUL at the end
@@ -437,15 +443,17 @@ namespace libfintx.FinTS.Statement
                     // End balance
                     decimal endBalance = debitCreditIndicator * Convert.ToDecimal(swiftData.Replace(",",
                             Thread.CurrentThread.CurrentCulture.NumberFormat.CurrencyDecimalSeparator));
-                    SWIFTStatement.EndBalance = endBalance;
+                    CurrentSwiftStatement.EndBalance = endBalance;
                 }
 
                 if (swiftTag == "62F" || swiftTag == "62M")
                 {
-                    SWIFTStatement.EndDate = postingDate;
-                    FinalizeStatement(SWIFTStatement);
-                    SWIFTStatements.Add(SWIFTStatement);
-                    SWIFTStatement = null;
+                    Debug.Assert(CurrentSwiftStatement != null);
+                    CurrentSwiftStatement.EndDate = postingDate;
+                    FinalizeStatement(CurrentSwiftStatement);
+                    yield return CurrentSwiftStatement;
+                    PreviousSwiftStatement = CurrentSwiftStatement;
+                    CurrentSwiftStatement = null;
                 }
             }
             else if (swiftTag == "64")
@@ -460,9 +468,10 @@ namespace libfintx.FinTS.Statement
             // Begin MT942
             else if (swiftTag == "34F")
             {
+                Debug.Assert(CurrentSwiftStatement != null);
                 if (swiftData.Length >= 3)
                 {
-                    SWIFTStatement.Currency = swiftData.Substring(0, 3);
+                    CurrentSwiftStatement.Currency = swiftData.Substring(0, 3);
                     swiftData = swiftData.Length > 3 ? swiftData.Substring(3) : string.Empty;
                 }
 
@@ -481,14 +490,14 @@ namespace libfintx.FinTS.Statement
                         decimal.TryParse(swiftData, out amount);
                     }
 
-                    SWIFTStatement.SmallestAmount = amount;
+                    CurrentSwiftStatement.SmallestAmount = amount;
                 }
                 // Kleinster Betrag der gemeldeten Haben-Umsätze
                 else if (Regex.IsMatch(swiftData, @"C\d+,\d*"))
                 {
                     decimal.TryParse(swiftData.Substring(1), out decimal amount);
 
-                    SWIFTStatement.SmallestCreditAmount = amount;
+                    CurrentSwiftStatement.SmallestCreditAmount = amount;
                 }
 
             }
@@ -498,11 +507,13 @@ namespace libfintx.FinTS.Statement
                 {
                     DateTime.TryParseExact(swiftData, "yyMMddHHmm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime creationDate);
 
-                    SWIFTStatement.CreationDate = creationDate;
+                    Debug.Assert(CurrentSwiftStatement != null);
+                    CurrentSwiftStatement.CreationDate = creationDate;
                 }
             }
             else if (swiftTag == "13D")
             {
+                Debug.Assert(CurrentSwiftStatement != null);
                 if (Regex.IsMatch(swiftData, @"\d{10}(\+|-)\d{4}"))
                 {
                     // Easier parsing
@@ -510,25 +521,25 @@ namespace libfintx.FinTS.Statement
                     var dateStr = swiftData.Substring(0, 13) + ":" + swiftData.Substring(13, 2);
                     DateTimeOffset.TryParseExact(dateStr, "yyMMddHHmmzzz", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTimeOffset dateTimeOffset);
 
-                    SWIFTStatement.CreationDate = dateTimeOffset.DateTime;
+                    CurrentSwiftStatement.CreationDate = dateTimeOffset.DateTime;
                 }
                 else
                 {
                     DateTime.TryParseExact(swiftData, "yyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime creationDate);
 
-                    SWIFTStatement.CreationDate = creationDate;
+                    CurrentSwiftStatement.CreationDate = creationDate;
                 }
             }
             else if (swiftTag == "90D" || swiftTag == "90C")
             {
                 bool debit = swiftTag == "90D";
-                bool previousTag90d = !debit && SWIFTStatement == null; // Previous tag has been 90D
+                bool previousTag90d = !debit && CurrentSwiftStatement == null; // Previous tag has been 90D
 
                 if (previousTag90d)
-                    SWIFTStatement = SWIFTStatements.LastOrDefault();
+                    CurrentSwiftStatement = PreviousSwiftStatement;
 
-                if (SWIFTStatement == null)
-                    return;
+                if (CurrentSwiftStatement == null)
+                    yield break;
 
                 int count = 0;
                 decimal amount = 0;
@@ -543,34 +554,36 @@ namespace libfintx.FinTS.Statement
                     decimal.TryParse(match.Groups[3].Value, NumberStyles.Number | NumberStyles.AllowDecimalPoint, CultureInfo.GetCultureInfo("de-DE"), out amount);
                 }
 
-                if (SWIFTStatement.Currency == null)
-                    SWIFTStatement.Currency = currency;
+                if (CurrentSwiftStatement.Currency == null)
+                    CurrentSwiftStatement.Currency = currency;
 
                 if (debit)
                 {
-                    SWIFTStatement.CountDebit = count;
-                    SWIFTStatement.AmountDebit = amount * -1;
+                    CurrentSwiftStatement.CountDebit = count;
+                    CurrentSwiftStatement.AmountDebit = amount * -1;
                 }
                 else
                 {
-                    SWIFTStatement.CountCredit = count;
-                    SWIFTStatement.AmountCredit = amount;
+                    CurrentSwiftStatement.CountCredit = count;
+                    CurrentSwiftStatement.AmountCredit = amount;
                 }
 
                 if (debit)
                 {
-                    FinalizeStatement(SWIFTStatement);
-                    SWIFTStatements.Add(SWIFTStatement);
-                    SWIFTStatement = null;
+                    FinalizeStatement(CurrentSwiftStatement);
+                    yield return CurrentSwiftStatement;
+                    PreviousSwiftStatement = CurrentSwiftStatement;
+                    CurrentSwiftStatement = null;
                 }
                 else
                 {
                     if (!previousTag90d)
                     {
-                        FinalizeStatement(SWIFTStatement);
-                        SWIFTStatements.Add(SWIFTStatement);
+                        FinalizeStatement(CurrentSwiftStatement);
+                        yield return CurrentSwiftStatement;
+                        PreviousSwiftStatement = CurrentSwiftStatement;
                     }
-                    SWIFTStatement = null;
+                    CurrentSwiftStatement = null;
                 }
             }
             // End MT942
@@ -578,7 +591,7 @@ namespace libfintx.FinTS.Statement
             else
             {
                 // Unknown tag
-                return;
+                yield break;
             }
         }
 
@@ -776,7 +789,7 @@ namespace libfintx.FinTS.Statement
         }
 
         /// <summary>
-        /// Deserializes a MT940 statement into <see cref="SWIFTStatement"/> objects.
+        /// Deserializes a MT940 statement into <see cref="SwiftStatement"/> objects.
         /// </summary>
         /// <param name="stream">
         /// The MT940 statement as stream.
@@ -784,6 +797,9 @@ namespace libfintx.FinTS.Statement
         /// <returns></returns>
         public IEnumerable<SwiftStatement> Deserialize(Stream stream)
         {
+            PreviousSwiftStatement = null;
+            CurrentSwiftStatement = null;
+
             var swiftRegex = new Regex(@"^:[\w]+:", RegexOptions.Compiled);
             string swiftTag = "";
             string swiftData = "";
@@ -798,7 +814,10 @@ namespace libfintx.FinTS.Statement
                         // Process previously read swift chunk
                         if (swiftTag.Length > 0)
                         {
-                            Data(swiftTag, swiftData);
+                            foreach (var statement in Data(swiftTag, swiftData))
+                            {
+                                yield return statement;
+                            }
                         }
 
                         swiftTag = string.Empty;
@@ -814,7 +833,10 @@ namespace libfintx.FinTS.Statement
                             // Process previously read swift chunk
                             if (swiftTag.Length > 0)
                             {
-                                Data(swiftTag, swiftData);
+                                foreach (var statement in Data(swiftTag, swiftData))
+                                {
+                                    yield return statement;
+                                }
                             }
 
                             int posColon = line.IndexOf(":", 2);
@@ -833,18 +855,21 @@ namespace libfintx.FinTS.Statement
 
             if (swiftTag.Length > 0)
             {
-                Data(swiftTag, swiftData);
+                foreach (var statement in Data(swiftTag, swiftData))
+                {
+                    yield return statement;
+                }
             }
 
             // If there are remaining unprocessed statements - add them
-            if (SWIFTStatement != null)
+            if (CurrentSwiftStatement != null)
             {
-                FinalizeStatement(SWIFTStatement);
-                SWIFTStatements.Add(SWIFTStatement);
-                SWIFTStatement = null;
+                FinalizeStatement(CurrentSwiftStatement);
+                yield return CurrentSwiftStatement;
+                CurrentSwiftStatement = null;
             }
 
-            return SWIFTStatements;
+            PreviousSwiftStatement = null;
         }
     }
 
