@@ -43,6 +43,7 @@ namespace libfintx.FinTS
         /// <param name="anonymous"></param>
         /// <param name="startDate"></param>
         /// <param name="endDate"></param>
+        /// <param name="saveMt940File"></param>
         /// <returns>
         /// Transactions
         /// </returns>
@@ -108,8 +109,16 @@ namespace libfintx.FinTS
 
             var swiftStatements = new List<SwiftStatement>();
 
-            swiftStatements.AddRange(MT940.Serialize(TransactionsMt940.ToString(), ConnectionDetails.Account, saveMt940File));
-            swiftStatements.AddRange(MT940.Serialize(TransactionsMt942.ToString(), ConnectionDetails.Account, saveMt940File, true));
+            swiftStatements.AddRange(MT940.Deserialize(TransactionsMt940.ToString(), ConnectionDetails.Account));
+            if (saveMt940File)
+            {
+                MT940.WriteToFile(TransactionsMt940.ToString(), ConnectionDetails.Account);
+            }
+            swiftStatements.AddRange(MT940.Deserialize(TransactionsMt942.ToString(), ConnectionDetails.Account, pending: true));
+            if (saveMt940File)
+            {
+                MT940.WriteToFile(TransactionsMt942.ToString(), ConnectionDetails.Account);
+            }
 
             return result.TypedResult(swiftStatements);
         }

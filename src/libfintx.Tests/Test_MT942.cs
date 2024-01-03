@@ -32,7 +32,7 @@ namespace libfintx.Tests
 :90C:0EUR0,
 -
 ";
-            var result = MT940.Serialize(mt942, "123456700", false, true);
+            var result = MT940.Deserialize(mt942, "123456700", true).ToList();
 
             Assert.Equal(2, result.Count);
             Assert.True(result.All(s => s.Pending));
@@ -99,7 +99,7 @@ NOLADE21HAM?31DE71207500000060017852?32FAX.de GmbH?34992
 :90C:0EUR0,00
 -
 ";
-            var result = MT940.Serialize(mt942, "0123456789", false, true);
+            var result = MT940.Deserialize(mt942, "0123456789", true).ToList();
 
             Assert.Single(result);
             Assert.True(result.All(s => s.Pending));
