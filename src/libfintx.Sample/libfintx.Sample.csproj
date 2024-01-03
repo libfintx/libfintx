@@ -10,6 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\libfintx\libfintx.csproj" />
+    <ProjectReference Include="..\libfintx.FinTS\libfintx.FinTS.csproj" />
   </ItemGroup>
 </Project>

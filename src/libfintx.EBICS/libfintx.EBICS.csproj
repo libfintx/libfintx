@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\libfintx.EBICSConfig\libfintx.EBICSConfig.csproj" />
-    <ProjectReference Include="..\libfintx.Security\libfintx.Security.csproj" />
     <ProjectReference Include="..\libfintx.Xml\libfintx.Xml.csproj" />
   </ItemGroup>
 

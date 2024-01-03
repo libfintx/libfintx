@@ -10,7 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\libfintx.FinTSConfig\libfintx.FinTSConfig.csproj" />
     <ProjectReference Include="..\libfintx.Globals\libfintx.Globals.csproj" />
     <ProjectReference Include="..\libfintx.Logger\libfintx.Logger.csproj" />
     <ProjectReference Include="..\libfintx.Sepa\libfintx.Sepa.csproj" />
