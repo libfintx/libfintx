@@ -31,44 +31,57 @@
 using libfintx.FinTS.Swift;
 using libfintx.Globals;
 using libfintx.Logger.Log;
-using libfintx.Logger.Trace;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Path = System.IO.Path;
+using Trace = libfintx.Logger.Trace.Trace;
 
 namespace libfintx.FinTS.Statement
 {
     /// <summary>
-    /// MT940 account statement
+    /// MT940 account statement parser
     /// </summary>
-    public static class MT940
+    // ReSharper disable once InconsistentNaming
+    public class MT940Parser
     {
-        public static List<SwiftStatement> SWIFTStatements;
-        private static SwiftStatement SWIFTStatement = null;
+        public MT940Parser(bool pending = false, string account = null)
+        {
+            SetPending = pending;
+            Account = account;
+        }
 
-        private static string LTrim(string Code)
+        protected SwiftStatement PreviousSwiftStatement = null;
+        protected SwiftStatement CurrentSwiftStatement = null;
+
+        public string Account { get; } = null;
+        public bool SetPending { get; }= false;
+
+        private static string LTrim(string code)
         {
             // Cut off leading zeros
             try
             {
-                return Convert.ToInt64(Code).ToString();
+                return Convert.ToInt64(code).ToString();
             }
             catch (Exception)
             {
                 // IBAN or BIC
-                return Code;
+                return code;
             }
         }
 
-        private static void Data(string swiftTag, string swiftData)
+        private IEnumerable<SwiftStatement> Data(string swiftTag, string swiftData)
         {
-            if (SWIFTStatement != null)
+            if (CurrentSwiftStatement != null)
             {
-                SWIFTStatement.Lines.Add(new SwiftLine(swiftTag, swiftData));
+                CurrentSwiftStatement.Lines.Add(new SwiftLine(swiftTag, swiftData));
             }
 
             if (swiftTag == "OS")
@@ -79,10 +92,10 @@ namespace libfintx.FinTS.Statement
             {
                 // 20 is used for each "page" of the SWIFTStatement; but we want to put all SWIFTTransactions together
                 // the whole SWIFTStatement closes with 62F
-                if (SWIFTStatement == null)
+                if (CurrentSwiftStatement == null)
                 {
-                    SWIFTStatement = new SwiftStatement() { Type = swiftData };
-                    SWIFTStatement.Lines.Add(new SwiftLine(swiftTag, swiftData));
+                    CurrentSwiftStatement = new SwiftStatement() { Type = swiftData };
+                    CurrentSwiftStatement.Lines.Add(new SwiftLine(swiftTag, swiftData));
                 }
             }
             else if (swiftTag == "25")
@@ -90,9 +103,10 @@ namespace libfintx.FinTS.Statement
                 int posSlash = swiftData.IndexOf("/");
                 if (posSlash >= 0)
                 {
-                    SWIFTStatement.BankCode = swiftData.Substring(0, posSlash);
+                    Debug.Assert(CurrentSwiftStatement != null);
+                    CurrentSwiftStatement.BankCode = swiftData.Substring(0, posSlash);
                     if (posSlash < swiftData.Length)
-                        SWIFTStatement.AccountCode = LTrim(swiftData.Substring(posSlash + 1));
+                        CurrentSwiftStatement.AccountCode = LTrim(swiftData.Substring(posSlash + 1));
                 }
             }
             else if (swiftTag.StartsWith("60")) // Anfangssaldo
@@ -113,17 +127,18 @@ namespace libfintx.FinTS.Statement
 
                 // Next 3 characters: Currency
                 // Last characters: Balance with comma for decimal point
-                SWIFTStatement.Currency = swiftData.Substring(6, 3);
+                Debug.Assert(CurrentSwiftStatement != null);
+                CurrentSwiftStatement.Currency = swiftData.Substring(6, 3);
                 try
                 {
                     decimal balance = DebitCreditIndicator * Convert.ToDecimal(swiftData.Substring(9).Replace(",",
                             Thread.CurrentThread.CurrentCulture.NumberFormat.CurrencyDecimalSeparator));
 
                     // Use first start balance. If missing, use intermediate balance.
-                    if (swiftTag == "60F" || SWIFTStatement.StartBalance == 0 && swiftTag == "60M")
+                    if (swiftTag == "60F" || CurrentSwiftStatement.StartBalance == 0 && swiftTag == "60M")
                     {
-                        SWIFTStatement.StartBalance = balance;
-                        SWIFTStatement.EndBalance = balance;
+                        CurrentSwiftStatement.StartBalance = balance;
+                        CurrentSwiftStatement.EndBalance = balance;
                     }
                 }
                 catch (FormatException)
@@ -133,38 +148,39 @@ namespace libfintx.FinTS.Statement
 
                 if (swiftTag == "60F" || swiftTag == "60M")
                 {
-                    SWIFTStatement.StartDate = postingDate;
+                    CurrentSwiftStatement.StartDate = postingDate;
                 }
             }
             else if (swiftTag == "28C")
             {
                 // this contains the number of the SWIFTStatement and the number of the page
                 // only use for first page
-                if (SWIFTStatement.SwiftTransactions.Count == 0)
+                Debug.Assert(CurrentSwiftStatement != null);
+                if (CurrentSwiftStatement.SwiftTransactions.Count == 0)
                 {
                     if (swiftData.IndexOf("/") != -1)
                     {
-                        SWIFTStatement.Id = swiftData.Substring(0, swiftData.IndexOf("/"));
+                        CurrentSwiftStatement.Id = swiftData.Substring(0, swiftData.IndexOf("/"));
                     }
                     else
                     {
                         // Realtime SWIFTStatement.
                         // Not use SWIFTStatement number 0, because Sparkasse has 0/1 for valid SWIFTStatements
-                        SWIFTStatement.Id = string.Empty;
+                        CurrentSwiftStatement.Id = string.Empty;
                     }
                 }
             }
             else if (swiftTag == "61")
             {
                 // If there is no SWIFTStatement available, create one
-                if (SWIFTStatement == null)
+                if (CurrentSwiftStatement == null)
                 {
-                    SWIFTStatement = new SwiftStatement();
-                    SWIFTStatement.Lines.Add(new SwiftLine(swiftTag, swiftData));
+                    CurrentSwiftStatement = new SwiftStatement();
+                    CurrentSwiftStatement.Lines.Add(new SwiftLine(swiftTag, swiftData));
                 }
 
-                SwiftTransaction SWIFTTransaction = new SwiftTransaction();
-                SWIFTStatement.SwiftTransactions.Add(SWIFTTransaction);
+                var SWIFTTransaction = new SwiftTransaction();
+                CurrentSwiftStatement.SwiftTransactions.Add(SWIFTTransaction);
 
                 // Valuta date (YYMMDD)
                 try
@@ -214,7 +230,7 @@ namespace libfintx.FinTS.Statement
                 if (Regex.IsMatch(swiftData, @"^.+N"))
                 {
                     // Debit or credit, or storno debit or credit
-                    int debitCreditIndicator = 0;
+                    int debitCreditIndicator;
                     if (swiftData[0] == 'R')
                     {
                         // Storno means: reverse the debit credit flag
@@ -239,14 +255,14 @@ namespace libfintx.FinTS.Statement
                         debitCreditIndicator * Convert.ToDecimal(swiftData.Substring(0, swiftData.IndexOf("N")).Replace(",",
                                 Thread.CurrentThread.CurrentCulture.NumberFormat.CurrencyDecimalSeparator));
 
-                    SWIFTStatement.EndBalance += SWIFTTransaction.Amount;
+                    CurrentSwiftStatement.EndBalance += SWIFTTransaction.Amount;
 
                     var constIdx = swiftData.IndexOf("N");
                     swiftData = swiftData.Length > constIdx ? swiftData.Substring(constIdx) : string.Empty;
                 }
                 else
                 {
-                    return;
+                    yield break;
                 }
 
                 // Buchungsschlüssel
@@ -258,7 +274,7 @@ namespace libfintx.FinTS.Statement
                 }
                 else
                 {
-                    return;
+                    yield break;
                 }
 
                 // customer reference
@@ -277,7 +293,7 @@ namespace libfintx.FinTS.Statement
                 }
                 else
                 {
-                    return;
+                    yield break;
                 }
 
                 // Optional: bank reference; ends with CR/LF if followed by other data
@@ -307,7 +323,8 @@ namespace libfintx.FinTS.Statement
                 // Remove line breaks
                 swiftData = swiftData.Replace("\r\n", string.Empty);
 
-                SwiftTransaction SWIFTTransaction = SWIFTStatement.SwiftTransactions[SWIFTStatement.SwiftTransactions.Count - 1];
+                Debug.Assert(CurrentSwiftStatement != null);
+                SwiftTransaction SWIFTTransaction = CurrentSwiftStatement.SwiftTransactions[CurrentSwiftStatement.SwiftTransactions.Count - 1];
 
                 // Geschaeftsvorfallcode
                 SWIFTTransaction.TypeCode = swiftData.Substring(0, 3);
@@ -315,7 +332,7 @@ namespace libfintx.FinTS.Statement
                 swiftData = swiftData.Substring(3);
 
                 if (swiftData.Length == 0)
-                    return;
+                    yield break;
 
                 char separator = swiftData[0];
 
@@ -393,7 +410,7 @@ namespace libfintx.FinTS.Statement
                     else
                     {
                         // Unknown key
-                        return;
+                        yield break;
                     }
                 }
             }
@@ -414,6 +431,7 @@ namespace libfintx.FinTS.Statement
                 // Currency
                 if (swiftData.Length > 3) // Assure that currency and end balance are valid
                 {
+                    Debug.Assert(CurrentSwiftStatement != null);
                     swiftData = swiftData.Substring(3);
 
                     // Sometimes, this line is the last line, and it has -NULNULNUL at the end
@@ -425,24 +443,17 @@ namespace libfintx.FinTS.Statement
                     // End balance
                     decimal endBalance = debitCreditIndicator * Convert.ToDecimal(swiftData.Replace(",",
                             Thread.CurrentThread.CurrentCulture.NumberFormat.CurrencyDecimalSeparator));
-                    SWIFTStatement.EndBalance = endBalance;
+                    CurrentSwiftStatement.EndBalance = endBalance;
                 }
 
                 if (swiftTag == "62F" || swiftTag == "62M")
                 {
-                    SWIFTStatement.EndDate = postingDate;
-                    SWIFTStatements.Add(SWIFTStatement);
-
-                    // Process missing input dates
-                    foreach (var tx in SWIFTStatement.SwiftTransactions)
-                    {
-                        if (tx.InputDate == default)
-                        {
-                            tx.InputDate = SWIFTStatement.EndDate;
-                        }
-                    }
-
-                    SWIFTStatement = null;
+                    Debug.Assert(CurrentSwiftStatement != null);
+                    CurrentSwiftStatement.EndDate = postingDate;
+                    FinalizeStatement(CurrentSwiftStatement);
+                    yield return CurrentSwiftStatement;
+                    PreviousSwiftStatement = CurrentSwiftStatement;
+                    CurrentSwiftStatement = null;
                 }
             }
             else if (swiftTag == "64")
@@ -457,9 +468,10 @@ namespace libfintx.FinTS.Statement
             // Begin MT942
             else if (swiftTag == "34F")
             {
+                Debug.Assert(CurrentSwiftStatement != null);
                 if (swiftData.Length >= 3)
                 {
-                    SWIFTStatement.Currency = swiftData.Substring(0, 3);
+                    CurrentSwiftStatement.Currency = swiftData.Substring(0, 3);
                     swiftData = swiftData.Length > 3 ? swiftData.Substring(3) : string.Empty;
                 }
 
@@ -478,14 +490,14 @@ namespace libfintx.FinTS.Statement
                         decimal.TryParse(swiftData, out amount);
                     }
 
-                    SWIFTStatement.SmallestAmount = amount;
+                    CurrentSwiftStatement.SmallestAmount = amount;
                 }
                 // Kleinster Betrag der gemeldeten Haben-Umsätze
                 else if (Regex.IsMatch(swiftData, @"C\d+,\d*"))
                 {
                     decimal.TryParse(swiftData.Substring(1), out decimal amount);
 
-                    SWIFTStatement.SmallestCreditAmount = amount;
+                    CurrentSwiftStatement.SmallestCreditAmount = amount;
                 }
 
             }
@@ -495,11 +507,13 @@ namespace libfintx.FinTS.Statement
                 {
                     DateTime.TryParseExact(swiftData, "yyMMddHHmm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime creationDate);
 
-                    SWIFTStatement.CreationDate = creationDate;
+                    Debug.Assert(CurrentSwiftStatement != null);
+                    CurrentSwiftStatement.CreationDate = creationDate;
                 }
             }
             else if (swiftTag == "13D")
             {
+                Debug.Assert(CurrentSwiftStatement != null);
                 if (Regex.IsMatch(swiftData, @"\d{10}(\+|-)\d{4}"))
                 {
                     // Easier parsing
@@ -507,25 +521,25 @@ namespace libfintx.FinTS.Statement
                     var dateStr = swiftData.Substring(0, 13) + ":" + swiftData.Substring(13, 2);
                     DateTimeOffset.TryParseExact(dateStr, "yyMMddHHmmzzz", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTimeOffset dateTimeOffset);
 
-                    SWIFTStatement.CreationDate = dateTimeOffset.DateTime;
+                    CurrentSwiftStatement.CreationDate = dateTimeOffset.DateTime;
                 }
                 else
                 {
                     DateTime.TryParseExact(swiftData, "yyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime creationDate);
 
-                    SWIFTStatement.CreationDate = creationDate;
+                    CurrentSwiftStatement.CreationDate = creationDate;
                 }
             }
             else if (swiftTag == "90D" || swiftTag == "90C")
             {
                 bool debit = swiftTag == "90D";
-                bool previousTag90d = !debit && SWIFTStatement == null; // Previous tag has been 90D
+                bool previousTag90d = !debit && CurrentSwiftStatement == null; // Previous tag has been 90D
 
                 if (previousTag90d)
-                    SWIFTStatement = SWIFTStatements.LastOrDefault();
+                    CurrentSwiftStatement = PreviousSwiftStatement;
 
-                if (SWIFTStatement == null)
-                    return;
+                if (CurrentSwiftStatement == null)
+                    yield break;
 
                 int count = 0;
                 decimal amount = 0;
@@ -540,30 +554,36 @@ namespace libfintx.FinTS.Statement
                     decimal.TryParse(match.Groups[3].Value, NumberStyles.Number | NumberStyles.AllowDecimalPoint, CultureInfo.GetCultureInfo("de-DE"), out amount);
                 }
 
-                if (SWIFTStatement.Currency == null)
-                    SWIFTStatement.Currency = currency;
+                if (CurrentSwiftStatement.Currency == null)
+                    CurrentSwiftStatement.Currency = currency;
 
                 if (debit)
                 {
-                    SWIFTStatement.CountDebit = count;
-                    SWIFTStatement.AmountDebit = amount * -1;
+                    CurrentSwiftStatement.CountDebit = count;
+                    CurrentSwiftStatement.AmountDebit = amount * -1;
                 }
                 else
                 {
-                    SWIFTStatement.CountCredit = count;
-                    SWIFTStatement.AmountCredit = amount;
+                    CurrentSwiftStatement.CountCredit = count;
+                    CurrentSwiftStatement.AmountCredit = amount;
                 }
 
                 if (debit)
                 {
-                    SWIFTStatements.Add(SWIFTStatement);
-                    SWIFTStatement = null;
+                    FinalizeStatement(CurrentSwiftStatement);
+                    yield return CurrentSwiftStatement;
+                    PreviousSwiftStatement = CurrentSwiftStatement;
+                    CurrentSwiftStatement = null;
                 }
                 else
                 {
                     if (!previousTag90d)
-                        SWIFTStatements.Add(SWIFTStatement);
-                    SWIFTStatement = null;
+                    {
+                        FinalizeStatement(CurrentSwiftStatement);
+                        yield return CurrentSwiftStatement;
+                        PreviousSwiftStatement = CurrentSwiftStatement;
+                    }
+                    CurrentSwiftStatement = null;
                 }
             }
             // End MT942
@@ -571,7 +591,119 @@ namespace libfintx.FinTS.Statement
             else
             {
                 // Unknown tag
+                yield break;
+            }
+        }
+
+        private void FinalizeStatement(SwiftStatement statement)
+        {
+            // Process missing input dates
+            foreach (var tx in statement.SwiftTransactions)
+            {
+                if (tx.InputDate == default)
+                {
+                    tx.InputDate = statement.EndDate;
+                }
+            }
+
+            // Set pending
+            if (SetPending)
+            {
+                statement.Pending = true;
+            }
+
+            // Parse SEPA purposes
+            foreach (var tx in statement.SwiftTransactions)
+            {
+                if (string.IsNullOrWhiteSpace(tx.Description))
+                    continue;
+
+                // Collect all occuring SEPA purposes ordered by their position
+                var indices = new List<Tuple<int, SepaPurpose>>();
+                foreach (SepaPurpose sepaPurpose in Enum.GetValues(typeof(SepaPurpose)))
+                {
+                    string prefix = $"{sepaPurpose}+";
+                    var idx = tx.Description.IndexOf(prefix);
+                    if (idx >= 0)
+                    {
+                        indices.Add(Tuple.Create(idx, sepaPurpose));
+                    }
+                }
+                indices = indices.OrderBy(v => v.Item1).ToList();
+
+                // Then get the values
+                for (int i = 0; i < indices.Count; i++)
+                {
+                    var beginIdx = indices[i].Item1 + $"{indices[i].Item2}+".Length;
+                    var endIdx = i < indices.Count - 1 ? indices[i + 1].Item1 : tx.Description.Length;
+
+                    var value = tx.Description.Substring(beginIdx, endIdx - beginIdx);
+                    tx.SepaPurposes[indices[i].Item2] = value;
+                }
+            }
+
+            TraceSwiftStatement(statement);
+        }
+
+        private void TraceSwiftStatement(SwiftStatement statement)
+        {
+            if (!Trace.Enabled)
                 return;
+
+            string dir = FinTsGlobals.ProgramBaseDir;
+            dir = Path.Combine(dir, "MT940");
+
+            var ID = statement.Id;
+            var AccountCode = statement.AccountCode;
+            var BanksortCode = statement.BankCode;
+            var Currency = statement.Currency;
+            var StartDate = $"{statement.StartDate:d}";
+            var StartBalance = statement.StartBalance.ToString();
+            var EndDate = $"{statement.EndDate:d}";
+            var EndBalance = statement.EndBalance.ToString();
+
+            foreach (SwiftTransaction transaction in statement.SwiftTransactions)
+            {
+                var PartnerName = transaction.PartnerName;
+                var AccountCode_ = transaction.AccountCode;
+                var BankCode = transaction.BankCode;
+                var Description = transaction.Description;
+                var Text = transaction.Text;
+                var TypeCode = transaction.TypeCode;
+                var Amount = transaction.Amount.ToString();
+
+                var UMS = "++STARTUMS++" + "ID: " + ID + " ' " +
+                          "AccountCode: " + AccountCode + " ' " +
+                          "BanksortCode: " + BanksortCode + " ' " +
+                          "Currency: " + Currency + " ' " +
+                          "StartDate: " + StartDate + " ' " +
+                          "StartBalance: " + StartBalance + " ' " +
+                          "EndDate: " + EndDate + " ' " +
+                          "EndBalance: " + EndBalance + " ' " +
+                          "PartnerName: " + PartnerName + " ' " +
+                          "BankCode: " + BankCode + " ' " +
+                          "Description: " + Description + " ' " +
+                          "Text: " + Text + " ' " +
+                          "TypeCode: " + TypeCode + " ' " +
+                          "Amount: " + Amount + " ' " + "++ENDUMS++";
+
+                string filename_ = Path.Combine(dir, Helper.MakeFilenameValid(Account + "_" + DateTime.Now + ".MT940"));
+
+                if (!Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
+                // MT940
+                if (!File.Exists(filename_))
+                {
+                    using (File.Create(filename_))
+                    { };
+
+                    File.AppendAllText(filename_, UMS);
+                }
+                else
+                    File.AppendAllText(filename_, UMS);
             }
         }
 
@@ -602,7 +734,7 @@ namespace libfintx.FinTS.Statement
 
         private static void AssignDescriptionSubField(SwiftTransaction transaction, string value, ref string lastSubfield)
         {
-            string pattern = $@"^((?<designator>EREF|KREF|MREF|BREF|RREF|CRED|DEBT|COAM|OAMT|SVWZ|ABWA|ABWE|IBAN|BIC)\+)(?<content>.+)";
+            string pattern = @"^((?<designator>EREF|KREF|MREF|BREF|RREF|CRED|DEBT|COAM|OAMT|SVWZ|ABWA|ABWE|IBAN|BIC)\+)(?<content>.+)";
             Match result = Regex.Match(value, pattern);
             if (result.Success)
             {
@@ -615,42 +747,33 @@ namespace libfintx.FinTS.Statement
                 SetDescriptionSubField(lastSubfield, transaction, value);
         }
 
-        private static string Read(ref string Content)
+        private string _readLineCache = null;
+        private string ReadLine(StreamReader streamReader)
         {
-            Int32 counter;
-
-            for (counter = 0; counter < Content.Length; counter++)
+            string line;
+            if (_readLineCache != null)
             {
-                if ((Content[counter] == (char) 10) || (Content[counter] == (char) 13) || (Content[counter] == '@'))
-                {
-                    break;
-                }
-            }
-
-            string line = Content.Substring(0, counter);
-
-            if ((counter < Content.Length) && (Content[counter] == (char) 13))
-            {
-                counter++;
-            }
-
-            if ((counter < Content.Length) && (Content[counter] == (char) 10))
-            {
-                counter++;
-            }
-
-            while ((counter < Content.Length) && (Content[counter] == '@'))
-            {
-                counter++;
-            }
-
-            if (counter < Content.Length)
-            {
-                Content = Content.Substring(counter);
+                line = _readLineCache;
+                _readLineCache = null;
             }
             else
             {
-                Content = String.Empty;
+                line = streamReader.ReadLine();
+            }
+
+            if (line == null)
+                return string.Empty;
+
+            var index = line.IndexOf('@');
+            if (index >= 0)
+            {
+                var newLine = line.Substring(0, index);
+                if (line.Length - 1 > index)
+                {
+                    _readLineCache = line.Substring(index);
+                }
+
+                line = newLine;
             }
 
             line = line.Replace("™", "Ö");
@@ -666,7 +789,98 @@ namespace libfintx.FinTS.Statement
         }
 
         /// <summary>
-        /// Serializes a MT940 statement into a <see cref="SWIFTStatement"/> class object.
+        /// Deserializes a MT940 statement into <see cref="SwiftStatement"/> objects.
+        /// </summary>
+        /// <param name="stream">
+        /// The MT940 statement as stream.
+        /// </param>
+        /// <returns></returns>
+        public IEnumerable<SwiftStatement> Deserialize(Stream stream)
+        {
+            PreviousSwiftStatement = null;
+            CurrentSwiftStatement = null;
+
+            var swiftRegex = new Regex(@"^:[\w]+:", RegexOptions.Compiled);
+            string swiftTag = "";
+            string swiftData = "";
+            using (var sr = new StreamReader(stream))
+            {
+                while (!sr.EndOfStream)
+                {
+                    string line = ReadLine(sr);
+
+                    if (line.Trim() == "-") // end of block
+                    {
+                        // Process previously read swift chunk
+                        if (swiftTag.Length > 0)
+                        {
+                            foreach (var statement in Data(swiftTag, swiftData))
+                            {
+                                yield return statement;
+                            }
+                        }
+
+                        swiftTag = string.Empty;
+                        swiftData = string.Empty;
+                        continue;
+                    }
+
+                    if (line.Length > 0)
+                    {
+                        // A swift chunk starts with a swiftTag, which is between colons
+                        if (swiftRegex.IsMatch(line))
+                        {
+                            // Process previously read swift chunk
+                            if (swiftTag.Length > 0)
+                            {
+                                foreach (var statement in Data(swiftTag, swiftData))
+                                {
+                                    yield return statement;
+                                }
+                            }
+
+                            int posColon = line.IndexOf(":", 2);
+
+                            swiftTag = line.Substring(1, posColon - 1);
+                            swiftData = line.Substring(posColon + 1);
+                        }
+                        else
+                        {
+                            // The swift chunk is spread over several lines
+                            swiftData = swiftData + "\r\n" + line;
+                        }
+                    }
+                }
+            }
+
+            if (swiftTag.Length > 0)
+            {
+                foreach (var statement in Data(swiftTag, swiftData))
+                {
+                    yield return statement;
+                }
+            }
+
+            // If there are remaining unprocessed statements - add them
+            if (CurrentSwiftStatement != null)
+            {
+                FinalizeStatement(CurrentSwiftStatement);
+                yield return CurrentSwiftStatement;
+                CurrentSwiftStatement = null;
+            }
+
+            PreviousSwiftStatement = null;
+        }
+    }
+
+    /// <summary>
+    /// MT940 account statement parser
+    /// </summary>
+    // ReSharper disable once InconsistentNaming
+    public static class MT940
+    {
+        /// <summary>
+        /// Serializes a MT940 statement into a <see cref="SwiftStatement"/> class object.
         /// </summary>
         /// <param name="STA">
         /// The raw text of the MT940 statement.
@@ -682,221 +896,98 @@ namespace libfintx.FinTS.Statement
         /// <exception cref="ArgumentNullException">
         /// Is thrown when <paramref name="writeToFile"/> is <c>true</c> and <paramref name="account"/> is <c>null</c>.
         /// </exception>
+        [Obsolete("Please use MT940.Deserialize(...) instead. For parameter writeToFile, use MT940.WriteToFile(...).")]
         public static List<SwiftStatement> Serialize(string STA, string account = null, bool writeToFile = false, bool pending = false)
         {
-            if (writeToFile)
+            if (writeToFile && account == null)
             {
-                if (account == null)
-                    throw new ArgumentNullException(nameof(account));
+                throw new ArgumentNullException(nameof(account));
             }
 
-            int LineCounter = 0;
+            var mt940Parser = new MT940Parser(pending, account);
 
-            string swiftTag = "";
-            string swiftData = "";
+            if (string.IsNullOrEmpty(STA))
+                return new List<SwiftStatement>();
 
-            SWIFTStatements = new List<SwiftStatement>();
-            SWIFTStatement = null;
+            var memStream = new MemoryStream(Encoding.UTF8.GetBytes(STA));
+            return mt940Parser.Deserialize(memStream).ToList();
+        }
 
-            if (STA == null || STA.Length == 0)
-                return SWIFTStatements;
+        /// <summary>
+        /// Writes a MT940 statement into the library own folder for further use.
+        /// </summary>
+        /// <param name="sta">
+        /// The raw text of the MT940 statement.
+        /// </param>
+        /// <param name="account">
+        /// The account name.
+        /// </param>
+        public static void WriteToFile(string sta, string account)
+        {
+            string dir = FinTsGlobals.ProgramBaseDir;
 
-            string dir = null;
-            if (writeToFile)
+            dir = Path.Combine(dir, "STA");
+
+            string filename = Path.Combine(dir, Helper.MakeFilenameValid(account + "_" + DateTime.Now + ".STA"));
+
+            if (!Directory.Exists(dir))
             {
-                dir = FinTsGlobals.ProgramBaseDir;
-
-                dir = Path.Combine(dir, "STA");
-
-                string filename = Path.Combine(dir, Helper.MakeFilenameValid(account + "_" + DateTime.Now + ".STA"));
-
-                if (!Directory.Exists(dir))
-                {
-                    Directory.CreateDirectory(dir);
-                }
-
-                // STA
-                if (!File.Exists(filename))
-                {
-                    using (File.Create(filename))
-                    { };
-
-                    File.AppendAllText(filename, STA);
-                }
-                else
-                    File.AppendAllText(filename, STA);
+                Directory.CreateDirectory(dir);
             }
 
-            while (STA.Length > 0)
+            // STA
+            if (!File.Exists(filename))
             {
-                string line = Read(ref STA);
+                using (File.Create(filename))
+                { };
 
-                LineCounter++;
-
-                if (line.Trim() == "-") // end of block
-                {
-                    // Process previously read swift chunk
-                    if (swiftTag.Length > 0)
-                    {
-                        Data(swiftTag, swiftData);
-                    }
-
-                    swiftTag = string.Empty;
-                    swiftData = string.Empty;
-                    continue;
-                }
-
-                if (line.Length > 0)
-                {
-                    // A swift chunk starts with a swiftTag, which is between colons
-                    if (Regex.IsMatch(line, @"^:[\w]+:"))
-                    {
-                        // Process previously read swift chunk
-                        if (swiftTag.Length > 0)
-                        {
-                            Data(swiftTag, swiftData);
-                        }
-
-                        int posColon = line.IndexOf(":", 2);
-
-                        swiftTag = line.Substring(1, posColon - 1);
-                        swiftData = line.Substring(posColon + 1);
-                    }
-                    else
-                    {
-                        // The swift chunk is spread over several lines
-                        swiftData = swiftData + "\r\n" + line;
-                    }
-                }
+                File.AppendAllText(filename, sta);
             }
+            else
+                File.AppendAllText(filename, sta);
+        }
 
-            if (swiftTag.Length > 0)
-            {
-                Data(swiftTag, swiftData);
-            }
+        /// <summary>
+        /// Deserializes a MT940 statement into a <see cref="SwiftStatement"/> class objects.
+        /// </summary>
+        /// <param name="sta">
+        /// The raw text of the MT940 statement.
+        /// </param>
+        /// <param name="account">
+        /// The account name. Only required when tracing is activated.
+        /// </param>
+        /// <param name="pending">
+        /// If the Swift statements shall be marked as pending.
+        /// </param>
+        /// <returns>
+        /// A enumerable object returning a list of swift statements from the MT940 statement.
+        /// </returns>
+        public static IEnumerable<SwiftStatement> Deserialize(string sta, string account = null, bool pending = false)
+        {
+            var mt940Parser = new MT940Parser(pending, account);
+            var memStream = new MemoryStream(Encoding.UTF8.GetBytes(sta));
+            return mt940Parser.Deserialize(memStream);
+        }
 
-            // If there are remaining unprocessed statements - add them
-            if (SWIFTStatement != null)
-            {
-                SWIFTStatements.Add(SWIFTStatement);
-
-                // Process missing input dates
-                foreach (var tx in SWIFTStatement.SwiftTransactions)
-                {
-                    if (tx.InputDate == default)
-                    {
-                        tx.InputDate = SWIFTStatement.EndDate;
-                    }
-                }
-
-                SWIFTStatement = null;
-            }
-
-            // Set pending
-            if (pending)
-            {
-                foreach (var stmt in SWIFTStatements)
-                {
-                    stmt.Pending = true;
-                }
-            }
-
-            // Parse SEPA purposes
-            foreach (var stmt in SWIFTStatements)
-            {
-                foreach (var tx in stmt.SwiftTransactions)
-                {
-                    if (string.IsNullOrWhiteSpace(tx.Description))
-                        continue;
-
-                    // Collect all occuring SEPA purposes ordered by their position
-                    List<Tuple<int, SepaPurpose>> indices = new List<Tuple<int, SepaPurpose>>();
-                    foreach (SepaPurpose sepaPurpose in Enum.GetValues(typeof(SepaPurpose)))
-                    {
-                        string prefix = $"{sepaPurpose}+";
-                        var idx = tx.Description.IndexOf(prefix);
-                        if (idx >= 0)
-                        {
-                            indices.Add(Tuple.Create(idx, sepaPurpose));
-                        }
-                    }
-                    indices = indices.OrderBy(v => v.Item1).ToList();
-
-                    // Then get the values
-                    for (int i = 0; i < indices.Count; i++)
-                    {
-                        var beginIdx = indices[i].Item1 + $"{indices[i].Item2}+".Length;
-                        var endIdx = i < indices.Count - 1 ? indices[i + 1].Item1 : tx.Description.Length;
-
-                        var value = tx.Description.Substring(beginIdx, endIdx - beginIdx);
-                        tx.SepaPurposes[indices[i].Item2] = value;
-                    }
-                }
-            }
-
-            if (Trace.Enabled)
-            {
-                foreach (SwiftStatement statement in SWIFTStatements)
-                {
-                    var ID = statement.Id;
-                    var AccountCode = statement.AccountCode;
-                    var BanksortCode = statement.BankCode;
-                    var Currency = statement.Currency;
-                    var StartDate = $"{statement.StartDate:d}";
-                    var StartBalance = statement.StartBalance.ToString();
-                    var EndDate = $"{statement.EndDate:d}";
-                    var EndBalance = statement.EndBalance.ToString();
-
-                    foreach (SwiftTransaction transaction in statement.SwiftTransactions)
-                    {
-                        var PartnerName = transaction.PartnerName;
-                        var AccountCode_ = transaction.AccountCode;
-                        var BankCode = transaction.BankCode;
-                        var Description = transaction.Description;
-                        var Text = transaction.Text;
-                        var TypeCode = transaction.TypeCode;
-                        var Amount = transaction.Amount.ToString();
-
-                        var UMS = "++STARTUMS++" + "ID: " + ID + " ' " +
-                            "AccountCode: " + AccountCode + " ' " +
-                            "BanksortCode: " + BanksortCode + " ' " +
-                            "Currency: " + Currency + " ' " +
-                            "StartDate: " + StartDate + " ' " +
-                            "StartBalance: " + StartBalance + " ' " +
-                            "EndDate: " + EndDate + " ' " +
-                            "EndBalance: " + EndBalance + " ' " +
-                            "PartnerName: " + PartnerName + " ' " +
-                            "BankCode: " + BankCode + " ' " +
-                            "Description: " + Description + " ' " +
-                            "Text: " + Text + " ' " +
-                            "TypeCode: " + TypeCode + " ' " +
-                            "Amount: " + Amount + " ' " + "++ENDUMS++";
-
-                        dir = FinTsGlobals.ProgramBaseDir;
-                        dir = Path.Combine(dir, "MT940");
-
-                        string filename_ = Path.Combine(dir, Helper.MakeFilenameValid(account + "_" + DateTime.Now + ".MT940"));
-
-                        if (!Directory.Exists(dir))
-                        {
-                            Directory.CreateDirectory(dir);
-                        }
-
-                        // MT940
-                        if (!File.Exists(filename_))
-                        {
-                            using (File.Create(filename_))
-                            { };
-
-                            File.AppendAllText(filename_, UMS);
-                        }
-                        else
-                            File.AppendAllText(filename_, UMS);
-                    }
-                }
-            }
-
-            return SWIFTStatements;
+        /// <summary>
+        /// Deserializes a MT940 statement into a <see cref="SwiftStatement"/> class objects.
+        /// </summary>
+        /// <param name="stream">
+        /// A stream providing the MT940 statement.
+        /// </param>
+        /// <param name="account">
+        /// The account name. Only required when tracing is activated.
+        /// </param>
+        /// <param name="pending">
+        /// If the Swift statements shall be marked as pending.
+        /// </param>
+        /// <returns>
+        /// A enumerable object returning a list of swift statements from the MT940 statement.
+        /// </returns>
+        public static IEnumerable<SwiftStatement> Deserialize(Stream stream, string account = null, bool pending = false)
+        {
+            var mt940Parser = new MT940Parser(pending, account);
+            return mt940Parser.Deserialize(stream);
         }
     }
 }

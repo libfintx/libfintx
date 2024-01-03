@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO;
+using System.Linq;
 using libfintx.FinTS.Statement;
 using Xunit;
 
@@ -24,7 +24,7 @@ namespace libfintx.Tests
 XX?31DE12100500000123456789?32Mustermann, Max
 :62F:C191204EUR88,45
 ";
-            var result = MT940.Serialize(mt940, "123456789");
+            var result = MT940.Deserialize(mt940, "123456789").ToList();
 
             Assert.Single(result);
 
@@ -79,7 +79,7 @@ XX?31DE12100500000123456789?32Mustermann, Max
 LEBENSVERSICHERUNG
 :62F:C191129EUR3996,61
 ";
-            var result = MT940.Serialize(mt940, "123456789");
+            var result = MT940.Deserialize(mt940, "123456789").ToList();
 
             Assert.Single(result);
 
@@ -133,7 +133,7 @@ RED+DE20ZZZ00000013480?23SVWZ+123456, BelNr. 123456?24FAX.de A?30
 NOLADE21HAM?31DE71207500000060017852?32FAX.de GmbH?34992
 :62F:C191206EUR11559,66
 ";
-            var result = MT940.Serialize(mt940, "123456789");
+            var result = MT940.Deserialize(mt940, "123456789").ToList();
 
             Assert.Single(result);
 
@@ -193,7 +193,7 @@ Folgenr. 03 Verfalld. 2312?30WELADEDDXXX?31DE38300500000001107713
 ?32SATURN SAGT DANKE.?34011
 :62F:C191209EUR2546,20
 ";
-            var result = MT940.Serialize(mt940, "123456789");
+            var result = MT940.Deserialize(mt940, "123456789").ToList();
 
             Assert.Single(result);
 
@@ -246,7 +246,7 @@ BANKREFCTC191101IST000002400296725
 DEMM488?31DE16100208900001234567?32MUSTERMANN MAX
 :62F:C191101EUR22102,2
 ";
-            var result = MT940.Serialize(mt940, "123456789");
+            var result = MT940.Deserialize(mt940, "123456789").ToList();
 
             Assert.Single(result);
 
@@ -301,7 +301,7 @@ REF+4927411196?22SVWZ+RNr. 20190930001 RDat.?23 30.09.2019 KNr. C
 FEE GmbH?34997
 :62F:C190930EUR8172,21
 ";
-            var result = MT940.Serialize(mt940, "123456789");
+            var result = MT940.Deserialize(mt940, "123456789").ToList();
 
             Assert.Single(result);
 
