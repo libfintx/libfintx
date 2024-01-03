@@ -40,7 +40,6 @@
     <ProjectReference Include="..\libfintx.Logger\libfintx.Logger.csproj" />
     <ProjectReference Include="..\libfintx.Security\libfintx.Security.csproj" />
     <ProjectReference Include="..\libfintx.Sepa\libfintx.Sepa.csproj" />
-    <ProjectReference Include="..\libfintx.Settings\libfintx.Settings.csproj" />
     <ProjectReference Include="..\libfintx.Xml\libfintx.Xml.csproj" />
   </ItemGroup>
 

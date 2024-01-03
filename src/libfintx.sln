@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29609.76
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34322.80
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libfintx", "libfintx\libfintx.csproj", "{7F69841C-B99E-4236-AE26-5B6AD0538AE6}"
 EndProject
@@ -9,11 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libfintx.Tests", "libfintx.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libfintx.Sample", "libfintx.Sample\libfintx.Sample.csproj", "{71728BA6-08B3-48AC-B8B2-B4D140773FA7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libfintx.Sample.Ui", "libfintx.Sample.Ui\libfintx.Sample.Ui.csproj", "{8C0B1658-3195-44D3-AB86-48EF6B66DB81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libfintx.Sample.Ui", "libfintx.Sample.Ui\libfintx.Sample.Ui.csproj", "{8C0B1658-3195-44D3-AB86-48EF6B66DB81}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libfintx.Sample.Database", "libfintx.Sample.Database\libfintx.Sample.Database.csproj", "{989B7A9B-CBB4-4060-AA13-02FC6A6F8A21}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libfintx.Samples.INIFile", "libfintx.Samples.INIFile\libfintx.Samples.INIFile.csproj", "{2E3A7696-0503-47B3-871C-0A0E6917A2E1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libfintx.Sample.Database", "libfintx.Sample.Database\libfintx.Sample.Database.csproj", "{989B7A9B-CBB4-4060-AA13-02FC6A6F8A21}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libfintx.EBICS", "libfintx.EBICS\libfintx.EBICS.csproj", "{C9569ABE-5D31-4B31-AEB0-C8737CFF0088}"
 EndProject
@@ -25,17 +23,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libfintx.Security", "libfin
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libfintx.FinTS", "libfintx.FinTS\libfintx.FinTS.csproj", "{8224A286-F80B-4A70-AD12-506E785C9523}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libfintx.Settings", "libfintx.Settings\libfintx.Settings.csproj", "{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libfintx.Database", "libfintx.Database\libfintx.Database.csproj", "{301DFD17-58A8-4692-94E5-277319C82865}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libfintx.Sepa", "libfintx.Sepa\libfintx.Sepa.csproj", "{2025E5A8-0D07-4A83-95AA-D2B94D13A8B3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libfintx.FinTSConfig", "libfintx.FinTSConfig\libfintx.FinTSConfig.csproj", "{30DE3EB4-CAC7-44AE-B6E0-339DF98DB0C0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libfintx.FinTSConfig", "libfintx.FinTSConfig\libfintx.FinTSConfig.csproj", "{30DE3EB4-CAC7-44AE-B6E0-339DF98DB0C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libfintx.Logger", "libfintx.Logger\libfintx.Logger.csproj", "{FD5E2682-23CB-4999-89E6-1870E3DC6AD7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libfintx.Logger", "libfintx.Logger\libfintx.Logger.csproj", "{FD5E2682-23CB-4999-89E6-1870E3DC6AD7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libfintx.Globals", "libfintx.Globals\libfintx.Globals.csproj", "{92C45F76-57B3-4C47-9414-6E4ACB15C44E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libfintx.Globals", "libfintx.Globals\libfintx.Globals.csproj", "{92C45F76-57B3-4C47-9414-6E4ACB15C44E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -173,30 +169,6 @@ Global
 		{989B7A9B-CBB4-4060-AA13-02FC6A6F8A21}.Release|iPhone.Build.0 = Release|Any CPU
 		{989B7A9B-CBB4-4060-AA13-02FC6A6F8A21}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
 		{989B7A9B-CBB4-4060-AA13-02FC6A6F8A21}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Ad-Hoc|Any CPU.ActiveCfg = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Ad-Hoc|Any CPU.Build.0 = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Ad-Hoc|iPhone.ActiveCfg = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Ad-Hoc|iPhone.Build.0 = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Ad-Hoc|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Ad-Hoc|iPhoneSimulator.Build.0 = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.AppStore|Any CPU.ActiveCfg = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.AppStore|Any CPU.Build.0 = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.AppStore|iPhone.ActiveCfg = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.AppStore|iPhone.Build.0 = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.AppStore|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.AppStore|iPhoneSimulator.Build.0 = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Debug|iPhone.ActiveCfg = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Debug|iPhone.Build.0 = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Release|iPhone.ActiveCfg = Release|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Release|iPhone.Build.0 = Release|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
-		{2E3A7696-0503-47B3-871C-0A0E6917A2E1}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 		{C9569ABE-5D31-4B31-AEB0-C8737CFF0088}.Ad-Hoc|Any CPU.ActiveCfg = Debug|Any CPU
 		{C9569ABE-5D31-4B31-AEB0-C8737CFF0088}.Ad-Hoc|Any CPU.Build.0 = Debug|Any CPU
 		{C9569ABE-5D31-4B31-AEB0-C8737CFF0088}.Ad-Hoc|iPhone.ActiveCfg = Debug|Any CPU
@@ -317,30 +289,6 @@ Global
 		{8224A286-F80B-4A70-AD12-506E785C9523}.Release|iPhone.Build.0 = Release|Any CPU
 		{8224A286-F80B-4A70-AD12-506E785C9523}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
 		{8224A286-F80B-4A70-AD12-506E785C9523}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Ad-Hoc|Any CPU.ActiveCfg = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Ad-Hoc|Any CPU.Build.0 = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Ad-Hoc|iPhone.ActiveCfg = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Ad-Hoc|iPhone.Build.0 = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Ad-Hoc|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Ad-Hoc|iPhoneSimulator.Build.0 = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.AppStore|Any CPU.ActiveCfg = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.AppStore|Any CPU.Build.0 = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.AppStore|iPhone.ActiveCfg = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.AppStore|iPhone.Build.0 = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.AppStore|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.AppStore|iPhoneSimulator.Build.0 = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Debug|iPhone.ActiveCfg = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Debug|iPhone.Build.0 = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Release|iPhone.ActiveCfg = Release|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Release|iPhone.Build.0 = Release|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
-		{1B2B651B-B212-4576-AFA5-2318B4A8DDFF}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 		{301DFD17-58A8-4692-94E5-277319C82865}.Ad-Hoc|Any CPU.ActiveCfg = Debug|Any CPU
 		{301DFD17-58A8-4692-94E5-277319C82865}.Ad-Hoc|Any CPU.Build.0 = Debug|Any CPU
 		{301DFD17-58A8-4692-94E5-277319C82865}.Ad-Hoc|iPhone.ActiveCfg = Debug|Any CPU

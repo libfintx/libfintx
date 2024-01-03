@@ -40,8 +40,5 @@
     <ProjectReference Include="..\libfintx.Sepa\libfintx.Sepa.csproj">
       <ReferenceSourceTarget></ReferenceSourceTarget>
     </ProjectReference>
-    <ProjectReference Include="..\libfintx.Settings\libfintx.Settings.csproj">
-      <ReferenceSourceTarget></ReferenceSourceTarget>
-    </ProjectReference>
   </ItemGroup>
 </Project>
