@@ -56,23 +56,23 @@ namespace libfintx.FinTS.Statement
             Account = account;
         }
 
-        private List<SwiftStatement> SWIFTStatements = new List<SwiftStatement>();
+        private readonly List<SwiftStatement> SWIFTStatements = new List<SwiftStatement>();
         private SwiftStatement SWIFTStatement = null;
 
         public string Account { get; } = null;
         public bool SetPending { get; }= false;
 
-        private static string LTrim(string Code)
+        private static string LTrim(string code)
         {
             // Cut off leading zeros
             try
             {
-                return Convert.ToInt64(Code).ToString();
+                return Convert.ToInt64(code).ToString();
             }
             catch (Exception)
             {
                 // IBAN or BIC
-                return Code;
+                return code;
             }
         }
 
@@ -226,7 +226,7 @@ namespace libfintx.FinTS.Statement
                 if (Regex.IsMatch(swiftData, @"^.+N"))
                 {
                     // Debit or credit, or storno debit or credit
-                    int debitCreditIndicator = 0;
+                    int debitCreditIndicator;
                     if (swiftData[0] == 'R')
                     {
                         // Storno means: reverse the debit credit flag
@@ -874,10 +874,9 @@ namespace libfintx.FinTS.Statement
         [Obsolete("Please use MT940.Deserialize(...) instead. For parameter writeToFile, use MT940.WriteToFile(...).")]
         public static List<SwiftStatement> Serialize(string STA, string account = null, bool writeToFile = false, bool pending = false)
         {
-            if (writeToFile)
+            if (writeToFile && account == null)
             {
-                if (account == null)
-                    throw new ArgumentNullException(nameof(account));
+                throw new ArgumentNullException(nameof(account));
             }
 
             var mt940Parser = new MT940Parser(pending, account);
@@ -900,8 +899,7 @@ namespace libfintx.FinTS.Statement
         /// </param>
         public static void WriteToFile(string sta, string account)
         {
-            string dir = null;
-            dir = FinTsGlobals.ProgramBaseDir;
+            string dir = FinTsGlobals.ProgramBaseDir;
 
             dir = Path.Combine(dir, "STA");
 
