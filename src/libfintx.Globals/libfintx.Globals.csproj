@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net6.0;net8.0</TargetFrameworks>
     <RootNamespace>libfintx.Globals</RootNamespace>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <Authors>Torsten Klinger</Authors>
     <Description>Globals for libfintx</Description>
     <Copyright>Copyright © 2016 - 2024 Torsten Klinger</Copyright>
