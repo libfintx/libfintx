@@ -48,7 +48,11 @@ jobs:
       uses: actions/upload-artifact@v4.3.1
       with:
         name: Nuget Packages
-        path: ./out/*.nupkg
+        path: |
+          ./out/libfintx.FinTS.*.nupkg
+          ./out/libfintx.Globals.*.nupkg
+          ./out/libfintx.Logger.*.nupkg
+          ./out/libfintx.Sepa.*.nupkg
       if: ${{ matrix.is_release }}
 
   publish:

@@ -2,6 +2,15 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net6.0;net8.0</TargetFrameworks>
+    <Company>libfintx Community</Company>
+    <Description>C# based client library for HBCI 2.2, FinTS 3.0, EBICS H004 and EBICS H005.</Description>
+    <Copyright>Copyright © 2016 - 2022 Torsten Klinger</Copyright>
+    <Version>1.0.0</Version>
+    <Authors>Torsten Klinger</Authors>
+    <RepositoryUrl>https://github.com/libfintx/libfintx</RepositoryUrl>
+    <PackageTags>hbci, fints, banking, account, balance, transfer-money, banking-api, android, ios, mobile-banking</PackageTags>
+    <PackageProjectUrl>https://github.com/libfintx/libfintx</PackageProjectUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
 </Project>
