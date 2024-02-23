@@ -3,7 +3,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>libfintx_test</RootNamespace>
     <AssemblyName>libfintx_test</AssemblyName>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
