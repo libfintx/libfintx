@@ -33,13 +33,13 @@ jobs:
       run: dotnet restore ${{ env.DOTNET_SOLUTION_PATH }}
 
     - name: Build solution
-      run: dotnet build --no-restore -c $env:Configuration ${{ env.DOTNET_SOLUTION_PATH }}
+      run: dotnet build --no-restore -c ${{ matrix.configuration }} ${{ env.DOTNET_SOLUTION_PATH }}
 
     - name: Run Tests
       run: dotnet test --no-build --verbosity normal ${{ env.DOTNET_SOLUTION_PATH }}
 
     - name: Generate NuGet package
-      run: dotnet pack -c $env:Configuration -o out
+      run: dotnet pack -c ${{ matrix.configuration }} -o out
       env:
         Configuration: ${{ matrix.configuration }}
       if: ${{ matrix.is_release }}
