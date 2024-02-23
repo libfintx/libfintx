@@ -36,7 +36,7 @@ jobs:
       run: dotnet build --no-restore -c ${{ matrix.configuration }} ${{ env.DOTNET_SOLUTION_PATH }}
 
     - name: Run Tests
-      run: dotnet test --no-build --verbosity normal ${{ env.DOTNET_SOLUTION_PATH }}
+      run: dotnet test --no-build --verbosity normal -c ${{ matrix.configuration }} ${{ env.DOTNET_SOLUTION_PATH }}
 
     - name: Generate NuGet package
       run: dotnet pack -c ${{ matrix.configuration }} -o out
