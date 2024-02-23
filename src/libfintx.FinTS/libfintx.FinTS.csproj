@@ -2,14 +2,21 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net6.0;net8.0</TargetFrameworks>
-    <Company>libfintx Community</Company>
-    <Description>C# based client library for HBCI 2.2, FinTS 3.0, EBICS H004 and EBICS H005.</Description>
-    <Copyright>Copyright © 2016 - 2022 Torsten Klinger</Copyright>
+    <RootNamespace>libfintx.FinTS</RootNamespace>
     <Version>1.0.0</Version>
     <Authors>Torsten Klinger</Authors>
-    <RepositoryUrl>https://github.com/libfintx/libfintx</RepositoryUrl>
-    <PackageTags>hbci, fints, banking, account, balance, transfer-money, banking-api, android, ios, mobile-banking</PackageTags>
+    <Description>C# based client library for HBCI 2.2, FinTS 3.0, EBICS H004 and EBICS H005.</Description>
+    <Copyright>Copyright © 2016 - 2024 Torsten Klinger</Copyright>
     <PackageProjectUrl>https://github.com/libfintx/libfintx</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>hbci, fints, banking, account, balance, transfer-money, banking-api, android, ios, mobile-banking</PackageTags>
+    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+    <PackageIcon>logo.png</PackageIcon>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- If all members are not documented, you can disable the compiler warnings -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <RepositoryUrl>https://github.com/libfintx/libfintx</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
@@ -22,6 +29,11 @@
     <ProjectReference Include="..\libfintx.Globals\libfintx.Globals.csproj" />
     <ProjectReference Include="..\libfintx.Logger\libfintx.Logger.csproj" />
     <ProjectReference Include="..\libfintx.Sepa\libfintx.Sepa.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="/" />
+    <None Include="..\..\res\logo.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>
