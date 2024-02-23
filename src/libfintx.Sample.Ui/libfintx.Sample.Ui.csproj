@@ -25,9 +25,6 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\libfintx.FinTSConfig\libfintx.FinTSConfig.csproj">
-      <ReferenceSourceTarget></ReferenceSourceTarget>
-    </ProjectReference>
     <ProjectReference Include="..\libfintx.FinTS\libfintx.FinTS.csproj">
       <ReferenceSourceTarget></ReferenceSourceTarget>
     </ProjectReference>
