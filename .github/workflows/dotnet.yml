@@ -6,8 +6,19 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  API_KEY: ${{ secrets.NUGET_PUBLISH_API_KEY }}
+  DOTNET_SOLUTION_PATH: ./src/libfintx.sln
+
 jobs:
   build:
+
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+        include:
+          - configuration: Release
+            is_release: true
 
     runs-on: ubuntu-latest
 
@@ -17,9 +28,46 @@ jobs:
       uses: actions/setup-dotnet@v4.0.0
       with:
         dotnet-version: 8.0.x
+
     - name: Restore dependencies
-      run: dotnet restore  ./src/libfintx.sln
-    - name: Build
-      run: dotnet build --no-restore ./src/libfintx.sln
-    - name: Test
-      run: dotnet test --no-build --verbosity normal ./src/libfintx.sln
+      run: dotnet restore ${{ env.DOTNET_SOLUTION_PATH }}
+
+    - name: Build solution
+      run: dotnet build --no-restore -c ${{ matrix.configuration }} ${{ env.DOTNET_SOLUTION_PATH }}
+
+    - name: Run Tests
+      run: dotnet test --no-build --verbosity normal -c ${{ matrix.configuration }} ${{ env.DOTNET_SOLUTION_PATH }}
+
+    - name: Generate NuGet package
+      run: dotnet pack -c ${{ matrix.configuration }} -o out ${{ env.DOTNET_SOLUTION_PATH }}
+      env:
+        Configuration: ${{ matrix.configuration }}
+      if: ${{ matrix.is_release }}
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        name: Nuget Packages
+        path: |
+          ./out/libfintx.FinTS.*.nupkg
+          ./out/libfintx.Globals.*.nupkg
+          ./out/libfintx.Logger.*.nupkg
+          ./out/libfintx.Sepa.*.nupkg
+      if: ${{ matrix.is_release }}
+
+  publish:
+    needs: build
+
+    if: github.event_name != 'pull_request'
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/download-artifact@v4.1.2
+      with:
+        name: Nuget Packages
+        path: ~/download/nuget_packages/
+
+    - name: Push generated package
+      if: env.API_KEY != ''
+      run: dotnet nuget push ./download/nuget_packages/*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ env.API_KEY }}
