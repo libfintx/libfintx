@@ -70,4 +70,4 @@ jobs:
 
     - name: Push generated package
       if: env.API_KEY != ''
-      run: dotnet nuget push ./download/nuget_packages/*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ env.API_KEY }}
+      run: dotnet nuget push ~/download/nuget_packages/*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ env.API_KEY }}
