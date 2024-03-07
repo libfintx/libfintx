@@ -32,7 +32,6 @@ using libfintx.EBICS.Parameters;
 using libfintx.EBICS.Responses;
 using libfintx.Xml;
 using System.IO;
-using Newtonsoft.Json.Linq;
 using System.Linq;
 
 namespace libfintx.EBICS.Commands
