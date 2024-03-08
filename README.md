@@ -24,7 +24,8 @@ There are many reasons why you need to use a banking library which can exchange 
 
 # Target platforms
 
-* .NET Standard 2.0
+* .NET Standard 2.0 (EBICS)
+* .NET 6.0+ (FinTS)
 
 # Sample
 
@@ -116,7 +117,7 @@ The verification process is done by using the default [**WebRequest**](https://m
 
 # Copyright & License
 
-Copyright (c) 2016 - 2023 **Torsten Klinger**
+Copyright (c) 2016 - 2024 **Torsten Klinger**
 
 Licensed under **GNU LESSER GENERAL PUBLIC LICENSE Version 3, 29 June 2007**. Please read the LICENSE file.
 
