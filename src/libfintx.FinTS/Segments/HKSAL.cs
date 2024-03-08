@@ -61,7 +61,7 @@ namespace libfintx.FinTS
 
             SEG sEG = new SEG();
 
-            if (client.HISALS >= 7 || !client.HISPAS_AccountNationalAllowed)
+            if (client.HISALS >= 7)
             {
                 StringBuilder sb = new StringBuilder();
                 sb.Append(activeAccount.AccountIban);

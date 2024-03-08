@@ -63,7 +63,7 @@ namespace libfintx.FinTS
             {
                 if (string.IsNullOrEmpty(Startpoint))
                 {
-                    if (client.HIKAZS < 7 && client.HISPAS_AccountNationalAllowed)
+                    if (client.HIKAZS < 7)
                     {
                         StringBuilder sb = new StringBuilder();
                         sb.Append(activeAccount.AccountNumber);
@@ -107,7 +107,7 @@ namespace libfintx.FinTS
                 }
                 else
                 {
-                    if (client.HIKAZS < 7 && client.HISPAS_AccountNationalAllowed)
+                    if (client.HIKAZS < 7)
                     {
                         StringBuilder sb = new StringBuilder();
                         sb.Append(activeAccount.AccountNumber);
@@ -162,7 +162,7 @@ namespace libfintx.FinTS
             {
                 if (string.IsNullOrEmpty(Startpoint))
                 {
-                    if (client.HIKAZS < 7 && client.HISPAS_AccountNationalAllowed)
+                    if (client.HIKAZS < 7)
                     {
                         StringBuilder sb = new StringBuilder();
                         sb.Append(activeAccount.AccountNumber);
@@ -225,7 +225,7 @@ namespace libfintx.FinTS
                 }
                 else
                 {
-                    if (client.HIKAZS < 7 && client.HISPAS_AccountNationalAllowed)
+                    if (client.HIKAZS < 7)
                     {
                         StringBuilder sb = new StringBuilder();
                         sb.Append(activeAccount.AccountNumber);
