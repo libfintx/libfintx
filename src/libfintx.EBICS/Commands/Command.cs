@@ -1,4 +1,4 @@
-﻿/*	
+/*	
  * 	
  *  This file is part of libfintx.
  *  
@@ -36,6 +36,14 @@ using libfintx.EBICS.Handler;
 using libfintx.EBICS.Responses;
 using libfintx.EBICSConfig;
 using libfintx.Xml;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Signers;
+using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Parameters;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using Org.BouncyCastle.Math;
 
 namespace libfintx.EBICS.Commands
 {
@@ -310,6 +318,63 @@ namespace libfintx.EBICS.Commands
             }
         }
 
+        private static AsymmetricKeyParameter TransformRSAPrivateKey(AsymmetricAlgorithm privateKey)
+        {
+            RSACryptoServiceProvider prov = privateKey as RSACryptoServiceProvider;
+            RSAParameters parameters = prov.ExportParameters(true);
+
+            return new RsaPrivateCrtKeyParameters(
+                new BigInteger(1, parameters.Modulus),
+                new BigInteger(1, parameters.Exponent),
+                new BigInteger(1, parameters.D),
+                new BigInteger(1, parameters.P),
+                new BigInteger(1, parameters.Q),
+                new BigInteger(1, parameters.DP),
+                new BigInteger(1, parameters.DQ),
+                new BigInteger(1, parameters.InverseQ));
+        }
+
+        // Der Nachrichteninhalt ist semantisch nicht EBICS-konform.
+        // Übertragung wird abgebrochen. EBICS-Returncode='[EBICS_INVALID_REQUEST_CONTENT] Message content semantically not compliant to EBICS',
+        // Fehlerbeschreibung='de.ppi.tcu.ebics.base.exceptions.InvalidEncryptionDataException: de.ppi.fis.travic.ebics.common.exceptions.InvalidCryptoDataException: javax.crypto.BadPaddingException: Invalid PKCS#1 padding: encrypted message and modulus lengths do not match!'
+        private static byte[] CreateSignature(byte[] data, AsymmetricKeyParameter privateKey, int keyLength)
+        {
+            var digest = new Sha256Digest();
+            var saltLength = keyLength - digest.GetDigestSize() - 2;
+
+            PssSigner signer = new PssSigner(new RsaEngine(), new Sha256Digest(), digest, saltLength);
+            signer.Init(true, new ParametersWithRandom((RsaPrivateCrtKeyParameters) privateKey));
+            signer.BlockUpdate(data, 0, data.Length);
+            return signer.GenerateSignature();
+        }
+
+        static AsymmetricKeyParameter GetPrivateKeyFromString(string privateKeyXml)
+        {
+            RSAParameters rsaParams = new RSAParameters();
+            using (RSACryptoServiceProvider rsaProvider = new RSACryptoServiceProvider())
+            {
+                rsaProvider.FromXmlString(privateKeyXml);
+                rsaParams.Modulus = rsaProvider.ExportParameters(true).Modulus;
+                rsaParams.Exponent = rsaProvider.ExportParameters(true).Exponent;
+                rsaParams.D = rsaProvider.ExportParameters(true).D;
+                rsaParams.P = rsaProvider.ExportParameters(true).P;
+                rsaParams.Q = rsaProvider.ExportParameters(true).Q;
+                rsaParams.DP = rsaProvider.ExportParameters(true).DP;
+                rsaParams.DQ = rsaProvider.ExportParameters(true).DQ;
+                rsaParams.InverseQ = rsaProvider.ExportParameters(true).InverseQ;
+            }
+
+            return new RsaPrivateCrtKeyParameters(
+                new BigInteger(1, rsaParams.Modulus),
+                new BigInteger(1, rsaParams.Exponent),
+                new BigInteger(1, rsaParams.D),
+                new BigInteger(1, rsaParams.P),
+                new BigInteger(1, rsaParams.Q),
+                new BigInteger(1, rsaParams.DP),
+                new BigInteger(1, rsaParams.DQ),
+                new BigInteger(1, rsaParams.InverseQ));
+        }
+
         protected byte[] SignData(byte[] data, SignKeyPair kp)
         {
             if (kp.Version == SignVersion.A005)
@@ -318,10 +383,16 @@ namespace libfintx.EBICS.Commands
             }
             else if (kp.Version == SignVersion.A006)
             {
-                return kp.PrivateKey.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
+                AsymmetricKeyParameter privateKey = null;
+                using (RSACryptoServiceProvider rsaProvider = new RSACryptoServiceProvider())
+                {
+                    string privateKeyXml = kp.PrivateKey.ToXmlString(true);
+                    privateKey = GetPrivateKeyFromString(privateKeyXml);
+                }
+                return CreateSignature(data, privateKey, kp.PrivateKey.KeySize);
             }
             else
-                throw new CryptographicException($"Only signature version {SignVersion.A005} is supported right now");
+                throw new CryptographicException($"Only signature version {SignVersion.A005} and is {SignVersion.A006}supported right now");
 
         }
 
