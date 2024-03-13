@@ -60,7 +60,7 @@ namespace libfintx.Tests
                 Blz = 76061482,
                 Bic = "GENODEF1HSB",
                 Iban = "xxx",
-                Url = "https://hbci11.fiducia.de/cgi-bin/hbciservlet",
+                Url = "https://fints2.atruvia.de/cgi-bin/hbciservlet",
                 HbciVersion = 300,
                 UserId = "xxx",
                 Pin = "xxx"
@@ -207,7 +207,7 @@ namespace libfintx.Tests
                 Blz = 76061482,
                 BIC = "GENODEF1HSB",
                 IBAN = "xxx",
-                Url = "https://hbci11.fiducia.de/cgi-bin/hbciservlet",
+                Url = "https://fints2.atruvia.de/cgi-bin/hbciservlet",
                 HBCIVersion = 300,
                 UserId = "xxx",
                 Pin = "xxx"
