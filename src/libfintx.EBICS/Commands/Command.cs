@@ -36,9 +36,6 @@ using libfintx.EBICS.Handler;
 using libfintx.EBICS.Responses;
 using libfintx.EBICSConfig;
 using libfintx.Xml;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
 
 namespace libfintx.EBICS.Commands
 {
@@ -316,36 +313,6 @@ namespace libfintx.EBICS.Commands
         // Der Nachrichteninhalt ist semantisch nicht EBICS-konform.
         // Übertragung wird abgebrochen. EBICS-Returncode='[EBICS_INVALID_REQUEST_CONTENT] Message content semantically not compliant to EBICS',
         // Fehlerbeschreibung='de.ppi.tcu.ebics.base.exceptions.InvalidEncryptionDataException: de.ppi.fis.travic.ebics.common.exceptions.InvalidCryptoDataException: javax.crypto.BadPaddingException: Invalid PKCS#1 padding: encrypted message and modulus lengths do not match!'
-        public static byte[] rsaSignPss(string rsaPrivateKey, byte[] data, int dwKeySize=2048)
-        {
-            RSACryptoServiceProvider RSAalg = new RSACryptoServiceProvider(dwKeySize);
-            RSAalg.PersistKeyInCsp = false;
-            RSAalg.FromXmlString(rsaPrivateKey);
-            RSAParameters rsaParams = RSAalg.ExportParameters(true);
-            RSA RSACng = RSA.Create();
-            RSACng.ImportParameters(rsaParams);
-            byte[] signature = RSACng.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
-            return signature;
-        }
-
-        private static bool rsaVerifySignaturePss(string rsaPublicKey, byte[] dataToSign, byte[] signature)
-        {
-            try
-            {
-                RSACryptoServiceProvider RSAalg = new RSACryptoServiceProvider(2048);
-                RSAalg.PersistKeyInCsp = false;
-                RSAalg.FromXmlString(rsaPublicKey);
-                RSAParameters rsaParams = RSAalg.ExportParameters(false);
-                RSA RSACng = RSA.Create();
-                RSACng.ImportParameters(rsaParams);
-                return RSACng.VerifyData(dataToSign, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
-            }
-            catch (CryptographicException e)
-            {
-                Console.WriteLine(e.Message);
-                return false;
-            }
-        }
 
         protected byte[] SignData(byte[] data, SignKeyPair kp)
         {
@@ -355,24 +322,14 @@ namespace libfintx.EBICS.Commands
             }
             else if (kp.Version == SignVersion.A006)
             {
-                string privateRsaKeyXml = kp.PrivateKey.ToXmlString(true);
-                string publicRsaKeyXml = kp.PublicKey.ToXmlString(false);
-                byte[] signature = rsaSignPss(privateRsaKeyXml, data);
-                bool signatureVerified = rsaVerifySignaturePss(publicRsaKeyXml, data, signature);
-                if (signatureVerified)
-                {
-                    return signature;
-                }
+                if (kp.PrivateKey.LegalKeySizes.Length == 2048)
+                    return kp.PrivateKey.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
                 else
-                {
-                    throw new CryptographicException($"Die Signatur konnte nicht verifiziert werden");
-                }
-                
-
+                    throw new CryptographicException($"Key length expected: 2048, key length received {kp.PrivateKey.LegalKeySizes.Length}");
             }
             else
-                throw new CryptographicException($"Derzeit wird nur die Signaturversion {SignVersion.A005} und {SignVersion.A006} unterstützt");
-
+                throw new CryptographicException($"Currently only the signature version {SignVersion.A005} and {SignVersion.A006} are supported");
+        
         }
 
         public override string ToString()
