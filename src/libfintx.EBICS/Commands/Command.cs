@@ -323,7 +323,7 @@ namespace libfintx.EBICS.Commands
             else if (kp.Version == SignVersion.A006)
             {
                 if (kp.PrivateKey.LegalKeySizes.Length == 2048)
-                    return kp.PrivateKey.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
+                    return SignEbicsA006(data, ConvertToCipherKeyPair(kp));
                 else
                     throw new CryptographicException($"Key length expected: 2048, key length received {kp.PrivateKey.LegalKeySizes.Length}");
             }
@@ -336,6 +336,37 @@ namespace libfintx.EBICS.Commands
         {
             return
                 $"{nameof(OrderType)}: {OrderType}, {nameof(OrderAttribute)}: {OrderAttribute}, {nameof(TransactionType)}: {TransactionType}";
+        }
+
+        private static byte[] SignEbicsA006(byte[] data, AsymmetricCipherKeyPair keyPair)
+        {
+            var privateKey = (RsaPrivateCrtKeyParameters) keyPair.Private;
+
+            ISigner signer = SignerUtilities.GetSigner("SHA256withRSAandMGF1");
+            signer.Init(true, privateKey);
+            signer.BlockUpdate(data, 0, data.Length);
+            return signer.GenerateSignature();
+        }
+
+        private static AsymmetricCipherKeyPair ConvertToCipherKeyPair(RSA rsa)
+        {
+            RSAParameters rsaParams = rsa.ExportParameters(true);
+
+            RsaPrivateCrtKeyParameters privateKeyParams = new RsaPrivateCrtKeyParameters(
+                new BigInteger(1, rsaParams.Modulus),
+                new BigInteger(1, rsaParams.Exponent),
+                new BigInteger(1, rsaParams.D),
+                new BigInteger(1, rsaParams.P),
+                new BigInteger(1, rsaParams.Q),
+                new BigInteger(1, rsaParams.DP),
+                new BigInteger(1, rsaParams.DQ),
+                new BigInteger(1, rsaParams.InverseQ)
+            );
+
+            return new AsymmetricCipherKeyPair(
+                new RsaKeyParameters(false, privateKeyParams.Modulus, privateKeyParams.Exponent),
+                privateKeyParams
+            );
         }
     }
 }
