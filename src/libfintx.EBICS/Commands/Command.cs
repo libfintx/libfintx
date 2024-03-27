@@ -360,7 +360,9 @@ namespace libfintx.EBICS.Commands
 
         static byte[] SignMessage(byte[] message, RsaPrivateCrtKeyParameters privateKey)
         {
-            ISigner signer = SignerUtilities.GetSigner("SHA-256withRSAandMGF1");
+            message = Helper.RemoveOSSpecificChars(message);
+
+            ISigner signer = SignerUtilities.GetSigner("SHA256withRSAandMGF1");
             signer.Init(true, privateKey);
             signer.BlockUpdate(message, 0, message.Length);
             return signer.GenerateSignature();
@@ -368,7 +370,9 @@ namespace libfintx.EBICS.Commands
 
         static bool VerifySignature(byte[] message, byte[] signature, RsaKeyParameters publicKey)
         {
-            ISigner signer = SignerUtilities.GetSigner("SHA-256withRSAandMGF1");
+            message = Helper.RemoveOSSpecificChars(message);
+
+            ISigner signer = SignerUtilities.GetSigner("SHA256withRSAandMGF1");
             signer.Init(false, publicKey);
             signer.BlockUpdate(message, 0, message.Length);
             return signer.VerifySignature(signature);
