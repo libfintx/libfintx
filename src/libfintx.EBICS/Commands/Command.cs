@@ -1,4 +1,4 @@
-/*	
+﻿/*	
  * 	
  *  This file is part of libfintx.
  *  
@@ -36,6 +36,9 @@ using libfintx.EBICS.Handler;
 using libfintx.EBICS.Responses;
 using libfintx.EBICSConfig;
 using libfintx.Xml;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Security;
 
 namespace libfintx.EBICS.Commands
 {
@@ -322,10 +325,15 @@ namespace libfintx.EBICS.Commands
             }
             else if (kp.Version == SignVersion.A006)
             {
-                if (kp.PrivateKey.LegalKeySizes.Length == 2048)
-                    return kp.PrivateKey.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
+                byte[] signature = SignMessage(data, rsaPrivKeyParams(kp));
+                bool isVerified = VerifySignature(data, signature, rsaPubKeyParams(kp));
+
+                if (isVerified)
+                {
+                    return signature;
+                }
                 else
-                    throw new CryptographicException($"Key length expected: 2048, key length received {kp.PrivateKey.LegalKeySizes.Length}");
+                    throw new CryptographicException($"A006 Signature not verified");
             }
             else
                 throw new CryptographicException($"Currently only the signature version {SignVersion.A005} and {SignVersion.A006} are supported");
@@ -336,6 +344,34 @@ namespace libfintx.EBICS.Commands
         {
             return
                 $"{nameof(OrderType)}: {OrderType}, {nameof(OrderAttribute)}: {OrderAttribute}, {nameof(TransactionType)}: {TransactionType}";
+        }
+
+        static RsaPrivateCrtKeyParameters rsaPrivKeyParams(SignKeyPair kp)
+        {
+            var pKeyParams = kp.PrivateKey.ExportParameters(false);
+            return DotNetUtilities.GetRsaKeyPair(pKeyParams).Private as RsaPrivateCrtKeyParameters;
+        }
+
+        static RsaPrivateCrtKeyParameters rsaPubKeyParams(SignKeyPair kp)
+        {
+            var pKeyParams = kp.PublicKey.ExportParameters(true);
+            return DotNetUtilities.GetRsaKeyPair(pKeyParams).Public as RsaPrivateCrtKeyParameters;
+        }
+
+        static byte[] SignMessage(byte[] message, RsaPrivateCrtKeyParameters privateKey)
+        {
+            ISigner signer = SignerUtilities.GetSigner("SHA-256withRSAandMGF1");
+            signer.Init(true, privateKey);
+            signer.BlockUpdate(message, 0, message.Length);
+            return signer.GenerateSignature();
+        }
+
+        static bool VerifySignature(byte[] message, byte[] signature, RsaKeyParameters publicKey)
+        {
+            ISigner signer = SignerUtilities.GetSigner("SHA-256withRSAandMGF1");
+            signer.Init(false, publicKey);
+            signer.BlockUpdate(message, 0, message.Length);
+            return signer.VerifySignature(signature);
         }
 
     }
