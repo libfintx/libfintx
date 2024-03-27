@@ -620,6 +620,8 @@ namespace libfintx.FinTS
                 var message = match.Groups[2].Value;
 
                 message = message.Replace("?:", ":");
+                message = message.Replace("?'", "'");
+                message = message.Replace("?+", "+");
 
                 return new HBCIBankMessage(code, message);
             }
@@ -635,12 +637,21 @@ namespace libfintx.FinTS
         {
             List<HBCIBankMessage> result = new List<HBCIBankMessage>();
 
-            string[] segments = BankCode.Split('\'');
+            var rawSegments = SplitEncryptedSegments(BankCode);
+            List<Segment> segments = new List<Segment>();
+            foreach (var item in rawSegments)
+            {
+                Segment segment = Parse_Segment(item);
+                if (segment != null)
+                    segments.Add(segment);
+            }
+
             foreach (var segment in segments)
             {
-                if (segment.Contains("HIRMG") || segment.Contains("HIRMS"))
+                if (segment.Name == "HIRMG" || segment.Name == "HIRMS")
                 {
-                    string[] messages = segment.Split('+');
+                    // HIRMS:4:2:3+9210::*?'Ausführung bis?' muss nach ?'Ausführung ab?' liegen.+9210::*Die BIC wurde angepasst.+0900::Freigabe erfolgreich
+                    var messages = segment.DataElements;
                     foreach (var HIRMG_message in messages)
                     {
                         var message = Parse_BankCode_Message(HIRMG_message);
