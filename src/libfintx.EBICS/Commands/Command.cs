@@ -362,7 +362,15 @@ namespace libfintx.EBICS.Commands
         {
             message = Helper.RemoveOSSpecificChars(message);
 
-            ISigner signer = SignerUtilities.GetSigner("SHA256withRSAandMGF1");
+            ISigner signer = null;
+            try
+            {
+                signer = SignerUtilities.GetSigner("SHA256withRSAandMGF1");
+            }
+            catch
+            {
+                signer = SignerUtilities.GetSigner("SHA-256withRSAandMGF1");
+            }
             signer.Init(true, privateKey);
             signer.BlockUpdate(message, 0, message.Length);
             return signer.GenerateSignature();
@@ -372,7 +380,15 @@ namespace libfintx.EBICS.Commands
         {
             message = Helper.RemoveOSSpecificChars(message);
 
-            ISigner signer = SignerUtilities.GetSigner("SHA256withRSAandMGF1");
+            ISigner signer = null;
+            try
+            {
+                signer = SignerUtilities.GetSigner("SHA256withRSAandMGF1");
+            }
+            catch
+            {
+                signer = SignerUtilities.GetSigner("SHA-256withRSAandMGF1");
+            }
             signer.Init(false, publicKey);
             signer.BlockUpdate(message, 0, message.Length);
             return signer.VerifySignature(signature);
