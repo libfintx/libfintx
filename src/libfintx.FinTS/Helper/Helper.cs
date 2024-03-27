@@ -199,7 +199,7 @@ namespace libfintx.FinTS
 
                 // UPD
                 string upd = string.Empty;
-                var upaMatch = Regex.Match(Message, @"(HIUPA.+?)\b(HITAN|HNHBS)\b");
+                var upaMatch = Regex.Match(Message, @"(HIUPA.+?)\b(HITAN|HNHBS|HIKIM)\b");
                 if (upaMatch.Success)
                     upd = upaMatch.Groups[1].Value;
                 if (upd.Length > 0)

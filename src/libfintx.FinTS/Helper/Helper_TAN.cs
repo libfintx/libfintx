@@ -155,10 +155,10 @@ namespace libfintx.FinTS
             }
 
             // PhotoTAN
-            if (processname.Equals("photoTAN-Verfahren"))
+            if (processname.Equals("photoTAN-Verfahren") || processname.Equals("photoTAN"))
             {
                 // HITAN:5:5:4+4++nmf3VmGQDT4qZ20190130091914641+Bitte geben Sie die photoTan ein+@3031@       image/pngÃŠÂ‰PNG
-                var match = Regex.Match(dialogResult.RawData, @"HITAN.+@\d+@(.+)'HNHBS", RegexOptions.Singleline);
+                var match = Regex.Match(dialogResult.RawData, @"HITAN.+@\d+@(.+)'(HNHBS|HNSHA)", RegexOptions.Singleline);
                 if (match.Success)
                 {
                     var PhotoBinary = match.Groups[1].Value;
