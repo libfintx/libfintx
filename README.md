@@ -47,9 +47,9 @@ Look at the demo projects inside the master branch.
 * Send Credit Transfer Initiation (**CCT**)
 * Send Direct Debit Initiation (**CDD**)
 * Pick up Swift daily statements (**STA**)
-* EBICS E002 for encryption
-* EBICS X002 for authentication
-* EBICS A005 and A006 for signatures
+* EBICS **E002** for encryption
+* EBICS **X002** for authentication
+* EBICS **A005** and **A006** for signatures
 
 # Specification
 
