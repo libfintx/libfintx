@@ -24,8 +24,7 @@ There are many reasons why you need to use a banking library which can exchange 
 
 # Target platforms
 
-* .NET Standard 2.0 (EBICS)
-* .NET 6.0+ (FinTS)
+* .NET 6.0+ (EBICS, FinTS)
 
 # Sample
 
@@ -48,6 +47,9 @@ Look at the demo projects inside the master branch.
 * Send Credit Transfer Initiation (**CCT**)
 * Send Direct Debit Initiation (**CDD**)
 * Pick up Swift daily statements (**STA**)
+* EBICS E002 for encryption
+* EBICS X002 for authentication
+* EBICS A005 and A006 for signatures
 
 # Specification
 
