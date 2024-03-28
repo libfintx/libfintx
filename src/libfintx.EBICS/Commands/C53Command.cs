@@ -1,24 +1,24 @@
 ﻿/*	
- * 	
- *  This file is part of libfintx.
- *  
- *  Copyright (C) 2023 Torsten Klement
- *  
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 3 of the License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- *  Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program; if not, write to the Free Software Foundation,
- *  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 	
- */
+* 	
+*  This file is part of libfintx.
+*  
+*  Copyright (C) 2023 Torsten Klement
+*  
+*  This program is free software; you can redistribute it and/or
+*  modify it under the terms of the GNU Lesser General Public
+*  License as published by the Free Software Foundation; either
+*  version 3 of the License, or (at your option) any later version.
+*
+*  This program is distributed in the hope that it will be useful,
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+*  Lesser General Public License for more details.
+*
+*  You should have received a copy of the GNU Lesser General Public License
+*  along with this program; if not, write to the Free Software Foundation,
+*  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+* 	
+*/
 
 using System;
 using System.Collections.Generic;
@@ -61,14 +61,16 @@ namespace libfintx.EBICS.Commands
                 {
                     var dr = base.Deserialize(payload);
                     var doc = XDocument.Parse(payload);
-                    var xph = new XPathHelper(doc, Namespaces);
-                    
+                    var xph = new XPathHelper(doc, XmlCommand.Namespaces);
+
                     if (dr.HasError || dr.IsRecoverySync)
                     {
                         return dr;
                     }
 
                     // do signature validation here
+
+                    XmlCommand cmd = new XmlCommand();
 
                     switch (dr.Phase)
                     {
@@ -79,12 +81,12 @@ namespace libfintx.EBICS.Commands
                             _initLastSegment = dr.LastSegment;
                             _orderData = new string[_numSegments];
                             _orderData[dr.SegmentNumber - 1] =
-                                Encoding.UTF8.GetString(Decompress(DecryptOrderData(xph)));
+                                Encoding.UTF8.GetString(Decompress(cmd.DecryptOrderData(xph)));
                             Response.Data = string.Join("", _orderData);
                             break;
                         case TransactionPhase.Transfer:
                             _orderData[dr.SegmentNumber - 1] =
-                                Encoding.UTF8.GetString(Decompress(DecryptOrderData(xph)));
+                                Encoding.UTF8.GetString(Decompress(cmd.DecryptOrderData(xph)));
                             // Zip File ausgeben
                             Guid myuuid = Guid.NewGuid();
                             string myuuidAsString = myuuid.ToString();
@@ -117,6 +119,7 @@ namespace libfintx.EBICS.Commands
             {
                 try
                 {
+                    XmlCommand command = new XmlCommand();
                     if (_initLastSegment)
                     {
                         s_logger.LogDebug("lastSegment is {lastSegment}. Not creating any transfer requests",
@@ -131,7 +134,7 @@ namespace libfintx.EBICS.Commands
                         s_logger.LogDebug("Creating transfer request {no}", i);
                         var req = new EbicsRequest
                         {
-                            Namespaces = Namespaces,
+                            Namespaces = XmlCommand.Namespaces,
                             Version = Config.Version,
                             Revision = Config.Revision,
                             StaticHeader = new StaticHeader
@@ -141,18 +144,18 @@ namespace libfintx.EBICS.Commands
                             },
                             MutableHeader = new MutableHeader
                             {
-                                Namespaces = Namespaces,
+                                Namespaces = XmlCommand.Namespaces,
                                 TransactionPhase = "Transfer",
                                 SegmentNumber = i + _initSegment,
                                 LastSegment = i + _initSegment == _numSegments
                             },
                             Body = new Body
                             {
-                                Namespaces = Namespaces
+                                Namespaces = XmlCommand.Namespaces
                             }
                         };
 
-                        reqs.Add(AuthenticateXml(req.Serialize().ToXmlDocument(), null, null));
+                        reqs.Add(command.AuthenticateXml(req.Serialize().ToXmlDocument(), null, null));
                     }
 
                     return reqs;
@@ -174,34 +177,35 @@ namespace libfintx.EBICS.Commands
             {
                 try
                 {
+                    XmlCommand command = new XmlCommand();
                     var receiptReq = new EbicsRequest
                     {
                         Version = Config.Version,
                         Revision = Config.Revision,
-                        Namespaces = Namespaces,
+                        Namespaces = XmlCommand.Namespaces,
                         StaticHeader = new StaticHeader
                         {
-                            Namespaces = Namespaces,
+                            Namespaces = XmlCommand.Namespaces,
                             HostId = Config.User.HostId,
                             TransactionId = _transactionId
                         },
                         MutableHeader = new MutableHeader
                         {
-                            Namespaces = Namespaces,
+                            Namespaces = XmlCommand.Namespaces,
                             TransactionPhase = "Receipt"
                         },
                         Body = new Body
                         {
-                            Namespaces = Namespaces,
+                            Namespaces = XmlCommand.Namespaces,
                             TransferReceipt = new TransferReceipt
                             {
-                                Namespaces = Namespaces,
+                                Namespaces = XmlCommand.Namespaces,
                                 ReceiptCode = "0"
                             }
                         }
                     };
 
-                    return AuthenticateXml(receiptReq.Serialize().ToXmlDocument(), null, null);
+                    return command.AuthenticateXml(receiptReq.Serialize().ToXmlDocument(), null, null);
                 }
                 catch (EbicsException)
                 {
@@ -220,11 +224,13 @@ namespace libfintx.EBICS.Commands
             {
                 try
                 {
+                    XmlCommand command = new XmlCommand();
+
                     var initReq = new EbicsRequest
                     {
                         StaticHeader = new StaticHeader
                         {
-                            Namespaces = Namespaces,
+                            Namespaces = XmlCommand.Namespaces,
                             HostId = Config.User.HostId,
                             PartnerId = Config.User.PartnerId,
                             UserId = Config.User.UserId,
@@ -233,18 +239,18 @@ namespace libfintx.EBICS.Commands
                             Timestamp = CryptoUtils.GetUtcTimeNow(),
                             BankPubKeyDigests = new BankPubKeyDigests
                             {
-                                Namespaces = Namespaces,
+                                Namespaces = XmlCommand.Namespaces,
                                 Bank = Config.Bank,
-                                DigestAlgorithm = s_digestAlg
+                                DigestAlgorithm = XmlCommand.s_digestAlg
                             },
                             OrderDetails = new OrderDetails
                             {
-                                Namespaces = Namespaces,
+                                Namespaces = XmlCommand.Namespaces,
                                 OrderAttribute = OrderAttribute,
                                 OrderType = OrderType,
                                 StandardOrderParams = new StartEndDateOrderParams
                                 {
-                                    Namespaces = Namespaces,
+                                    Namespaces = XmlCommand.Namespaces,
                                     StartDate = Params.StartDate,
                                     EndDate = Params.EndDate
                                 }
@@ -252,19 +258,19 @@ namespace libfintx.EBICS.Commands
                         },
                         MutableHeader = new MutableHeader
                         {
-                            Namespaces = Namespaces,
+                            Namespaces = XmlCommand.Namespaces,
                             TransactionPhase = "Initialisation"
                         },
                         Body = new Body
                         {
-                            Namespaces = Namespaces
+                            Namespaces = XmlCommand.Namespaces
                         },
-                        Namespaces = Namespaces,
+                        Namespaces = XmlCommand.Namespaces,
                         Version = Config.Version,
                         Revision = Config.Revision,
                     };
 
-                    return AuthenticateXml(initReq.Serialize().ToXmlDocument(), null, null);
+                    return command.AuthenticateXml(initReq.Serialize().ToXmlDocument(), null, null);
                 }
                 catch (EbicsException)
                 {

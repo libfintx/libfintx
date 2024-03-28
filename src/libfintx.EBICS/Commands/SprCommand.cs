@@ -1,24 +1,24 @@
 ﻿/*	
- * 	
- *  This file is part of libfintx.
- *  
- *  Copyright (C) 2018 Bjoern Kuensting
- *  
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 3 of the License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- *  Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program; if not, write to the Free Software Foundation,
- *  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 	
- */
+* 	
+*  This file is part of libfintx.
+*  
+*  Copyright (C) 2018 Bjoern Kuensting
+*  
+*  This program is free software; you can redistribute it and/or
+*  modify it under the terms of the GNU Lesser General Public
+*  License as published by the Free Software Foundation; either
+*  version 3 of the License, or (at your option) any later version.
+*
+*  This program is distributed in the hope that it will be useful,
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+*  Lesser General Public License for more details.
+*
+*  You should have received a copy of the GNU Lesser General Public License
+*  along with this program; if not, write to the Free Software Foundation,
+*  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+* 	
+*/
 
 using System;
 using System.Collections.Generic;
@@ -59,14 +59,16 @@ namespace libfintx.EBICS.Commands
             {
                 try
                 {
+                    XmlCommand command = new XmlCommand();
+
                     var signedData = SignData(Encoding.ASCII.GetBytes(" "), Config.User.SignKeys);
 
                     var userSigData = new UserSignatureData
                     {
-                        Namespaces = Namespaces,
+                        Namespaces = XmlCommand.Namespaces,
                         OrderSignatureData = new OrderSignatureData
                         {
-                            Namespaces = Namespaces,
+                            Namespaces = XmlCommand.Namespaces,
                             PartnerId = Config.User.PartnerId,
                             UserId = Config.User.UserId,
                             SignatureValue = signedData,
@@ -81,16 +83,16 @@ namespace libfintx.EBICS.Commands
                             Encoding.UTF8.GetBytes(userSigData.Serialize().ToString(SaveOptions.DisableFormatting)));
                     var userSigDataEnc = EncryptAes(userSigDataComp, _transactionKey);
 
-                    XNamespace nsEbics = Namespaces.Ebics;
+                    XNamespace nsEbics = XmlCommand.Namespaces.Ebics;
 
                     var initReq = new EbicsRequest
                     {
-                        Namespaces = Namespaces,
+                        Namespaces = XmlCommand.Namespaces,
                         Version = Config.Version,
                         Revision = Config.Revision,
                         StaticHeader = new StaticHeader
                         {
-                            Namespaces = Namespaces,
+                            Namespaces = XmlCommand.Namespaces,
                             HostId = Config.User.HostId,
                             Nonce = CryptoUtils.GetNonce(),
                             Timestamp = CryptoUtils.GetUtcTimeNow(),
@@ -99,43 +101,43 @@ namespace libfintx.EBICS.Commands
                             NumSegments = 0,
                             OrderDetails = new OrderDetails
                             {
-                                Namespaces = Namespaces,
+                                Namespaces = XmlCommand.Namespaces,
                                 OrderType = OrderType,
                                 OrderAttribute = OrderAttribute,
                                 StandardOrderParams = new EmptyOrderParams(),
                             },
                             BankPubKeyDigests = new BankPubKeyDigests
                             {
-                                Namespaces = Namespaces,
-                                DigestAlgorithm = s_digestAlg,
+                                Namespaces = XmlCommand.Namespaces,
+                                DigestAlgorithm = XmlCommand.s_digestAlg,
                                 Bank = Config.Bank
                             }
                         },
                         MutableHeader = new MutableHeader
                         {
-                            Namespaces = Namespaces,
+                            Namespaces = XmlCommand.Namespaces,
                             TransactionPhase = "Initialisation"
                         },
                         Body = new Body
                         {
-                            Namespaces = Namespaces,
+                            Namespaces = XmlCommand.Namespaces,
                             DataTransfer = new DataTransfer
                             {
-                                Namespaces = Namespaces,
+                                Namespaces = XmlCommand.Namespaces,
                                 DataEncryptionInfo = new DataEncryptionInfo
                                 {
-                                    Namespaces = Namespaces,
+                                    Namespaces = XmlCommand.Namespaces,
                                     EncryptionPubKeyDigest = new EncryptionPubKeyDigest
                                     {
-                                        Namespaces = Namespaces,
+                                        Namespaces = XmlCommand.Namespaces,
                                         Bank = Config.Bank,
-                                        DigestAlgorithm = s_digestAlg
+                                        DigestAlgorithm = XmlCommand.s_digestAlg
                                     },
                                     TransactionKey = Convert.ToBase64String(EncryptRsa(_transactionKey))
                                 },
                                 SignatureData = new SignatureData
                                 {
-                                    Namespaces = Namespaces
+                                    Namespaces = XmlCommand.Namespaces
                                 }
                             }
                         }
@@ -144,7 +146,7 @@ namespace libfintx.EBICS.Commands
                     var xmlInitReq = initReq.Serialize();
                     xmlInitReq.Descendants(nsEbics + XmlNames.SignatureData).FirstOrDefault()
                         .Add(Convert.ToBase64String(userSigDataEnc));
-                    return AuthenticateXml(xmlInitReq.ToXmlDocument(), null, null);
+                    return command.AuthenticateXml(xmlInitReq.ToXmlDocument(), null, null);
                 }
                 catch (EbicsException)
                 {

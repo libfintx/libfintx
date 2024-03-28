@@ -1,31 +1,38 @@
 ﻿/*	
- * 	
- *  This file is part of libfintx.
- *  
- *  Copyright (C) 2018 Bjoern Kuensting
- *  
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 3 of the License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- *  Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program; if not, write to the Free Software Foundation,
- *  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 	
- */
+* 	
+*  This file is part of libfintx.
+*  
+*  Copyright (C) 2018 Bjoern Kuensting
+*  
+*  This program is free software; you can redistribute it and/or
+*  modify it under the terms of the GNU Lesser General Public
+*  License as published by the Free Software Foundation; either
+*  version 3 of the License, or (at your option) any later version.
+*
+*  This program is distributed in the hope that it will be useful,
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+*  Lesser General Public License for more details.
+*
+*  You should have received a copy of the GNU Lesser General Public License
+*  along with this program; if not, write to the Free Software Foundation,
+*  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*  
+*  Updates done by Torsten Klement <torsten.klinger@googlemail.com>
+*  
+*  Updates Copyright (c) 2024 Torsten Klement
+* 	
+*/
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using System.Xml.Schema;
 using Microsoft.Extensions.Logging;
 using libfintx.EBICS.Commands;
 using libfintx.EBICS.Exceptions;
@@ -147,6 +154,35 @@ namespace libfintx.EBICS.Handler
 
                 if (initReq != null)
                 {
+                    //validate xsd
+                    var xset = new XmlSchemaSet();
+                    Func<string, XmlReader> readxml;
+                    Func<string, XmlReader> readxmldtd;
+                    Func<string, Stream> embeddedresource;
+                    XmlReaderSettings dtd = new XmlReaderSettings { DtdProcessing = DtdProcessing.Parse };
+                    XmlReaderSettings nodtd = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit};
+                    var ass = System.Reflection.Assembly.GetAssembly(typeof(State));
+                    embeddedresource = (rname) => ass.GetManifestResourceStream(rname);
+                    readxml = (fname) => XmlReader.Create(embeddedresource(fname),nodtd);
+                    readxmldtd = (fname) => XmlReader.Create(embeddedresource(fname), dtd);
+
+                    xset.Add("urn:org:ebics:H004", readxml("libfintx.EBICS.src.Xsd.H004.ebics_H004.xsd"));
+                    xset.Add("http://www.ebics.org/H000", readxml("libfintx.EBICS.src.Xsd.H004.ebics_hev.xsd"));
+                    xset.Add("urn:org:ebics:H004", readxml("libfintx.EBICS.src.Xsd.H004.ebics_keymgmt_request_H004.xsd"));
+                    xset.Add("urn:org:ebics:H004", readxml("libfintx.EBICS.src.Xsd.H004.ebics_keymgmt_response_H004.xsd"));
+                    xset.Add("urn:org:ebics:H004", readxml("libfintx.EBICS.src.Xsd.H004.ebics_orders_H004.xsd"));
+                    xset.Add("urn:org:ebics:H004", readxml("libfintx.EBICS.src.Xsd.H004.ebics_request_H004.xsd"));
+                    xset.Add("urn:org:ebics:H004", readxml("libfintx.EBICS.src.Xsd.H004.ebics_response_H004.xsd"));
+                    xset.Add("http://www.ebics.org/S001", readxml("libfintx.EBICS.src.Xsd.H004.ebics_signature.xsd"));
+                    xset.Add("urn:org:ebics:H004", readxml("libfintx.EBICS.src.Xsd.H004.ebics_types_H004.xsd"));
+                    xset.Add("http://www.w3.org/2000/09/xmldsig#", readxmldtd("libfintx.EBICS.src.Xsd.H004.xmldsig-core-schema.xsd"));
+                    xset.Compile();
+                    List<ValidationEventArgs> errors = new List<ValidationEventArgs>();
+                    initReq.Schemas = xset;
+                    initReq.Validate((a, v) => { errors.Add(v); });
+                    if (errors.Any())
+                        throw new Exception("Schema Validation Failed");
+
                     var payload = Send(ctx, initReq.OuterXml);
                     var dr = ctx.Cmd.Deserialize(payload);
                     UpdateCtx(ctx, dr);
