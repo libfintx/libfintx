@@ -51,11 +51,9 @@ jobs:
         path: |
           ./out/libfintx.Logger.*.nupkg
           ./out/libfintx.Sepa.*.nupkg
+          ./out/libfintx.FinTS.*.nupkg
+          ./out/libfintx.Globals.*.nupkg
       if: ${{ matrix.is_release }}
-
-# Temporary disabled until we get access to these repositories:
-#          ./out/libfintx.FinTS.*.nupkg
-#          ./out/libfintx.Globals.*.nupkg
 
   publish:
     needs: build
