@@ -21,8 +21,10 @@
  * 	
  */
 
+#if USE_LIB_SixLabors_ImageSharp
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+#endif
 using System;
 using System.Threading.Tasks;
 
@@ -51,9 +53,13 @@ namespace libfintx.FinTS
 
         public HBCIDialogResult DialogResult { get; internal set; }
 
+#if USE_LIB_SixLabors_ImageSharp
         public Image<Rgba32> FlickerImage { get; internal set; }
 
-        public Image<Rgba32> MatrixImage { get; internal set; }
+        public Image<Rgba32> MatrixImage => MatrixCode.CodeImage;
+#endif
+
+        public MatrixCode MatrixCode { get; internal set; }
 
         /// <summary>
         /// Bei Verwendung des Decoupled-Verfahren (HKTAN#7) setzen.
@@ -77,13 +83,19 @@ namespace libfintx.FinTS
         /// </summary>
         /// <param name="waitForTanAsync"></param>
         /// <param name="dialogResult"></param>
-        /// <param name="flickerImage"></param>
         /// <param name="flickerWidth"></param>
         /// <param name="flickerHeight"></param>
+#if !USE_LIB_SixLabors_ImageSharp
+        [Obsolete("This constructor cannot be used, because the libfintx.FinTS library has been compiled without library support for SixLabors.ImageSharp.", true)]
+#endif
         public TANDialog(Func<TANDialog, Task<string>> waitForTanAsync, int flickerWidth = 320, int flickerHeight = 120)
             : this(waitForTanAsync)
         {
+#if USE_LIB_SixLabors_ImageSharp
             RenderFlickerCodeAsGif = true;
+#else
+            throw new NotSupportedException("This constructor cannot be used, because the libfintx.FinTS library has been compiled without library support for SixLabors.ImageSharp.");
+#endif
             FlickerWidth = flickerWidth;
             FlickerHeight = flickerHeight;
         }

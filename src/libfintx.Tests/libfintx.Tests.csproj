@@ -5,6 +5,9 @@
     <IsPackable>false</IsPackable>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\libfintx.snk</AssemblyOriginatorKeyFile>
+
+    <!-- Optionally enable this option to use library SixLabors.ImageSharp for image rendering -->
+    <!--<DefineConstants>USE_LIB_SixLabors_ImageSharp</DefineConstants>-->
   </PropertyGroup>
 
   <ItemGroup>
