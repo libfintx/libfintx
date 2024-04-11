@@ -17,6 +17,8 @@
     <RepositoryUrl>https://github.com/libfintx/libfintx</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\libfintx.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>

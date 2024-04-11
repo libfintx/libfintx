@@ -18,6 +18,8 @@
     <RepositoryUrl>https://github.com/libfintx/libfintx</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\libfintx.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,7 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\README.md" Pack="true" PackagePath="/" />
+    <None Include="docs\README.md" Pack="true" PackagePath="/" />
     <None Include="..\..\res\logo.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 
