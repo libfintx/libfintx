@@ -1,28 +1,24 @@
 ﻿/*	
-* 	
-*  This file is part of libfintx.
-*  
-*  Copyright (C) 2018 Bjoern Kuensting
-*  
-*  This program is free software; you can redistribute it and/or
-*  modify it under the terms of the GNU Lesser General Public
-*  License as published by the Free Software Foundation; either
-*  version 3 of the License, or (at your option) any later version.
-*
-*  This program is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-*  Lesser General Public License for more details.
-*
-*  You should have received a copy of the GNU Lesser General Public License
-*  along with this program; if not, write to the Free Software Foundation,
-*  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*  
-*  Updates done by Torsten Klement <torsten.klinger@googlemail.com>
-*  
-*  Updates Copyright (c) 2024 Torsten Klement
-* 	
-*/
+ * 	
+ *  This file is part of libfintx.
+ *  
+ *  Copyright (C) 2018 Bjoern Kuensting
+ *  
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 3 of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ *  Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with this program; if not, write to the Free Software Foundation,
+ *  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * 	
+ */
 
 using System;
 using System.IO;
@@ -54,9 +50,9 @@ namespace libfintx.EBICS
         }
         public enum KeyType
         {
-            Signature=0,
-            Authentication=1,
-            Encryption=2
+            Signature = 0,
+            Authentication = 1,
+            Encryption = 2
         }
         //TODO change to functors
         public static X509Certificate CreateX509Certificate2(AsymmetricCipherKeyPair kp, string issuer, DateTime notBefore, DateTime notAfter, KeyType keyUsage, string filename, string password)
@@ -67,7 +63,7 @@ namespace libfintx.EBICS
             var gen = new X509V3CertificateGenerator();
             var serial = BigIntegers.CreateRandomInRange(BigInteger.One, BigInteger.ValueOf(Int64.MaxValue), random);
             gen.SetSerialNumber(serial);
-            var subject = new X509Name(issuer);
+            var subject = new X509Name("CN="+issuer);
             gen.SetIssuerDN(subject);
             gen.SetSubjectDN(subject);
             gen.SetNotBefore(notBefore);
@@ -122,7 +118,7 @@ namespace libfintx.EBICS
                 pw.WriteObject(kp, "AES-256-CBC", password.ToCharArray(), new SecureRandom());
                 sw.Flush();
             }
-            var cert = CreateX509Certificate2(kp, email, DateTime.Now, DateTime.Now.AddYears(10), type, filename + ".p12", password);
+            var cert = CreateX509Certificate2(kp, email, DateTime.UtcNow, DateTime.UtcNow.AddYears(10), type, filename + ".p12", password);
             using (TextWriter sw = new StreamWriter(filename + ".cer"))
             {
                 var pw = new PemWriter(sw);
@@ -169,60 +165,5 @@ namespace libfintx.EBICS
             LetterDE<E002Letter>(hostId, bankName, userId, username, partnerId, enc, directory + "/enc.txt");
             LetterDE<X002Letter>(hostId, bankName, userId, username, partnerId, auth, directory + "/auth.txt");
         }
-
-
-
-        /*        public static AsymmetricCipherKeyPair ReadPrivateKeyFromPem(string fileName)
-                {
-                    using (var sr = new StringReader(File.ReadAllText(fileName).Trim()))
-                    {
-                        var pr = new PemReader(sr);
-                        return (AsymmetricCipherKeyPair) pr.ReadObject();
-                    }
-                }
-
-                public static X509Certificate2 CreateX509Certificate2(AsymmetricCipherKeyPair kp)
-                {
-                    var random = new SecureRandom();
-                    var sf = new Asn1SignatureFactory(HashAlg.SHA256withRSA.ToString(), kp.Private, random);
-
-                    var gen = new X509V3CertificateGenerator();
-                    gen.SetSerialNumber(BigIntegers.CreateRandomInRange(BigInteger.One, BigInteger.ValueOf(Int64.MaxValue), random));
-                    var subject = new X509Name("CN=" + "ebics.org");
-                    gen.SetSubjectDN(subject);
-                    gen.SetIssuerDN(subject);
-                    var notBefore = DateTime.UtcNow.Date;
-                    var notAfter = notBefore.AddYears(10);
-                    gen.SetNotBefore(notBefore);
-                    gen.SetNotAfter(notAfter); 
-                    gen.SetPublicKey(kp.Public); 
-                    var bouncyCert = gen.Generate(sf);            
-
-                    var authorityKeyIdentifier = new AuthorityKeyIdentifier(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public), new GeneralNames(new GeneralName(subject)), bouncyCert.SerialNumber);
-                    gen.AddExtension(X509Extensions.AuthorityKeyIdentifier.Id, false, authorityKeyIdentifier);
-                    var subjectKeyIdentifier = new SubjectKeyIdentifier(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public));
-                    gen.AddExtension(X509Extensions.SubjectKeyIdentifier.Id, false, subjectKeyIdentifier);
-                    gen.AddExtension(X509Extensions.BasicConstraints.Id, true, new BasicConstraints(false));
-
-                    var store = new Pkcs12Store();
-                    var certificateEntry = new X509CertificateEntry(bouncyCert);
-                    store.SetCertificateEntry(bouncyCert.SubjectDN.ToString(), certificateEntry);
-                    store.SetKeyEntry(bouncyCert.SubjectDN.ToString(), new AsymmetricKeyEntry(kp.Private), new[] { certificateEntry });
-                    const string pwd = "password";
-                    var stream = new MemoryStream();
-                    store.Save(stream, pwd.ToCharArray(), random);
-                    var msCert = new X509Certificate2(stream.ToArray(), pwd, X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
-
-                    return msCert;
-                }
-
-                public static AsymmetricCipherKeyPair GenerateRSAKeyPair(int strength)
-                {
-                    var gen = GeneratorUtilities.GetKeyPairGenerator("RSA");
-                    gen.Init(new KeyGenerationParameters(new SecureRandom(), strength));
-                    return gen.GenerateKeyPair();            
-                }*/
-
-
     }
 }

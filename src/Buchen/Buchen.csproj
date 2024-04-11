@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\libfintx.EBICS.Letters\libfintx.EBICS.Letters.csproj" />
+    <ProjectReference Include="..\libfintx.EBICS.Swift\libfintx.EBICS.Swift.csproj" />
+    <ProjectReference Include="..\libfintx.EBICSConfig\libfintx.EBICSConfig.csproj" />
+    <ProjectReference Include="..\libfintx.EBICS\libfintx.EBICS.csproj" />
+    <ProjectReference Include="..\libfintx.Security\libfintx.Security.csproj" />
+    <ProjectReference Include="..\libfintx.StatePrinter\libfintx.StatePrinter.csproj" />
+    <ProjectReference Include="..\libfintx.Xml\libfintx.Xml.csproj" />
+    <ProjectReference Include="..\libfintx.Xsd\libfintx.Xsd.csproj" />
+  </ItemGroup>
+
+</Project>

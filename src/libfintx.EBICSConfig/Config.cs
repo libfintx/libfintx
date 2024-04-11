@@ -43,6 +43,8 @@ namespace libfintx.EBICSConfig
         public string Vendor = "libfintx";
         public EbicsVersion Version { get; set; } = EbicsVersion.H004;
         public EbicsRevision Revision { get; set; } = EbicsRevision.Rev1;
+        public bool TLS { get; set; }
+        public bool Insecure { get; set; }
 
         public libfintx.Xsd.H004.StaticHeaderTypeProduct StaticHeaderTypeProduct
         {

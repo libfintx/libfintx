@@ -1,24 +1,24 @@
 ﻿/*	
-* 	
-*  This file is part of libfintx.
-*  
-*  Copyright (C) 2018 Bjoern Kuensting
-*  
-*  This program is free software; you can redistribute it and/or
-*  modify it under the terms of the GNU Lesser General Public
-*  License as published by the Free Software Foundation; either
-*  version 3 of the License, or (at your option) any later version.
-*
-*  This program is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-*  Lesser General Public License for more details.
-*
-*  You should have received a copy of the GNU Lesser General Public License
-*  along with this program; if not, write to the Free Software Foundation,
-*  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-* 	
-*/
+ * 	
+ *  This file is part of libfintx.
+ *  
+ *  Copyright (C) 2018 Bjoern Kuensting
+ *  
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 3 of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ *  Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with this program; if not, write to the Free Software Foundation,
+ *  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * 	
+ */
 
 using System;
 using System.Collections.Generic;
@@ -70,7 +70,7 @@ namespace libfintx.EBICS.Commands
         {
             try
             {
-                using (new XmlMethodLogger(s_logger))
+                using (new MethodLogger(s_logger))
                 {
                     var dr = base.Deserialize(payload);
                     var doc = XDocument.Parse(payload);
@@ -100,7 +100,7 @@ namespace libfintx.EBICS.Commands
 
         private XDocument CreateCcdDoc()
         {
-            XNamespace ns = XmlCommand.Namespaces.Cdd;
+            XNamespace ns = Namespaces.Cdd;
             var sum = 0m;
             var trxCount = 0;
             foreach (var pi in Params.PaymentInfos)
@@ -263,10 +263,10 @@ namespace libfintx.EBICS.Commands
 
             var userSigData = new UserSignatureData
             {
-                Namespaces = XmlCommand.Namespaces,
+                Namespaces = Namespaces,
                 OrderSignatureData = new OrderSignatureData
                 {
-                    Namespaces = XmlCommand.Namespaces,
+                    Namespaces = Namespaces,
                     PartnerId = Config.User.PartnerId,
                     UserId = Config.User.UserId,
                     SignatureValue = signedXmlStr,
@@ -279,40 +279,39 @@ namespace libfintx.EBICS.Commands
 
         private IList<XmlDocument> CreateUploadRequests(IList<string> segments)
         {
-            using (new XmlMethodLogger(s_logger))
+            using (new MethodLogger(s_logger))
             {
-                XmlCommand command = new XmlCommand();
                 try
                 {
                     return segments.Select((segment, i) => new EbicsRequest
-                    {
-                        Namespaces = XmlCommand.Namespaces,
-                        Version = Config.Version,
-                        Revision = Config.Revision,
-                        StaticHeader = new StaticHeader
                         {
-                            Namespaces = XmlCommand.Namespaces,
-                            HostId = Config.User.HostId,
-                            TransactionId = _transactionId
-                        },
-                        MutableHeader = new MutableHeader
-                        {
-                            Namespaces = XmlCommand.Namespaces,
-                            TransactionPhase = "Transfer",
-                            SegmentNumber = i + 1,
-                            LastSegment = (i + 1 == segments.Count)
-                        },
-                        Body = new Body
-                        {
-                            Namespaces = XmlCommand.Namespaces,
-                            DataTransfer = new DataTransfer
+                            Namespaces = Namespaces,
+                            Version = Config.Version,
+                            Revision = Config.Revision,
+                            StaticHeader = new StaticHeader
                             {
-                                Namespaces = XmlCommand.Namespaces,
-                                OrderData = segment
+                                Namespaces = Namespaces,
+                                HostId = Config.User.HostId,
+                                TransactionId = _transactionId
+                            },
+                            MutableHeader = new MutableHeader
+                            {
+                                Namespaces = Namespaces,
+                                TransactionPhase = "Transfer",
+                                SegmentNumber = i + 1,
+                                LastSegment = (i + 1 == segments.Count)
+                            },
+                            Body = new Body
+                            {
+                                Namespaces = Namespaces,
+                                DataTransfer = new DataTransfer
+                                {
+                                    Namespaces = Namespaces,
+                                    OrderData = segment
+                                }
                             }
                         }
-                    }
-                    ).Select(req => command.AuthenticateXml(req.Serialize().ToXmlDocument(), null, null)).ToList();
+                    ).Select(req => AuthenticateXml(req.Serialize().ToXmlDocument(), null, null)).ToList();
                 }
                 catch (EbicsException)
                 {
@@ -331,7 +330,7 @@ namespace libfintx.EBICS.Commands
             {
                 try
                 {
-                    XNamespace nsEbics = XmlCommand.Namespaces.Ebics;
+                    XNamespace nsEbics = Namespaces.Ebics;
 
                     var cctDoc = CreateCcdDoc();
                     s_logger.LogDebug("Created {OrderType} document:\n{doc}", OrderType, cctDoc.ToString());
@@ -352,16 +351,14 @@ namespace libfintx.EBICS.Commands
 
                     s_logger.LogDebug("Number of segments: {segments}", segments.Count);
 
-                    XmlCommand command = new XmlCommand();
-
                     var initReq = new EbicsRequest
                     {
-                        Namespaces = XmlCommand.Namespaces,
+                        Namespaces = Namespaces,
                         Version = Config.Version,
                         Revision = Config.Revision,
                         StaticHeader = new StaticHeader
                         {
-                            Namespaces = XmlCommand.Namespaces,
+                            Namespaces = Namespaces,
                             HostId = Config.User.HostId,
                             Nonce = CryptoUtils.GetNonce(),
                             Timestamp = CryptoUtils.GetUtcTimeNow(),
@@ -371,46 +368,46 @@ namespace libfintx.EBICS.Commands
                             NumSegments = segments.Count,
                             OrderDetails = new OrderDetails
                             {
-                                Namespaces = XmlCommand.Namespaces,
+                                Namespaces = Namespaces,
                                 OrderType = OrderType,
                                 OrderAttribute = OrderAttribute,
                                 StandardOrderParams = new EmptyOrderParams
                                 {
-                                    Namespaces = XmlCommand.Namespaces
+                                    Namespaces = Namespaces
                                 },
                             },
                             BankPubKeyDigests = new BankPubKeyDigests
                             {
-                                Namespaces = XmlCommand.Namespaces,
-                                DigestAlgorithm = XmlCommand.s_digestAlg,
+                                Namespaces = Namespaces,
+                                DigestAlgorithm = s_digestAlg,
                                 Bank = Config.Bank
                             }
                         },
                         MutableHeader = new MutableHeader
                         {
-                            Namespaces = XmlCommand.Namespaces,
+                            Namespaces = Namespaces,
                             TransactionPhase = "Initialisation"
                         },
                         Body = new Body
                         {
-                            Namespaces = XmlCommand.Namespaces,
+                            Namespaces = Namespaces,
                             DataTransfer = new DataTransfer
                             {
-                                Namespaces = XmlCommand.Namespaces,
+                                Namespaces = Namespaces,
                                 DataEncryptionInfo = new DataEncryptionInfo
                                 {
-                                    Namespaces = XmlCommand.Namespaces,
+                                    Namespaces = Namespaces,
                                     EncryptionPubKeyDigest = new EncryptionPubKeyDigest
                                     {
-                                        Namespaces = XmlCommand.Namespaces,
+                                        Namespaces = Namespaces,
                                         Bank = Config.Bank,
-                                        DigestAlgorithm = XmlCommand.s_digestAlg
+                                        DigestAlgorithm = s_digestAlg
                                     },
                                     TransactionKey = Convert.ToBase64String(EncryptRsa(_transactionKey))
                                 },
                                 SignatureData = new SignatureData
                                 {
-                                    Namespaces = XmlCommand.Namespaces
+                                    Namespaces = Namespaces
                                 }
                             }
                         }
@@ -419,7 +416,7 @@ namespace libfintx.EBICS.Commands
                     var doc = initReq.Serialize();
                     doc.Descendants(nsEbics + XmlNames.SignatureData).FirstOrDefault()
                         ?.Add(Convert.ToBase64String(userSigDataEnc));
-                    return (request: command.AuthenticateXml(doc.ToXmlDocument(), null, null), segments: segments);
+                    return (request: AuthenticateXml(doc.ToXmlDocument(), null, null), segments: segments);
                 }
                 catch (EbicsException)
                 {
