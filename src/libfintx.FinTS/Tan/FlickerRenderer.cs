@@ -285,15 +285,16 @@ namespace libfintx.FinTS
     }
 }*/
 
-
+#if USE_LIB_SixLabors_ImageSharp
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Drawing.Processing;
+using CoreRectangle = SixLabors.ImageSharp.Rectangle;
+#endif
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using CoreRectangle = SixLabors.ImageSharp.Rectangle;
 
 namespace libfintx.FinTS
 {
@@ -370,6 +371,7 @@ namespace libfintx.FinTS
             }
         }
 
+#if USE_LIB_SixLabors_ImageSharp
         public Image<Rgba32> RenderAsGif(int width = 320, int height = 120)
         {
             using (var image = new Image<Rgba32>(width, height))
@@ -397,6 +399,7 @@ namespace libfintx.FinTS
                 return image;
             }
         }
+#endif
 
         /// <summary>
         /// Sets the clock frequency in Hz

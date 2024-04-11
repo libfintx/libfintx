@@ -5,9 +5,9 @@ using libfintx.FinTSConfig;
 using libfintx.Globals;
 using libfintx.Sepa;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -615,11 +615,13 @@ namespace libfintx.Sample.Ui
                 return await Task.FromResult((string)null);
             }
 
-            if (tanDialog.MatrixImage != null)
+            if (tanDialog.MatrixCode != null)
             {
                 using (var memoryStream = new MemoryStream())
                 {
-                    tanDialog.MatrixImage.SaveAsBmp(memoryStream);
+                    var ms = new MemoryStream(tanDialog.MatrixCode.ImageData);
+                    var codeImage = (Image<Rgba32>) Image.Load(ms);
+                    codeImage.SaveAsBmp(memoryStream);
                     memoryStream.Seek(0, SeekOrigin.Begin);
                     pBox_tan.Image = new System.Drawing.Bitmap(memoryStream);
                 }
