@@ -3,8 +3,8 @@
 # libfintx
 
 [![Build & Test](https://github.com/libfintx/libfintx/actions/workflows/dotnet.yml/badge.svg)](https://github.com/libfintx/libfintx/actions/workflows/dotnet.yml)
+[![NuGet version (libfintx.FinTS)](https://img.shields.io/nuget/v/libfintx.FinTS.svg)](https://www.nuget.org/packages/libfintx.FinTS/)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
-[![Slack Status](https://img.shields.io/badge/slack-join_chat-white.svg?logo=slack&style=social)](https://libfintx.slack.com)
 
 An C# based client library for **HBCI 2.2**, **FinTS 3.0**, **EBICS H004** and **EBICS H005**.
 

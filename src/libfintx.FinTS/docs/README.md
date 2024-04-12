@@ -1,6 +1,5 @@
 # libfintx.FinTS
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
-[![Slack Status](https://img.shields.io/badge/slack-join_chat-white.svg?logo=slack&style=social)](https://libfintx.slack.com)
 
 An C# based client library for **HBCI 2.2**, **FinTS 3.0**.
 
@@ -81,10 +80,6 @@ private async void btn_kontostand_abfragen_Click(object sender, EventArgs e)
     }
 }
 ```
-
-# Community
-
-Join our community on [Slack](https://libfintx.slack.com).
 
 # Copyright & License
 
