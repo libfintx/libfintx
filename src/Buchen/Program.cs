@@ -32,7 +32,7 @@ string usr = "torstenklinger";
 #region Keys erstellen
 if (!File.Exists(Path.Combine(path, "sign.key")))
 {
-    KeyUtils.GenerateDE(path, dn, pwd, hostid, bn, userid, usr, partnerid);
+    KeyUtils.GenerateDE(path, dn, pwd, hostid, bn, userid, usr, partnerid, SignVersion.A006);
 }
 #endregion Keys erstellen
 

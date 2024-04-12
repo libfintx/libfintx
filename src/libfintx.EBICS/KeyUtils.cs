@@ -23,6 +23,7 @@
 using System;
 using System.IO;
 using libfintx.EBICS.Letters;
+using libfintx.EBICSConfig;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
@@ -151,7 +152,7 @@ namespace libfintx.EBICS
             return new System.Security.Cryptography.X509Certificates.X509Certificate2(fname, pw);
         }
 
-        public static void GenerateDE(string directory, string dn, string password, string hostId, string bankName, string userId, string username, string partnerId)
+        public static void GenerateDE(string directory, string dn, string password, string hostId, string bankName, string userId, string username, string partnerId, SignVersion sigV)
         {
             if (!Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
@@ -161,7 +162,10 @@ namespace libfintx.EBICS
             var sign2 = ReadCert(directory + "/sign.p12", password);
             var auth2 = ReadCert(directory + "/auth.p12", password);
             var enc2 = ReadCert(directory + "/enc.p12", password);
-            LetterDE<A005Letter>(hostId, bankName, userId, username, partnerId, sign, directory + "/sign.txt");
+            if (sigV == SignVersion.A005)
+                LetterDE<A005Letter>(hostId, bankName, userId, username, partnerId, sign, directory + "/sign.txt");
+            else
+                LetterDE<A006Letter>(hostId, bankName, userId, username, partnerId, sign, directory + "/sign.txt");
             LetterDE<E002Letter>(hostId, bankName, userId, username, partnerId, enc, directory + "/enc.txt");
             LetterDE<X002Letter>(hostId, bankName, userId, username, partnerId, auth, directory + "/auth.txt");
         }
