@@ -22,10 +22,13 @@
  */
 
 // #define WINDOWS
+#nullable enable
 
 using libfintx.Logger.Log;
+#if USE_LIB_SixLabors_ImageSharp
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+#endif
 using System;
 using System.IO;
 using System.Text;
@@ -34,8 +37,27 @@ namespace libfintx.FinTS
 {
     public class MatrixCode
     {
-        public Image<Rgba32> CodeImage { get; set; }
-        public string ImageMimeType { get; set; }
+#if USE_LIB_SixLabors_ImageSharp
+        private Image<Rgba32>? _codeImage;
+
+        public Image<Rgba32> CodeImage
+        {
+            get
+            {
+                if (_codeImage == null)
+                {
+                    var ms = new MemoryStream(ImageData);
+                    _codeImage = (Image<Rgba32>) Image.Load(ms);
+                }
+
+                return _codeImage;
+            }
+        }
+#endif
+
+        public string ImageMimeType { get; private set; }
+
+        public byte[] ImageData { get; private set; }
 
         /// <summary>
         /// photoTAN matrix code
@@ -65,8 +87,7 @@ namespace libfintx.FinTS
                 int len = data.Length - offset;
                 b = new byte[len];
                 Array.Copy(data, offset, b, 0, len);
-                var ms = new MemoryStream(b);
-                CodeImage = (Image<Rgba32>) Image.Load(ms);
+                ImageData = b;
             }
             catch (Exception ex)
             {
@@ -74,7 +95,6 @@ namespace libfintx.FinTS
                 Log.Write(errMsg);
                 throw new Exception(errMsg, ex);
             }
-
         }
 
         /// <summary>
@@ -84,7 +104,7 @@ namespace libfintx.FinTS
         /// <returns></returns>
         private string Decode(byte[] bytes)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             for (int i = 0; i < bytes.Length; ++i)
             {
                 sb.Append(Convert.ToString(bytes[i], 10));

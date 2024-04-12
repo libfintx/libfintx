@@ -101,7 +101,12 @@ namespace libfintx.FinTS
                 }
                 else
                 {
+#if USE_LIB_SixLabors_ImageSharp
                     tanDialog.FlickerImage = flickerCodeRenderer.RenderAsGif(tanDialog.FlickerWidth, tanDialog.FlickerHeight);
+#else
+                    throw new NotSupportedException($"{nameof(TANDialog)}.{nameof(TANDialog.RenderFlickerCodeAsGif)} is not supported.");
+#endif
+
                 }
             }
 
@@ -139,7 +144,11 @@ namespace libfintx.FinTS
                 }
                 else
                 {
+#if USE_LIB_SixLabors_ImageSharp
                     tanDialog.FlickerImage = flickerCodeRenderer.RenderAsGif(tanDialog.FlickerWidth, tanDialog.FlickerHeight);
+#else
+                    throw new NotSupportedException($"{nameof(TANDialog)}.{nameof(TANDialog.RenderFlickerCodeAsGif)} is not supported.");
+#endif
                 }
             }
 
@@ -150,7 +159,7 @@ namespace libfintx.FinTS
 
                 var mCode = new MatrixCode(PhotoCode.Substring(5, PhotoCode.Length - 5));
 
-                tanDialog.MatrixImage = mCode.CodeImage;
+                tanDialog.MatrixCode = mCode;
                 mCode.Render(tanDialog.PictureBox);
             }
 
@@ -165,7 +174,7 @@ namespace libfintx.FinTS
 
                     var mCode = new MatrixCode(PhotoBinary);
 
-                    tanDialog.MatrixImage = mCode.CodeImage;
+                    tanDialog.MatrixCode = mCode;
                     mCode.Render(tanDialog.PictureBox);
                 }
             }

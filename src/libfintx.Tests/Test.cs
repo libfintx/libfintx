@@ -38,7 +38,9 @@ using hbci = libfintx;
 using System.Windows.Forms;
 #endif
 
+#if USE_LIB_SixLabors_ImageSharp
 using SixLabors.ImageSharp;
+#endif
 
 namespace libfintx.Tests
 {
@@ -141,7 +143,12 @@ namespace libfintx.Tests
 
             var mCode = new MatrixCode(PhotoCode);
 
+            Assert.NotNull(mCode.ImageMimeType);
+            Assert.NotNull(mCode.ImageData);
+
+#if USE_LIB_SixLabors_ImageSharp
             mCode.CodeImage.SaveAsPng(File.OpenWrite(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "matrixcode.png")));
+#endif
         }
 
         [Fact(Skip = "You have to provide the connection details for this test")]
