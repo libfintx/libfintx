@@ -1,7 +1,7 @@
 # libfintx.FinTS
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
-An C# based client library for **HBCI 2.2**, **FinTS 3.0**.
+A .NET client library for **HBCI 2.2**, **FinTS 3.0**.
 
 In 1995 the ZKA announced a common online banking standard called *Homebanking Computer Interface* (HBCI). In 2003 they published the next generation of this protocol standard and named it *Financial Transaction Services* (FinTS).
 
