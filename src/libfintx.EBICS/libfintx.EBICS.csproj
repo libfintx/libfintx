@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\libfintx.EBICS.Letters\libfintx.EBICS.Letters.csproj" />
-    <ProjectReference Include="..\libfintx.EBICS.Swift\libfintx.EBICS.Swift.csproj" />
+    <ProjectReference Include="..\libfintx.Swift\libfintx.Swift.csproj" />
     <ProjectReference Include="..\libfintx.EBICSConfig\libfintx.EBICSConfig.csproj" />
     <ProjectReference Include="..\libfintx.Xml\libfintx.Xml.csproj" />
     <ProjectReference Include="..\libfintx.Xsd\libfintx.Xsd.csproj" />

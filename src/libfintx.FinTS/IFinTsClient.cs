@@ -26,8 +26,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using libfintx.FinTS.Camt;
 using libfintx.FinTS.Data;
-using libfintx.FinTS.Swift;
 using libfintx.Sepa;
+using libfintx.Swift;
 
 namespace libfintx.FinTS
 {
