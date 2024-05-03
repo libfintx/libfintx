@@ -29,7 +29,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\libfintx.EBICS.Letters\libfintx.EBICS.Letters.csproj" />
     <ProjectReference Include="..\libfintx.EBICSConfig\libfintx.EBICSConfig.csproj" />
     <ProjectReference Include="..\libfintx.Xml\libfintx.Xml.csproj" />
     <ProjectReference Include="..\libfintx.StatePrinter\libfintx.StatePrinter.csproj" />
