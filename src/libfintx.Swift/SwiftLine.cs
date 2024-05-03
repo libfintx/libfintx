@@ -23,10 +23,19 @@
 
 namespace libfintx.Swift;
 
+/// <summary>
+/// A single SWIFT field.
+/// </summary>
 public class SwiftLine
 {
+    /// <summary>
+    /// The SWIFT field number. Can be alphanumeric.
+    /// </summary>
     public string SwiftTag { get; set; }
 
+    /// <summary>
+    /// The data of the SWIFT field.
+    /// </summary>
     public string SwiftData { get; set; }
 
     public SwiftLine(string swiftTag, string swiftData)
