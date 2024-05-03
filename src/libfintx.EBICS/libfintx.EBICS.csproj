@@ -26,14 +26,12 @@
     <PackageReference Include="Iconic.Zlib.Netstandard" Version="1.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\libfintx.EBICS.Letters\libfintx.EBICS.Letters.csproj" />
     <ProjectReference Include="..\libfintx.EBICSConfig\libfintx.EBICSConfig.csproj" />
     <ProjectReference Include="..\libfintx.Xml\libfintx.Xml.csproj" />
-    <ProjectReference Include="..\libfintx.Xsd\libfintx.Xsd.csproj" />
     <ProjectReference Include="..\libfintx.StatePrinter\libfintx.StatePrinter.csproj" />
   </ItemGroup>
 
