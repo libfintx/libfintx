@@ -7,7 +7,6 @@
   <ItemGroup>
     <ProjectReference Include="..\libfintx.Database\libfintx.Database.csproj" />
     <ProjectReference Include="..\libfintx.EBICS.Letters\libfintx.EBICS.Letters.csproj" />
-    <ProjectReference Include="..\libfintx.EBICS.Swift\libfintx.EBICS.Swift.csproj" />
     <ProjectReference Include="..\libfintx.EBICSConfig\libfintx.EBICSConfig.csproj" />
     <ProjectReference Include="..\libfintx.EBICS\libfintx.EBICS.csproj" />
     <ProjectReference Include="..\libfintx.FinTS\libfintx.FinTS.csproj" />

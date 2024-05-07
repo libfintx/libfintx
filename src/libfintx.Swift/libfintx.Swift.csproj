@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
-    <RootNamespace>libfintx.FinTS</RootNamespace>
-    <Version>1.1.0</Version>
+    <RootNamespace>libfintx.Swift</RootNamespace>
+    <Version>0.1.0</Version>
     <Authors>Torsten Klinger</Authors>
-    <Description>C# based client library for HBCI 2.2, FinTS 3.0, EBICS H004 and EBICS H005.</Description>
+    <Description>Functions to handle the SWIFT messages.</Description>
     <Copyright>Copyright © 2016 - 2024 Torsten Klinger</Copyright>
     <PackageProjectUrl>https://libfintx.github.io</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>hbci, fints, banking, account, balance, transfer-money, banking-api, android, ios, mobile-banking</PackageTags>
+    <PackageTags>SWIFT, MT940, MT942</PackageTags>
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
     <PackageIcon>logo.png</PackageIcon>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -20,25 +20,10 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\libfintx.snk</AssemblyOriginatorKeyFile>
-
-    <!-- Optionally enable this option to use library SixLabors.ImageSharp for image rendering -->
-    <!--<DefineConstants>USE_LIB_SixLabors_ImageSharp</DefineConstants>-->
   </PropertyGroup>
 
-  <Choose>
-    <When Condition="$(DefineConstants.Contains('USE_LIB_SixLabors_ImageSharp'))">
-      <ItemGroup>
-        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.3" />
-        <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.2" />
-      </ItemGroup>
-    </When>
-  </Choose>
-
   <ItemGroup>
-    <ProjectReference Include="..\libfintx.Globals\libfintx.Globals.csproj" />
     <ProjectReference Include="..\libfintx.Logger\libfintx.Logger.csproj" />
-    <ProjectReference Include="..\libfintx.Sepa\libfintx.Sepa.csproj" />
-    <ProjectReference Include="..\libfintx.Swift\libfintx.Swift.csproj" />
   </ItemGroup>
 
   <ItemGroup>

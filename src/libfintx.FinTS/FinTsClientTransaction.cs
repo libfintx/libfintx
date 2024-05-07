@@ -30,7 +30,8 @@ using libfintx.FinTS.Camt;
 using libfintx.FinTS.Camt.Camt052;
 using libfintx.FinTS.Camt.Camt053;
 using libfintx.FinTS.Statement;
-using libfintx.FinTS.Swift;
+using libfintx.Swift;
+using MT940 = libfintx.FinTS.Statement.MT940;
 
 namespace libfintx.FinTS
 {
