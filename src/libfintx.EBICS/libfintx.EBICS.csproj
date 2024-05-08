@@ -1,22 +1,42 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+    <RootNamespace>libfintx.EBICS</RootNamespace>
+    <Version>1.1.0</Version>
+    <Authors>Torsten Klinger</Authors>
+    <Description>C# based client library for EBICS H004 and EBICS H005.</Description>
+    <Copyright>Copyright © 2016 - 2024 Torsten Klinger</Copyright>
+    <PackageProjectUrl>https://libfintx.github.io</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>EBICS, banking, account, balance, transfer-money, banking-api</PackageTags>
+    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+    <PackageIcon>logo.png</PackageIcon>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- If all members are not documented, you can disable the compiler warnings -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <RepositoryUrl>https://github.com/libfintx/libfintx</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\libfintx.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Iconic.Zlib.Netstandard" Version="1.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\libfintx.EBICS.Letters\libfintx.EBICS.Letters.csproj" />
     <ProjectReference Include="..\libfintx.EBICSConfig\libfintx.EBICSConfig.csproj" />
     <ProjectReference Include="..\libfintx.Xml\libfintx.Xml.csproj" />
-    <ProjectReference Include="..\libfintx.Xsd\libfintx.Xsd.csproj" />
     <ProjectReference Include="..\libfintx.StatePrinter\libfintx.StatePrinter.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="docs\README.md" Pack="true" PackagePath="/" />
+    <None Include="..\..\res\logo.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>
