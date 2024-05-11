@@ -51,6 +51,7 @@ jobs:
         path: |
           ./out/libfintx.Logger.*.nupkg
           ./out/libfintx.Sepa.*.nupkg
+          ./out/libfintx.Swift.*.nupkg
           ./out/libfintx.FinTS.*.nupkg
           ./out/libfintx.Globals.*.nupkg
           ./out/libfintx.Xsd.*.nupkg
