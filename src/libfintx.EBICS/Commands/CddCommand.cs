@@ -33,6 +33,7 @@ using libfintx.EBICS.Handler;
 using libfintx.EBICS.Parameters;
 using libfintx.EBICS.Responses;
 using libfintx.Xml;
+using libfintx.EBICS.Signierung;
 
 namespace libfintx.EBICS.Commands
 {
@@ -255,9 +256,11 @@ namespace libfintx.EBICS.Commands
             return xmlStr;
         }
 
-        private XElement CreateUserSigData(XDocument doc)
+        private XElement CreateUserSigData(string xmlStr)
         {
-            var xmlStr = FormatCctXml(doc);
+            xmlStr = xmlStr.Replace("\n", "");
+            xmlStr = xmlStr.Replace("\r", "");
+            xmlStr = xmlStr.Replace("\t", "");
 
             var signedXmlStr = SignData(Encoding.UTF8.GetBytes(xmlStr), Config.User.SignKeys);
 
@@ -284,33 +287,33 @@ namespace libfintx.EBICS.Commands
                 try
                 {
                     return segments.Select((segment, i) => new EbicsRequest
+                    {
+                        Namespaces = Namespaces,
+                        Version = Config.Version,
+                        Revision = Config.Revision,
+                        StaticHeader = new StaticHeader
                         {
                             Namespaces = Namespaces,
-                            Version = Config.Version,
-                            Revision = Config.Revision,
-                            StaticHeader = new StaticHeader
+                            HostId = Config.User.HostId,
+                            TransactionId = _transactionId
+                        },
+                        MutableHeader = new MutableHeader
+                        {
+                            Namespaces = Namespaces,
+                            TransactionPhase = "Transfer",
+                            SegmentNumber = i + 1,
+                            LastSegment = (i + 1 == segments.Count)
+                        },
+                        Body = new Body
+                        {
+                            Namespaces = Namespaces,
+                            DataTransfer = new DataTransfer
                             {
                                 Namespaces = Namespaces,
-                                HostId = Config.User.HostId,
-                                TransactionId = _transactionId
-                            },
-                            MutableHeader = new MutableHeader
-                            {
-                                Namespaces = Namespaces,
-                                TransactionPhase = "Transfer",
-                                SegmentNumber = i + 1,
-                                LastSegment = (i + 1 == segments.Count)
-                            },
-                            Body = new Body
-                            {
-                                Namespaces = Namespaces,
-                                DataTransfer = new DataTransfer
-                                {
-                                    Namespaces = Namespaces,
-                                    OrderData = segment
-                                }
+                                OrderData = segment
                             }
                         }
+                    }
                     ).Select(req => AuthenticateXml(req.Serialize().ToXmlDocument(), null, null)).ToList();
                 }
                 catch (EbicsException)
@@ -332,17 +335,20 @@ namespace libfintx.EBICS.Commands
                 {
                     XNamespace nsEbics = Namespaces.Ebics;
 
+                    string cctDocXmlStr = null;
                     var cctDoc = CreateCcdDoc();
                     s_logger.LogDebug("Created {OrderType} document:\n{doc}", OrderType, cctDoc.ToString());
+                    cctDocXmlStr = FormatCctXml(cctDoc);
 
-                    var userSigData = CreateUserSigData(cctDoc);
+                    var userSigDataTmp = CreateUserSigData(cctDocXmlStr);
+                    var userSigData = ToXMLDocument(userSigDataTmp);
+
                     s_logger.LogDebug("Created user signature data:\n{data}", userSigData.ToString());
 
-                    var userSigDataXmlStr = userSigData.ToString(SaveOptions.DisableFormatting);
+                    var userSigDataXmlStr = userSigData.InnerXml.ToString();
                     var userSigDataComp = Compress(Encoding.UTF8.GetBytes(userSigDataXmlStr));
                     var userSigDataEnc = EncryptAes(userSigDataComp, _transactionKey);
 
-                    var cctDocXmlStr = FormatCctXml(cctDoc);
                     var cctDocComp = Compress(Encoding.UTF8.GetBytes(cctDocXmlStr));
                     var cctDocEnc = EncryptAes(cctDocComp, _transactionKey);
                     var cctDocB64 = Convert.ToBase64String(cctDocEnc);
@@ -427,6 +433,19 @@ namespace libfintx.EBICS.Commands
                     throw new CreateRequestException($"can't create {OrderType} init request", ex);
                 }
             }
+        }
+
+        private XmlDocument ToXMLDocument(XElement userSigDataTmp)
+        {
+            var sb = new StringBuilder();
+            using (var s = new Utf8StringWriter(sb))
+            {
+                userSigDataTmp.Save(s);
+            }
+
+            var userSigData = new XmlDocument();
+            userSigData.LoadXml(sb.ToString());
+            return userSigData;
         }
     }
 }

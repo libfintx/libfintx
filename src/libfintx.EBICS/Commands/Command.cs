@@ -1,4 +1,4 @@
-/*	
+﻿/*	
  * 	
  *  This file is part of libfintx.
  *  
@@ -39,6 +39,7 @@ using libfintx.Xml;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using libfintx.EBICS.Signierung;
 
 namespace libfintx.EBICS.Commands
 {
@@ -312,11 +313,11 @@ namespace libfintx.EBICS.Commands
                 return doc;
             }
         }
-        
+
         // Der Nachrichteninhalt ist semantisch nicht EBICS-konform.
         // Übertragung wird abgebrochen. EBICS-Returncode='[EBICS_INVALID_REQUEST_CONTENT] Message content semantically not compliant to EBICS',
         // Fehlerbeschreibung='de.ppi.tcu.ebics.base.exceptions.InvalidEncryptionDataException: de.ppi.fis.travic.ebics.common.exceptions.InvalidCryptoDataException: javax.crypto.BadPaddingException: Invalid PKCS#1 padding: encrypted message and modulus lengths do not match!'
-        public static byte[] rsaSignPss(string rsaPrivateKey, byte[] data, int dwKeySize=2048)
+        public static byte[] rsaSignPss(string rsaPrivateKey, byte[] data, int dwKeySize = 2048)
         {
             RSACryptoServiceProvider RSAalg = new RSACryptoServiceProvider(dwKeySize);
             RSAalg.PersistKeyInCsp = false;
@@ -355,19 +356,10 @@ namespace libfintx.EBICS.Commands
             }
             else if (kp.Version == SignVersion.A006)
             {
-                //string privateRsaKeyXml = kp.PrivateKey.ToXmlString(true);
-                //string publicRsaKeyXml = kp.PublicKey.ToXmlString(false);
-                //byte[] signature = rsaSignPss(privateRsaKeyXml, data);
-                //bool signatureVerified = rsaVerifySignaturePss(publicRsaKeyXml, data, signature);
-                //if (signatureVerified)
-                //{
-                //    return signature;
-                //}
-                //else
-                //{
-                //    throw new CryptographicException($"Die Signatur konnte nicht verifiziert werden");
-                //}
-                return kp.PrivateKey.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
+                IBytesCreator bytesCreator = new BytesCreator();
+                var signierer = new Signierer(bytesCreator);
+                var signedData = signierer.SigniereA006(data, kp);
+                return signedData;
             }
             else
                 throw new CryptographicException($"Derzeit wird nur die Signaturversion {SignVersion.A005} und {SignVersion.A006} unterstützt");
