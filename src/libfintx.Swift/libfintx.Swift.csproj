@@ -2,13 +2,14 @@
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
-    <RootNamespace>libfintx.Security</RootNamespace>
-    <Version>1.1.0</Version>
+    <RootNamespace>libfintx.Swift</RootNamespace>
+    <Version>0.1.0</Version>
     <Authors>Torsten Klinger</Authors>
-    <Description>C# based client library for EBICS H004 and EBICS H005.</Description>
+    <Description>Functions to handle the SWIFT messages.</Description>
     <Copyright>Copyright © 2016 - 2024 Torsten Klinger</Copyright>
     <PackageProjectUrl>https://libfintx.github.io</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>SWIFT, MT940, MT942</PackageTags>
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
     <PackageIcon>logo.png</PackageIcon>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -22,7 +23,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
+    <ProjectReference Include="..\libfintx.Logger\libfintx.Logger.csproj" />
   </ItemGroup>
 
   <ItemGroup>

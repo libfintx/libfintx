@@ -51,8 +51,15 @@ jobs:
         path: |
           ./out/libfintx.Logger.*.nupkg
           ./out/libfintx.Sepa.*.nupkg
+          ./out/libfintx.Swift.*.nupkg
           ./out/libfintx.FinTS.*.nupkg
           ./out/libfintx.Globals.*.nupkg
+          ./out/libfintx.Xsd.*.nupkg
+          ./out/libfintx.Security.*.nupkg
+          ./out/libfintx.Xml.*.nupkg
+          ./out/libfintx.StatePrinter.*.nupkg
+          ./out/libfintx.EBICSConfig.*.nupkg
+          ./out/libfintx.EBICS.*.nupkg
       if: ${{ matrix.is_release }}
 
   publish:

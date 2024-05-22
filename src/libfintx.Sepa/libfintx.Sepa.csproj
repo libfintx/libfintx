@@ -7,7 +7,7 @@
     <Authors>Torsten Klinger</Authors>
     <Description>Functions to handle the SEPA standard. Used in libfintx.FinTS.</Description>
     <Copyright>Copyright © 2016 - 2024 Torsten Klinger</Copyright>
-    <PackageProjectUrl>https://github.com/libfintx/libfintx</PackageProjectUrl>
+    <PackageProjectUrl>https://libfintx.github.io</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>banking, sepa</PackageTags>
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
