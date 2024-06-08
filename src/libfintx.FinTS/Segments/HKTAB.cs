@@ -32,24 +32,186 @@ namespace libfintx.FinTS
     public static class HKTAB
     {
         /// <summary>
+        /// TAN Medium Art für Elementversion #1
+        ///
+        /// dient der Klassifizierung der gesamten dem Kunden zugeordneten TANMedien. Bei Geschäftsvorfällen zum Management des TAN-Generators kann
+        /// aus diesen nach folgender Codierung selektiert werden.
+        /// 
+        /// Siehe https://www.hbci-zka.de/dokumente/spezifikation_deutsch/fintsv3/FinTS_3.0_Security_Sicherheitsverfahren_PINTAN_2018-02-23_final_version.pdf
+        /// Seite 128
+        /// </summary>
+        public enum TanMediumType1
+        {
+            All = 0, // Alle
+            Active = 2, // Aktiv
+            Available = 3 // Verfügbar
+        }
+
+        /// <summary>
+        /// TAN Medium Art für Elementversion #2
+        ///
+        /// dient der Klassifizierung der gesamten dem Kunden zugeordneten TANMedien. Bei Geschäftsvorfällen zum Management des TAN-Generators kann
+        /// aus diesen nach folgender Codierung selektiert werden.
+        /// 
+        /// Siehe https://www.hbci-zka.de/dokumente/spezifikation_deutsch/fintsv3/FinTS_3.0_Security_Sicherheitsverfahren_PINTAN_2018-02-23_final_version.pdf
+        /// Seite 128
+        /// </summary>
+        public enum TanMediumType2
+        {
+            All = 0, // Alle
+            Active = 1, // Aktiv
+            Available = 2 // Verfügbar
+        }
+
+        /// <summary>
+        /// TAN-Medium-Klasse, Elementversion #1
+        ///
+        /// dient der Klassifizierung der möglichen TAN-Medien. Bei Geschäftsvorfällen
+        /// zum Management der TAN-Medien kann aus diesen nach folgender Codierung selektiert werden.
+        /// </summary>
+        public static class TanMediumClass1
+        {
+            /// <summary>
+            /// Liste
+            /// </summary>
+            public const string List = "L";
+
+            /// <summary>
+            /// TAN-Generator
+            /// </summary>
+            public const string TanGenerator = "G";
+
+            /// <summary>
+            /// Mobiltelefon mit mobileTAN
+            /// </summary>
+            public const string MobileTan = "M";
+        }
+
+        /// <summary>
+        /// TAN-Medium-Klasse, Elementversion #2
+        ///
+        /// dient der Klassifizierung der möglichen TAN-Medien. Bei Geschäftsvorfällen
+        /// zum Management der TAN-Medien kann aus diesen nach folgender Codierung selektiert werden.
+        /// </summary>
+        public static class TanMediumClass2
+        {
+            /// <summary>
+            /// Liste
+            /// </summary>
+            public const string List = "L";
+
+            /// <summary>
+            /// TAN-Generator
+            /// </summary>
+            public const string TanGenerator = "G";
+
+            /// <summary>
+            /// Mobiltelefon mit mobileTAN
+            /// </summary>
+            public const string MobileTan = "M";
+
+            /// <summary>
+            /// Secoder
+            /// </summary>
+            public const string Secoder = "S";
+        }
+
+        /// <summary>
+        /// TAN-Medium-Klasse, Elementversion #3
+        ///
+        /// dient der Klassifizierung der möglichen TAN-Medien. Bei Geschäftsvorfällen
+        /// zum Management der TAN-Medien kann aus diesen nach folgender Codierung selektiert werden.
+        /// </summary>
+        public static class TanMediumClass3
+        {
+            /// <summary>
+            /// Alle Medien
+            /// </summary>
+            public const string All = "A";
+
+            /// <summary>
+            /// Liste
+            /// </summary>
+            public const string List = "L";
+
+            /// <summary>
+            /// TAN-Generator
+            /// </summary>
+            public const string TanGenerator = "G";
+
+            /// <summary>
+            /// Mobiltelefon mit mobileTAN
+            /// </summary>
+            public const string MobileTan = "M";
+
+            /// <summary>
+            /// Secoder
+            /// </summary>
+            public const string Secoder = "S";
+        }
+
+        /// <summary>
+        /// TAN-Medium-Klasse, Elementversion #4
+        ///
+        /// dient der Klassifizierung der möglichen TAN-Medien. Bei Geschäftsvorfällen
+        /// zum Management der TAN-Medien kann aus diesen nach folgender Codierung selektiert werden.
+        /// </summary>
+        public static class TanMediumClass4
+        {
+            /// <summary>
+            /// Alle Medien
+            /// </summary>
+            public const string All = "A";
+
+            /// <summary>
+            /// Liste
+            /// </summary>
+            public const string List = "L";
+
+            /// <summary>
+            /// TAN-Generator
+            /// </summary>
+            public const string TanGenerator = "G";
+
+            /// <summary>
+            /// Mobiltelefon mit mobileTAN
+            /// </summary>
+            public const string MobileTan = "M";
+
+            /// <summary>
+            /// Secoder
+            /// </summary>
+            public const string Secoder = "S";
+
+            /// <summary>
+            /// Bilateral vereinbart
+            /// </summary>
+            public const string BilateralAgreement = "B";
+        }
+
+        /// <summary>
         /// Request TAN medium name
         /// </summary>
-        public static async Task<String> Init_HKTAB(FinTsClient client)
+        public static async Task<string> Init_HKTAB(FinTsClient client)
         {
             Log.Write("Starting job HKTAB: Request tan medium name");
 
-            SEG sEG = new SEG();
+            var seg = new SEG();
 
-            var connectionDetails = client.ConnectionDetails;
-            string segments = string.Empty;
+            // HKTAB version:
+            //   - version 4: use TanMediumType2, TanMediumClass3
+            //   - version 5: use TanMediumType2, TanMediumClass4
 
-            segments = sEG.toSEG(new SEG_DATA
+            var tanMediumType = TanMediumType2.All;
+            var tanMediumClass = TanMediumClass3.All;
+
+            var segments = seg.toSEG(new SEG_DATA
             {
                 Header = "HKTAB",
                 Num = Convert.ToInt16(SEG_NUM.Seg3),
                 Version = 4,
                 RefNum = 0,
-                RawData = "A" + sEG.Terminator
+                RawData = $"{tanMediumType}+{tanMediumClass}{seg.Terminator}"
             });
             //segments = "HKTAB:" + SEG_NUM.Seg3 + ":4+0+A'";
 
