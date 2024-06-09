@@ -211,7 +211,7 @@ namespace libfintx.FinTS
                 Num = Convert.ToInt16(SEG_NUM.Seg3),
                 Version = 4,
                 RefNum = 0,
-                RawData = $"{tanMediumType}+{tanMediumClass}{seg.Terminator}"
+                RawData = $"{(int)tanMediumType}+{tanMediumClass}{seg.Terminator}"
             });
             //segments = "HKTAB:" + SEG_NUM.Seg3 + ":4+0+A'";
 
