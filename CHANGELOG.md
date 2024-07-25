@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 1.2.0 (2024-07-25)
+
+- :tada: add strong name for NuGet projects ([#3](https://github.com/libfintx/libfintx/issues/3))
+- :rocket: *change* move SWIFT message handling into separate library `libfintx.Swift`
+- :rocket: *change* Properly parse HIRMG/HIRMS messages in bank code result (see [8c25a6d](https://github.com/libfintx/libfintx/commit/8c25a6d))
+- :rocket: Update Commerzbank photo tan
+- :rocket: make use of library SixLabors.ImageSharp optional
+- :rocket: *change* rename `InputDate` to `EntryDate` in `SwiftTransaction` according to the MT940 specification
+- :bug: *fix* HKTAB sending TAN medium type 0 ([#28](https://github.com/libfintx/libfintx/issues/28))
+
 ## Version 1.1.0 (2024-04-01)
 
 - Bank database update: Switch FinTS URL fiducia.de to atruvia.de

@@ -5,7 +5,7 @@
   -->
 
   <PropertyGroup>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Authors>Torsten Klinger</Authors>
     <Copyright>Copyright © 2016 - 2024 Torsten Klinger</Copyright>
     <PackageProjectUrl>https://libfintx.github.io</PackageProjectUrl>
