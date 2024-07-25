@@ -1,0 +1,25 @@
+<Project>
+
+  <!--
+  This file holds properties shared across all projects.
+  -->
+
+  <PropertyGroup>
+    <Version>1.1.0</Version>
+    <Authors>Torsten Klinger</Authors>
+    <Copyright>Copyright © 2016 - 2024 Torsten Klinger</Copyright>
+    <PackageProjectUrl>https://libfintx.github.io</PackageProjectUrl>
+    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+    <PackageIcon>logo.png</PackageIcon>
+    <RepositoryUrl>https://github.com/libfintx/libfintx</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\libfintx.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="docs\README.md" Pack="true" PackagePath="/" />
+    <None Include="..\res\logo.png" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+</Project>
