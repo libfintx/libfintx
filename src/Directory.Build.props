@@ -18,8 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="docs\README.md" Pack="true" PackagePath="/" />
-    <None Include="..\res\logo.png" Pack="true" PackagePath="/" />
+    <None Include="..\..\res\logo.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>
