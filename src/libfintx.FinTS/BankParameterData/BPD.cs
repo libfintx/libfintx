@@ -21,63 +21,71 @@
  */
 
 using libfintx.FinTS.Data.Segment;
-using libfintx.FinTS.Util;
 using libfintx.Logger.Log;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
-namespace libfintx.FinTS
+namespace libfintx.FinTS.BankParameterData
 {
-    public static class BPD
+    public class BPD
     {
-        public static string Value { get; set; }
+        public string Raw { get; set; }
 
-        public static HIPINS HIPINS { get; set; }
+        public HIPINS HIPINS { get; set; }
 
-        public static List<HICAZS> HICAZS { get; set; }
+        public List<HICAZS> HICAZS { get; set; } = new();
 
-        public static List<HIKAZS> HIKAZS { get; set; }
+        public List<HIKAZS> HIKAZS { get; set; } = new();
 
-        public static List<HITANS> HITANS { get; set; }
+        public List<HITANS> HITANS { get; set; } = new();
 
-        public static List<Segment> SegmentList { get; set; }
+        public List<Segment> SegmentList { get; set; } = new();
 
-        public static void Reset()
+        public static BPD Parse(string rawBpd)
         {
-            ReflectionUtil.ResetStaticFields(typeof(BPD));
-        }
+            var bpd = new BPD();
+            bpd.Raw = rawBpd;
+            bpd.SegmentList = new List<Segment>();
+            bpd.HICAZS = new List<HICAZS>();
+            bpd.HIKAZS = new List<HIKAZS>();
+            bpd.HITANS = new List<HITANS>();
 
-        public static void ParseBpd(string bpd)
-        {
-            Value = bpd;
-            SegmentList = new List<Segment>();
-            HICAZS = new List<HICAZS>();
-            HIKAZS = new List<HIKAZS>();
-            HITANS = new List<HITANS>();
-
-            var segments = Helper.SplitSegments(bpd);
+            var segments = Helper.SplitSegments(rawBpd);
             foreach (var rawSegment in segments)
             {
                 try
                 {
                     var segment = SegmentParserFactory.ParseSegment(rawSegment);
                     if (segment is HIPINS)
-                        HIPINS = (HIPINS) segment;
+                        bpd.HIPINS = (HIPINS) segment;
                     else if (segment is HICAZS)
-                        HICAZS.Add((HICAZS) segment);
+                        bpd.HICAZS.Add((HICAZS) segment);
                     else if (segment is HIKAZS)
-                        HIKAZS.Add((HIKAZS) segment);
+                        bpd.HIKAZS.Add((HIKAZS) segment);
                     else if (segment is HITANS)
-                        HITANS.Add((HITANS) segment);
+                        bpd.HITANS.Add((HITANS) segment);
 
-                    SegmentList.Add(segment);
+                    bpd.SegmentList.Add(segment);
                 }
                 catch (Exception ex)
                 {
                     Log.Write($"Couldn't parse segment: {ex.Message}{Environment.NewLine}{rawSegment}");
                 }
             }
+
+            return bpd;
+        }
+
+        /// <summary>
+        /// Gives bank if TAN authentication is required for a specific FinTS message identification.
+        /// </summary>
+        /// <param name="gvName">
+        /// The message identification code, e.g. HKCAZ, HKCCM, HKDME.
+        /// </param>
+        /// <returns></returns>
+        public bool IsTANRequired(string gvName)
+        {
+            return HIPINS != null && HIPINS.IsTanRequired(gvName);
         }
     }
 }

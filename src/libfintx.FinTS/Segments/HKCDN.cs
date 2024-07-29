@@ -75,7 +75,7 @@ namespace libfintx.FinTS
 
             segments += "'";
 
-            if (Helper.IsTANRequired("HKCDN"))
+            if (client.BPD.IsTANRequired("HKCDN"))
             {
                 client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg4);
                 segments = HKTAN.Init_HKTAN(client, segments, "HKCDN");

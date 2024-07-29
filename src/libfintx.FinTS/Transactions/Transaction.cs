@@ -65,9 +65,9 @@ namespace libfintx.FinTS
             return await Init_HKEND(client, dialogId);
         }
 
-        public static async Task<String> HKSYN(FinTsClient client)
+        public static async Task<String> HKSYN(FinTsClient client, int? bpdVersion = null)
         {
-            return await Init_HKSYN(client);
+            return await Init_HKSYN(client,bpdVersion);
         }
 
         public static async Task<String> HKSAL(FinTsClient client)

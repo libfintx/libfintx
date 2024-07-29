@@ -35,7 +35,7 @@ namespace libfintx.FinTS
 
             string HITANFlicker = string.Empty;
 
-            var processes = BPD.HITANS.Where(h => h.Version == client.HITANS).SelectMany(t => t.TanProcesses);
+            var processes = client.BPD.HITANS.Where(h => h.Version == client.HITANS).SelectMany(t => t.TanProcesses);
 
             var processname = string.Empty;
 
