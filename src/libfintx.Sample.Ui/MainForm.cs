@@ -19,6 +19,7 @@ namespace libfintx.Sample.Ui
     public partial class MainForm : Form
     {
         private List<Bank> _bankList;
+        private FinTsClient _client;
 
         private bool _closing;
 
@@ -27,6 +28,70 @@ namespace libfintx.Sample.Ui
             InitializeComponent();
         }
 
+        private bool _isSynchronized = false;
+        private ConnectionDetails _oldConnectionDetails;
+
+        // NOTE: The Client System Id should be stored per bank code (BLZ) and saved permanently in a real application.
+        private string _customerSystemId = null;
+
+
+        /// <summary>
+        /// This runs the synchronization if required.
+        /// </summary>
+        private async Task<bool> SynchronizeInternal(bool force = false)
+        {
+            var connectionDetails = GetConnectionDetails();
+
+            bool connectionDetailsChanged =
+                _oldConnectionDetails == null ||
+                _oldConnectionDetails.Account != connectionDetails.Account ||
+                _oldConnectionDetails.Blz != _oldConnectionDetails.Blz ||
+                _oldConnectionDetails.BlzHeadquarter != _oldConnectionDetails.BlzHeadquarter ||
+                _oldConnectionDetails.Bic != _oldConnectionDetails.Bic ||
+                _oldConnectionDetails.Iban != _oldConnectionDetails.Iban ||
+                _oldConnectionDetails.Url != _oldConnectionDetails.Url ||
+                _oldConnectionDetails.HbciVersion != _oldConnectionDetails.HbciVersion ||
+                _oldConnectionDetails.UserId != _oldConnectionDetails.UserId ||
+                _oldConnectionDetails.Pin != _oldConnectionDetails.Pin;
+
+            if (connectionDetailsChanged)
+            {
+                if (_oldConnectionDetails.Blz == connectionDetails.Blz &&
+                    _oldConnectionDetails.BlzHeadquarter == connectionDetails.BlzHeadquarter &&
+                    _oldConnectionDetails.Bic == connectionDetails.Bic)
+                {
+                    // the bank is still the same, we pass the _clientSystemId to the connection details.
+                    connectionDetails.CustomerSystemId = _customerSystemId;
+                }
+
+                _isSynchronized = false;
+                _customerSystemId = null;
+                _client = new FinTsClient(connectionDetails);
+                _customerSystemId = _client.SystemId;
+            }
+            else if (_isSynchronized)
+            {
+                return true;
+            }
+
+            SimpleOutput("Start synchronization ...");
+            var result = await _client.Synchronization();
+
+            SimpleOutput("Finished:");
+            HBCIOutput(result.Messages);
+
+            if (result.IsSuccess)
+            {
+                _isSynchronized = true;
+                _oldConnectionDetails = connectionDetails;
+
+                return true;
+            }
+
+            return false;
+        }
+        
+
         /// <summary>
         /// Synchronisation
         /// </summary>
@@ -34,11 +99,7 @@ namespace libfintx.Sample.Ui
         /// <param name="e"></param>
         private async void btn_synchronisation_Click(object sender, EventArgs e)
         {
-            var connectionDetails = GetConnectionDetails();
-            var client = new FinTsClient(connectionDetails);
-            var result = await client.Synchronization();
-
-            HBCIOutput(result.Messages);
+            await SynchronizeInternal(force: true);
         }
 
         /// <summary>
@@ -175,21 +236,15 @@ namespace libfintx.Sample.Ui
         /// <param name="e"></param>
         private async void btn_kontostand_abfragen_Click(object sender, EventArgs e)
         {
-            var connectionDetails = GetConnectionDetails();
-            var client = new FinTsClient(connectionDetails);
-            var sync = await client.Synchronization();
-
-            HBCIOutput(sync.Messages);
-
-            if (sync.IsSuccess)
+            if (await SynchronizeInternal())
             {
                 // TAN-Verfahren
-                client.HIRMS = txt_tanverfahren.Text;
+                _client.HIRMS = txt_tanverfahren.Text;
 
-                if (!await InitTANMedium(client))
+                if (!await InitTANMedium(_client))
                     return;
 
-                var balance = await client.Balance(CreateTANDialog(client));
+                var balance = await _client.Balance(CreateTANDialog(_client));
 
                 HBCIOutput(balance.Messages);
 
@@ -205,21 +260,15 @@ namespace libfintx.Sample.Ui
         /// <param name="e"></param>
         private async void btn_konten_anzeigen_Click(object sender, EventArgs e)
         {
-            var connectionDetails = GetConnectionDetails();
-            var client = new FinTsClient(connectionDetails);
-            var sync = await client.Synchronization();
-
-            HBCIOutput(sync.Messages);
-
-            if (sync.IsSuccess)
+            if (await SynchronizeInternal())
             {
                 // TAN-Verfahren
-                client.HIRMS = txt_tanverfahren.Text;
+                _client.HIRMS = txt_tanverfahren.Text;
 
-                if (!await InitTANMedium(client))
+                if (!await InitTANMedium(_client))
                     return;
 
-                var accounts = await client.Accounts(CreateTANDialog(client));
+                var accounts = await _client.Accounts(CreateTANDialog(_client));
 
                 HBCIOutput(accounts.Messages);
 
@@ -245,13 +294,7 @@ namespace libfintx.Sample.Ui
         /// <param name="e"></param>
         private async void btn_zugelassene_tanverfahren_Click(object sender, EventArgs e)
         {
-            var connectionDetails = GetConnectionDetails();
-            var client = new FinTsClient(connectionDetails);
-            var sync = await client.Synchronization();
-
-            HBCIOutput(sync.Messages);
-
-            if (sync.IsSuccess)
+            if (await SynchronizeInternal())
             {
                 foreach (var process in TanProcesses.Items)
                 {
@@ -267,18 +310,12 @@ namespace libfintx.Sample.Ui
         /// <param name="e"></param>
         private async void btn_umsätze_abholen_Click(object sender, EventArgs e)
         {
-            var connectionDetails = GetConnectionDetails();
-            var client = new FinTsClient(connectionDetails);
-            var sync = await client.Synchronization();
-
-            HBCIOutput(sync.Messages);
-
-            if (sync.IsSuccess)
+            if (await SynchronizeInternal())
             {
                 // TAN-Verfahren
-                client.HIRMS = txt_tanverfahren.Text;
+                _client.HIRMS = txt_tanverfahren.Text;
 
-                if (!await InitTANMedium(client))
+                if (!await InitTANMedium(_client))
                     return;
 
                 DateTime? startDate = chk_umsatzabruf_von.Checked ? date_umsatzabruf_von.Value : (DateTime?)null;
@@ -288,7 +325,7 @@ namespace libfintx.Sample.Ui
                 if (startDate != null && maxDays != null && DateTime.Now.AddDays(maxDays.Value * -1).Date > startDate.Value.Date)
                     MessageBox.Show($"Es können nur Umsätze abgeholt werden, die maximal {maxDays} Tage zurückliegen.");
 
-                var transactions = await client.Transactions(CreateTANDialog(client), startDate, endDate);
+                var transactions = await _client.Transactions(CreateTANDialog(_client), startDate, endDate);
 
                 HBCIOutput(transactions.Messages);
 
@@ -318,23 +355,17 @@ namespace libfintx.Sample.Ui
         /// <param name="e"></param>
         private async void camt_052_abholen_Click(object sender, EventArgs e)
         {
-            var connectionDetails = GetConnectionDetails();
-            var client = new FinTsClient(connectionDetails);
-            var sync = await client.Synchronization();
-
-            HBCIOutput(sync.Messages);
-
-            if (sync.IsSuccess)
+            if (await SynchronizeInternal())
             {
                 // TAN-Verfahren
-                client.HIRMS = txt_tanverfahren.Text;
+                _client.HIRMS = txt_tanverfahren.Text;
 
-                if (!await InitTANMedium(client))
+                if (!await InitTANMedium(_client))
                     return;
 
                 DateTime? startDate = chk_umsatzabruf_von.Checked ? date_umsatzabruf_von.Value : (DateTime?)null;
 
-                var transactions = await client.Transactions_camt(CreateTANDialog(client), CamtVersion.Camt052, startDate);
+                var transactions = await _client.Transactions_camt(CreateTANDialog(_client), CamtVersion.Camt052, startDate);
 
                 HBCIOutput(transactions.Messages);
 
@@ -364,23 +395,17 @@ namespace libfintx.Sample.Ui
         /// <param name="e"></param>
         private async void camt_053_abholen_Click(object sender, EventArgs e)
         {
-            var connectionDetails = GetConnectionDetails();
-            var client = new FinTsClient(connectionDetails);
-            var sync = await client.Synchronization();
-
-            HBCIOutput(sync.Messages);
-
-            if (sync.IsSuccess)
+            if (await SynchronizeInternal())
             {
                 // TAN-Verfahren
-                client.HIRMS = txt_tanverfahren.Text;
+                _client.HIRMS = txt_tanverfahren.Text;
 
-                if (!await InitTANMedium(client))
+                if (!await InitTANMedium(_client))
                     return;
 
                 DateTime? startDate = chk_umsatzabruf_von.Checked ? date_umsatzabruf_von.Value : (DateTime?)null;
 
-                var transactions = await client.Transactions_camt(CreateTANDialog(client), CamtVersion.Camt053, startDate);
+                var transactions = await _client.Transactions_camt(CreateTANDialog(_client), CamtVersion.Camt053, startDate);
 
                 HBCIOutput(transactions.Messages);
 
@@ -402,21 +427,15 @@ namespace libfintx.Sample.Ui
 
         private async void btn_daueraufträge_abholen_Click(object sender, EventArgs e)
         {
-            var connectionDetails = GetConnectionDetails();
-            var client = new FinTsClient(connectionDetails);
-            var sync = await client.Synchronization();
-
-            HBCIOutput(sync.Messages);
-
-            if (sync.IsSuccess)
+            if (await SynchronizeInternal())
             {
                 // TAN-Verfahren
-                client.HIRMS = txt_tanverfahren.Text;
+                _client.HIRMS = txt_tanverfahren.Text;
 
-                if (!await InitTANMedium(client))
+                if (!await InitTANMedium(_client))
                     return;
 
-                var bankersOrders = await client.GetBankersOrders(CreateTANDialog(client));
+                var bankersOrders = await _client.GetBankersOrders(CreateTANDialog(_client));
 
                 HBCIOutput(bankersOrders.Messages);
 
@@ -451,21 +470,15 @@ namespace libfintx.Sample.Ui
         {
             Config.Logging(true);
 
-            var connectionDetails = GetConnectionDetails();
-            var client = new FinTsClient(connectionDetails);
-            var sync = await client.Synchronization();
-
-            HBCIOutput(sync.Messages);
-
-            if (sync.IsSuccess)
+            if (await SynchronizeInternal())
             {
                 // TAN-Verfahren
-                client.HIRMS = txt_tanverfahren.Text;
+                _client.HIRMS = txt_tanverfahren.Text;
 
-                await InitTANMedium(client);
+                await InitTANMedium(_client);
 
-                var transfer = await client.Transfer(CreateTANDialog(client), txt_empfängername.Text, Regex.Replace(txt_empfängeriban.Text, @"\s+", ""), txt_empfängerbic.Text,
-                    decimal.Parse(txt_betrag.Text), txt_verwendungszweck.Text, client.HIRMS);
+                var transfer = await _client.Transfer(CreateTANDialog(_client), txt_empfängername.Text, Regex.Replace(txt_empfängeriban.Text, @"\s+", ""), txt_empfängerbic.Text,
+                    decimal.Parse(txt_betrag.Text), txt_verwendungszweck.Text, _client.HIRMS);
 
                 // Out image is needed e. g. for photoTAN
                 //var transfer = Main.Transfer(connectionDetails, txt_empfängername.Text, txt_empfängeriban.Text, txt_empfängerbic.Text,
@@ -482,16 +495,10 @@ namespace libfintx.Sample.Ui
         /// <param name="e"></param>
         private async void btn_tan_medium_name_abfragen_Click(object sender, EventArgs e)
         {
-            var connectionDetails = GetConnectionDetails();
-            var client = new FinTsClient(connectionDetails);
-            var sync = await client.Synchronization();
-
-            HBCIOutput(sync.Messages);
-
-            if (sync.IsSuccess)
+            if (await SynchronizeInternal())
             {
-                client.HIRMS = txt_tanverfahren.Text;
-                var result = await client.RequestTANMediumName();
+                _client.HIRMS = txt_tanverfahren.Text;
+                var result = await _client.RequestTANMediumName();
 
                 HBCIOutput(result.Messages);
 
@@ -723,21 +730,15 @@ namespace libfintx.Sample.Ui
 
         private async void btn_terminueberweisungen_abholen_Click(object sender, EventArgs e)
         {
-            var connectionDetails = GetConnectionDetails();
-            var client = new FinTsClient(connectionDetails);
-            var sync = await client.Synchronization();
-
-            HBCIOutput(sync.Messages);
-
-            if (sync.IsSuccess)
+            if (await SynchronizeInternal())
             {
                 // TAN-Verfahren
-                client.HIRMS = txt_tanverfahren.Text;
+                _client.HIRMS = txt_tanverfahren.Text;
 
-                if (!await InitTANMedium(client))
+                if (!await InitTANMedium(_client))
                     return;
 
-                var result = await client.GetTerminatedTransfers(CreateTANDialog(client));
+                var result = await _client.GetTerminatedTransfers(CreateTANDialog(_client));
 
                 HBCIOutput(result.Messages);
 
