@@ -104,7 +104,7 @@ namespace libfintx.FinTS
             }
             //segments = "HKSAL:" + client.SEGNUM + ":" + client.HISALS + "+" + activeAccount.AccountNumber + "::280:" + activeAccount.AccountBankCode + "+N'";
 
-            if (Helper.IsTANRequired("HKSAL"))
+            if (client.BPD.IsTANRequired("HKSAL"))
             {
                 client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg4);
                 segments = HKTAN.Init_HKTAN(client, segments, "HKSAL");

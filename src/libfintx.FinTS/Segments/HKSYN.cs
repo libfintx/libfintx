@@ -34,7 +34,7 @@ namespace libfintx.FinTS
 {
     public static class HKSYN
     {
-        public static async Task<String> Init_HKSYN(FinTsClient client)
+        public static async Task<String> Init_HKSYN(FinTsClient client, int? bpdVersion = null)
         {
             Log.Write("Starting Synchronisation");
 
@@ -61,22 +61,24 @@ namespace libfintx.FinTS
                 sb.Append(sEG.Delimiter);
                 sb.Append("1");
                 sb.Append(sEG.Terminator);
+
                 sb.Append("HKVVB");
                 sb.Append(DEG.Separator);
                 sb.Append(SEG_NUM.Seg4);
                 sb.Append(DEG.Separator);
                 sb.Append("2");
                 sb.Append(sEG.Delimiter);
-                sb.Append("0");
+                sb.Append(bpdVersion ?? 0);  // BDP-Version
                 sb.Append(sEG.Delimiter);
-                sb.Append("0");
+                sb.Append("0");  // UPD-Version
                 sb.Append(sEG.Delimiter);
-                sb.Append("0");
+                sb.Append("0");  // Dialogsprache
                 sb.Append(sEG.Delimiter);
-                sb.Append(FinTsGlobals.ProductId);
+                sb.Append(FinTsGlobals.ProductId);  // Produktbezeichnung
                 sb.Append(sEG.Delimiter);
-                sb.Append(FinTsGlobals.Version);
+                sb.Append(FinTsGlobals.Version);    // Produktversion
                 sb.Append(sEG.Terminator);
+
                 sb.Append("HKSYN");
                 sb.Append(DEG.Separator);
                 sb.Append(SEG_NUM.Seg5);
@@ -115,22 +117,24 @@ namespace libfintx.FinTS
                 sb.Append(sEG.Delimiter);
                 sb.Append("1");
                 sb.Append(sEG.Terminator);
+
                 sb.Append("HKVVB");
                 sb.Append(DEG.Separator);
                 sb.Append(SEG_NUM.Seg4);
                 sb.Append(DEG.Separator);
                 sb.Append("3");
                 sb.Append(sEG.Delimiter);
-                sb.Append("0");
+                sb.Append(bpdVersion ?? 0);  // BDP-Version
                 sb.Append(sEG.Delimiter);
-                sb.Append("0");
+                sb.Append("0");  // UPD-Version
                 sb.Append(sEG.Delimiter);
-                sb.Append("0");
+                sb.Append("0");  // Dialogsprache
                 sb.Append(sEG.Delimiter);
-                sb.Append(FinTsGlobals.ProductId);
+                sb.Append(FinTsGlobals.ProductId);  // Produktbezeichnung
                 sb.Append(sEG.Delimiter);
-                sb.Append(FinTsGlobals.Version);
+                sb.Append(FinTsGlobals.Version);    // Produktversion
                 sb.Append(sEG.Terminator);
+
                 sb.Append("HKSYN");
                 sb.Append(DEG.Separator);
                 sb.Append(SEG_NUM.Seg5);
