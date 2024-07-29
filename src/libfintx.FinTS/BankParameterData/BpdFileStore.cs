@@ -26,9 +26,9 @@ public class BpdFileStore : IBpdStore
     /// </param>
     public BpdFileStore(string path)
     {
-        if ((File.GetAttributes(path) & FileAttributes.Directory) != FileAttributes.Directory)
+        if (!Directory.Exists(path))
         {
-            throw new ArgumentException($"The path '{path}' is not a directory.", nameof(path));
+            Directory.CreateDirectory(path);
         }
 
         _path = path;
