@@ -333,7 +333,7 @@ namespace libfintx.FinTS
                     return string.Empty;
             }
 
-            if (Helper.IsTANRequired("HKCAZ"))
+            if (client.BPD.IsTANRequired("HKCAZ"))
             {
                 client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg4);
                 segments = HKTAN.Init_HKTAN(client, segments, "HKCAZ");

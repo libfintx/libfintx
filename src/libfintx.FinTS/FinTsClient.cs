@@ -22,20 +22,40 @@
  */
 
 using libfintx.FinTS.Data;
+using libfintx.FinTS.BankParameterData;
 using libfintx.Logger.Log;
 using libfintx.Sepa;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using libfintx.Globals;
 
 namespace libfintx.FinTS
 {
     public partial class FinTsClient : IFinTsClient
     {
+        private BPD? _bpd;
+
         public bool Anonymous { get; }
         public ConnectionDetails ConnectionDetails { get; }
         public AccountInformation activeAccount { get; set; }
         public string SystemId { get; internal set; }
+
+        /// <summary>
+        /// The bank parameter data store.
+        /// </summary>
+        internal IBpdStore BdpStore { get; }
+
+        /// <summary>
+        /// The bank parameter data of the bank given in the connection details.
+        /// </summary>
+        public BPD? BPD
+        {
+            get => _bpd ?? BPD.Parse(BdpStore.GetBPD(280, ConnectionDetails.Blz).Result);
+            set => _bpd = value;
+        }
+
         public string HITAB { get; set; }
         public string HIRMS { get; set; }
         public int HITANS { get; set; }
@@ -53,10 +73,20 @@ namespace libfintx.FinTS
         internal int HISPAS_Pain { get; set; }
         internal bool HISPAS_AccountNationalAllowed { get; set; }
 
-        public FinTsClient(ConnectionDetails conn, bool anon = false)
+        /// <summary>
+        /// Initializes a new FinTS client.
+        /// </summary>
+        /// <param name="connection">ConnectionDetails object must at least contain the fields: Url, HBCIVersion, UserId, Pin, Blz</param>
+        /// <param name="anonymous"></param>
+        /// <param name="bpdDataStore">
+        /// A data store for the bank parameter data (BPD). If not given, a file store in the folder <c>FinTsGlobals.ProgramBaseDir</c> will be used.
+        /// </param>
+        public FinTsClient(ConnectionDetails connection, bool anonymous = false, IBpdStore? bpdDataStore = null)
         {
-            ConnectionDetails = conn;
-            Anonymous = anon;
+            ConnectionDetails = connection;
+            Anonymous = anonymous;
+            BdpStore = bpdDataStore
+                       ?? new BpdFileStore(Path.Combine(FinTsGlobals.ProgramBaseDir, "BPD"));
             activeAccount = null;
         }
 
@@ -94,17 +124,18 @@ namespace libfintx.FinTS
         /// <summary>
         /// Synchronize bank connection
         /// </summary>
-        /// <param name="conn">ConnectionDetails object must atleast contain the fields: Url, HBCIVersion, UserId, Pin, Blz</param>
         /// <returns>
         /// Customer System ID
         /// </returns>
         public async Task<HBCIDialogResult<string>> Synchronization()
         {
-            string BankCode = await Transaction.HKSYN(this);
+            var bpdVersion = await BdpStore.GetBPDVersion(280, ConnectionDetails.Blz);
 
-            var messages = Helper.Parse_BankCode(BankCode);
+            string data = await Transaction.HKSYN(this, bpdVersion);
 
-            return new HBCIDialogResult<string>(messages, BankCode, SystemId);
+            var messages = Helper.Parse_BankCode(data);
+
+            return new HBCIDialogResult<string>(messages, data, SystemId);
         }
 
         /// <summary>

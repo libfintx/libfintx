@@ -23,62 +23,44 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 
-namespace libfintx.FinTS.Util
+namespace libfintx.FinTS.Util;
+
+public static class ReflectionUtil
 {
-    public static class ReflectionUtil
+    public static string ToString(object obj)
     {
-        public static void ResetStaticFields(Type type)
+        var sb = new StringBuilder();
+        foreach (var property in obj.GetType().GetProperties())
         {
-            var propList = type.GetProperties(BindingFlags.Public | BindingFlags.Static);
-
-            foreach (var prop in propList)
+            sb.Append(property.Name);
+            sb.Append(": ");
+            if (property.GetIndexParameters().Length > 0)
             {
-                if (prop.CanWrite)
-                {
-                    if (prop.PropertyType.IsValueType)
-                        prop.SetValue(null, Activator.CreateInstance(prop.PropertyType), null);
-                    else
-                        prop.SetValue(null, null, null);
-                }
+                sb.Append("Indexed Property cannot be used");
             }
-        }
-
-        public static string ToString(object obj)
-        {
-            var sb = new StringBuilder();
-            foreach (var property in obj.GetType().GetProperties())
+            else
             {
-                sb.Append(property.Name);
-                sb.Append(": ");
-                if (property.GetIndexParameters().Length > 0)
+                object value = property.GetValue(obj, null);
+                if (value is string str)
                 {
-                    sb.Append("Indexed Property cannot be used");
+                    sb.Append(str);
+                }
+                else if (value is System.Collections.IEnumerable array)
+                {
+                    var enumOfObjects = array as IList<object> ?? array.Cast<object>().ToList();
+                    sb.Append($"[{string.Join(", ", enumOfObjects)}]");
                 }
                 else
                 {
-                    object value = property.GetValue(obj, null);
-                    if (value is string str)
-                    {
-                        sb.Append(str);
-                    }
-                    else if (value is System.Collections.IEnumerable array)
-                    {
-                        var enumOfObjects = array as IList<object> ?? array.Cast<object>().ToList();
-                        sb.Append($"[{string.Join(", ", enumOfObjects)}]");
-                    }
-                    else
-                    {
-                        sb.Append(value);
-                    }
+                    sb.Append(value);
                 }
-
-                sb.Append(Environment.NewLine);
             }
 
-            return sb.ToString();
+            sb.Append(Environment.NewLine);
         }
+
+        return sb.ToString();
     }
 }

@@ -59,7 +59,7 @@ namespace libfintx.FinTS
             });
             //string segments = "HKCDB:" + client.SEGNUM + ":1+" + connectionDetails.Iban + ":" + connectionDetails.Bic + "+urn?:iso?:std?:iso?:20022?:tech?:xsd?:pain.001.001.03'";
 
-            if (Helper.IsTANRequired("HKCDB"))
+            if (client.BPD.IsTANRequired("HKCDB"))
             {
                 client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg4);
                 segments = HKTAN.Init_HKTAN(client, segments, "HKCDB");

@@ -110,7 +110,7 @@ namespace libfintx.FinTS
 
             segments = segments.Replace("@@", "@" + (sepaMessage.Length - 1) + "@") + sepaMessage;
 
-            if (Helper.IsTANRequired("HKCCS"))
+            if (client.BPD.IsTANRequired("HKCCS"))
             {
                 client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg4);
                 segments = HKTAN.Init_HKTAN(client, segments, "HKCCS");

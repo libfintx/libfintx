@@ -29,6 +29,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using libfintx.FinTS.BankParameterData;
 using libfintx.FinTS.Camt;
 using libfintx.FinTS.Data.Segment;
 using libfintx.Globals;
@@ -159,9 +160,7 @@ namespace libfintx.FinTS
         /// <summary>
         /// Parsing segment -> UPD, BPD
         /// </summary>
-        /// <param name="UserID"></param>
-        /// <param name="BLZ"></param>
-        /// <param name="HBCIVersion"></param>
+        /// <param name="client"></param>
         /// <param name="Message"></param>
         /// <returns></returns>
         public static List<HBCIBankMessage> Parse_Segments(FinTsClient client, string Message)
@@ -184,17 +183,18 @@ namespace libfintx.FinTS
                 }
 
                 // BPD
-                string bpd = string.Empty;
+                string rawBpd = string.Empty;
                 var bpaMatch = Regex.Match(Message, @"(HIBPA.+?)\b(HITAN|HNHBS|HISYN|HIUPA)\b");
                 if (bpaMatch.Success)
-                    bpd = bpaMatch.Groups[1].Value;
-                if (bpd.Length > 0)
+                    rawBpd = bpaMatch.Groups[1].Value;
+                if (rawBpd.Length > 0)
                 {
-                    if (bpd.EndsWith("''"))
-                        bpd = bpd.Substring(0, bpd.Length - 1);
+                    if (rawBpd.EndsWith("''"))
+                        rawBpd = rawBpd.Substring(0, rawBpd.Length - 1);
 
-                    SaveBPD(connDetails.Blz, bpd);
-                    BPD.ParseBpd(bpd);
+                    client.BdpStore.SaveBPD(280, connDetails.Blz, rawBpd)
+                        .Wait();
+                    client.BPD = BPD.Parse(rawBpd);
                 }
 
                 // UPD
@@ -281,7 +281,7 @@ namespace libfintx.FinTS
 
                             // Parsing TAN processes
                             if (!string.IsNullOrEmpty(client.HIRMS))
-                                Parse_TANProcesses(client, bpd);
+                                Parse_TANProcesses(client, rawBpd);
 
                         }
                     }
@@ -698,15 +698,16 @@ namespace libfintx.FinTS
             return value.Replace(" ", "_");
         }
 
+        [Obsolete("Not supported anymore. Please handle the BPD files through a BPD data store, e.g.FinTsClient.BpdStore", true)]
         private static string GetBPDDir()
         {
-            var dir = FinTsGlobals.ProgramBaseDir;
-            return Path.Combine(dir, "BPD");
+            throw new NotSupportedException();
         }
 
+        [Obsolete("Not supported anymore. Please handle the BPD files through a BPD data store, e.g.FinTsClient.BpdStore", true)]
         private static string GetBPDFile(string dir, int BLZ)
         {
-            return Path.Combine(dir, "280_" + BLZ + ".bpd");
+            throw new NotSupportedException();
         }
 
         private static string GetUPDDir()
@@ -743,34 +744,23 @@ namespace libfintx.FinTS
             return content;
         }
 
+        [Obsolete("Please use FinTsClient.BpdStore.SaveBPD instead", true)]
         public static void SaveBPD(int BLZ, string upd)
         {
-            string dir = GetBPDDir();
-            Directory.CreateDirectory(dir);
-            var file = GetBPDFile(dir, BLZ);
-            Log.Write($"Saving BPD to '{file}' ...");
-            if (!File.Exists(file))
-            {
-                using (File.Create(file)) { };
-            }
-            File.WriteAllText(file, upd);
+            throw new NotSupportedException();
         }
 
+        [Obsolete("Please use FinTsClient.BpdStore.GetBPD instead", true)]
         public static string GetBPD(int BLZ)
         {
-            var dir = GetBPDDir();
-            var file = GetBPDFile(dir, BLZ);
-            var content = File.Exists(file) ? File.ReadAllText(file) : string.Empty;
-
-            return content;
+            throw new NotSupportedException();
         }
 
+        [Obsolete("Please use FinTsClient.BPD.IsTANReuqired instead", true)]
         public static bool IsTANRequired(string gvName)
         {
-            var HIPINS = BPD.HIPINS;
-            return HIPINS != null && HIPINS.IsTanRequired(gvName);
+            throw new NotSupportedException();
         }
-
     }
 }
 

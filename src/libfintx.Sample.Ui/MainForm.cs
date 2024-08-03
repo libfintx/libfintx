@@ -296,10 +296,12 @@ namespace libfintx.Sample.Ui
         {
             if (await SynchronizeInternal())
             {
-                foreach (var process in TanProcesses.Items)
-                {
-                    SimpleOutput("Name: " + process.ProcessName + " | " + "Nummer: " + process.ProcessNumber);
-                }
+                return;
+            }
+
+            foreach (var process in TanProcesses.Items)
+            {
+                SimpleOutput("Name: " + process.ProcessName + " | " + "Nummer: " + process.ProcessNumber);
             }
         }
 
@@ -321,7 +323,7 @@ namespace libfintx.Sample.Ui
                 DateTime? startDate = chk_umsatzabruf_von.Checked ? date_umsatzabruf_von.Value : (DateTime?)null;
                 DateTime? endDate = chk_umsatzabruf_bis.Checked ? date_umsatzabruf_bis.Value : (DateTime?)null;
 
-                int? maxDays = BPD.HIKAZS.OrderByDescending(s => s.Version).FirstOrDefault()?.Zeitraum;
+                int? maxDays = _client.BPD.HIKAZS.OrderByDescending(s => s.Version).FirstOrDefault()?.Zeitraum;
                 if (startDate != null && maxDays != null && DateTime.Now.AddDays(maxDays.Value * -1).Date > startDate.Value.Date)
                     MessageBox.Show($"Es können nur Umsätze abgeholt werden, die maximal {maxDays} Tage zurückliegen.");
 
