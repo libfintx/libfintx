@@ -26,7 +26,6 @@ using System.Text;
 using System.Threading.Tasks;
 using libfintx.FinTS.Data;
 using libfintx.FinTS.Message;
-using libfintx.FinTS.Version;
 using libfintx.Globals;
 using libfintx.Logger.Debug;
 using libfintx.Logger.Log;
@@ -46,17 +45,13 @@ namespace libfintx.FinTS
             var connectionDetails = client.ConnectionDetails;
             if (!client.Anonymous)
             {
-                /// <summary>
-                /// Sync
-                /// </summary>
+                // Sync
                 try
                 {
                     string segments;
 
-                    /// <summary>
-                    /// INI
-                    /// </summary>
-                    if (connectionDetails.HbciVersion == Convert.ToInt16(HBCI.v220))
+                    // INI
+                    if (connectionDetails.FinTSVersion == FinTsVersion.v220)
                     {
                         sb = new StringBuilder();
                         sb.Append("HKIDN");
@@ -101,7 +96,7 @@ namespace libfintx.FinTS
 
                         segments = segments_;
                     }
-                    else if (connectionDetails.HbciVersion == Convert.ToInt16(HBCI.v300))
+                    else if (connectionDetails.FinTSVersion == FinTsVersion.v300)
                     {
                         sb = new StringBuilder();
                         sb.Append("HKIDN");
@@ -187,16 +182,14 @@ namespace libfintx.FinTS
             }
             else
             {
-                /// <summary>
-                /// Sync
-                /// </summary>
+                // Sync
                 try
                 {
                     Log.Write("Starting Synchronisation anonymous");
 
                     string segments;
 
-                    if (connectionDetails.HbciVersion == Convert.ToInt16(HBCI.v300))
+                    if (connectionDetails.FinTSVersion == FinTsVersion.v300)
                     {
                         sb = new StringBuilder();
                         sb.Append("HKIDN");
@@ -268,10 +261,8 @@ namespace libfintx.FinTS
                     // Sync OK
                     Log.Write("Synchronisation anonymous ok");
 
-                    /// <summary>
-                    /// INI
-                    /// </summary>
-                    if (connectionDetails.HbciVersion == Convert.ToInt16(HBCI.v300))
+                    // INI
+                    if (connectionDetails.FinTSVersion == FinTsVersion.v300)
                     {
                         sb = new StringBuilder();
                         sb.Append("HKIDN");

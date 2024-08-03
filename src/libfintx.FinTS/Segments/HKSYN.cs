@@ -26,7 +26,6 @@ using System.Text;
 using System.Threading.Tasks;
 using libfintx.FinTS.Data;
 using libfintx.FinTS.Message;
-using libfintx.FinTS.Version;
 using libfintx.Globals;
 using libfintx.Logger.Log;
 
@@ -41,7 +40,7 @@ namespace libfintx.FinTS
             string segments;
             var connectionDetails = client.ConnectionDetails;
 
-            if (connectionDetails.HbciVersion == Convert.ToInt16(HBCI.v220))
+            if (connectionDetails.FinTSVersion == FinTsVersion.v220)
             {
                 SEG sEG = new SEG();
                 var sb = new StringBuilder();
@@ -97,7 +96,7 @@ namespace libfintx.FinTS
 
                 segments = segments_;*/
             }
-            else if (connectionDetails.HbciVersion == Convert.ToInt16(HBCI.v300))
+            else if (connectionDetails.FinTSVersion == FinTsVersion.v300)
             {
                 SEG sEG = new SEG();
                 var sb = new StringBuilder();

@@ -28,7 +28,6 @@ using System.Text;
 using System.Threading.Tasks;
 using libfintx.FinTS.Data;
 using libfintx.FinTS.Security;
-using libfintx.FinTS.Version;
 using libfintx.Logger.Log;
 using libfintx.Logger.Trace;
 
@@ -54,11 +53,10 @@ namespace libfintx.FinTS.Message
         /// </summary>
         /// <param name="client"></param>
         /// <param name="MsgNum"></param>
-        /// /// <param name="DialogID"></param>
+        /// <param name="DialogID"></param>
         /// <param name="Segments"></param>
-        /// /// <param name="HIRMS_TAN"></param>
-        /// <param name="SegmentNum"></param>
-        /// /// <param name="SystemID"></param>
+        /// <param name="HIRMS_TAN"></param>
+        /// <param name="SystemID"></param>
         /// <returns></returns>
         ///
         /// (iwen65) First redesign to make things easier and more readable. All important params were values that had been stored as properties of the FinTsClient
@@ -71,7 +69,7 @@ namespace libfintx.FinTS.Message
         public static string Create(FinTsClient client, int MsgNum, string DialogID, string Segments, string HIRMS_TAN, string SystemID = null)
         {
 
-            int Version = client.ConnectionDetails.HbciVersion;
+            FinTsVersion version = client.ConnectionDetails.FinTSVersion;
             int BLZ = client.ConnectionDetails.BlzPrimary;
             //string UserID = client.ConnectionDetails.UserId;
             // Änderung aufgrund https://github.com/abid76/libfintx/commit/95e8e4768d94a42f91a7aa4c905b88bae0439827
@@ -121,7 +119,7 @@ namespace libfintx.FinTS.Message
                 }
             }
 
-            if (Version == Convert.ToInt16(HBCI.v220))
+            if (version == FinTsVersion.v220)
             {
                 sb = new StringBuilder();
                 sb.Append("HNVSK");
@@ -366,7 +364,7 @@ namespace libfintx.FinTS.Message
                     Log.Write(sb.ToString());
                 }
             }
-            else if (Version == Convert.ToInt16(HBCI.v300))
+            else if (version == FinTsVersion.v300)
             {
                 if (HIRMS_TAN == null)
                 {
@@ -705,7 +703,7 @@ namespace libfintx.FinTS.Message
 
             var msgHead = string.Empty;
 
-            if (Version == Convert.ToInt16(HBCI.v220))
+            if (version == FinTsVersion.v220)
             {
                 sb = new StringBuilder();
                 sb.Append("HNHBK");
@@ -716,7 +714,7 @@ namespace libfintx.FinTS.Message
                 sb.Append(sEG.Delimiter);
                 sb.Append(paddedLen);
                 sb.Append(sEG.Delimiter);
-                sb.Append(HBCI.v220);
+                sb.Append((int) FinTsVersion.v220);
                 sb.Append(sEG.Delimiter);
                 sb.Append(DialogID);
                 sb.Append(sEG.Delimiter);
@@ -727,7 +725,7 @@ namespace libfintx.FinTS.Message
 
                 Log.Write(msgHead);
             }
-            else if (Version == Convert.ToInt16(HBCI.v300))
+            else if (version == FinTsVersion.v300)
             {
                 sb = new StringBuilder();
                 sb.Append("HNHBK");
@@ -738,7 +736,7 @@ namespace libfintx.FinTS.Message
                 sb.Append(sEG.Delimiter);
                 sb.Append(paddedLen);
                 sb.Append(sEG.Delimiter);
-                sb.Append(HBCI.v300);
+                sb.Append((int) FinTsVersion.v300);
                 sb.Append(sEG.Delimiter);
                 sb.Append(DialogID);
                 sb.Append(sEG.Delimiter);
@@ -751,7 +749,7 @@ namespace libfintx.FinTS.Message
             }
             else
             {
-                Log.Write("HBCI version not supported");
+                Log.Write($"FinTS version {version} is not supported");
 
                 return string.Empty;
             }
@@ -779,7 +777,7 @@ namespace libfintx.FinTS.Message
         /// <summary>
         /// Send FinTS message
         /// </summary>
-        /// <param name="Url"></param>
+        /// <param name="client"></param>
         /// <param name="Message"></param>
         /// <returns></returns>
         public static async Task<string> Send(FinTsClient client, string Message)
@@ -804,7 +802,7 @@ namespace libfintx.FinTS.Message
         /// <summary>
         /// Send FinTS message async
         /// </summary>
-        /// <param name="Url"></param>
+        /// <param name="client"></param>
         /// <param name="Message"></param>
         /// <returns></returns>
         private static async Task<string> SendAsync(FinTsClient client, string Message)

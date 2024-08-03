@@ -23,11 +23,13 @@
 
 using System;
 
-namespace libfintx.FinTS.Version
+namespace libfintx.FinTS.Version;
+
+[Obsolete("Please use libfintx.FinTS.FinTsVersion instead")]
+class HBCI
 {
-    class HBCI
-    {
-        public static String v220 = "220";
-        public static String v300 = "300";
-    }
+    [Obsolete("Please use libfintx.FinTS.FinTsVersion.v220 instead")]
+    public static String v220 = "220";
+    [Obsolete("Please use libfintx.FinTS.FinTsVersion.v300 instead")]
+    public static String v300 = "300";
 }

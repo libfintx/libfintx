@@ -24,7 +24,6 @@
 using System;
 using System.Text;
 using libfintx.FinTS.Data;
-using libfintx.FinTS.Version;
 
 namespace libfintx.FinTS.Message
 {
@@ -73,7 +72,7 @@ namespace libfintx.FinTS.Message
             sb.Append(sEG.Delimiter);
             sb.Append(paddedLen);
             sb.Append(sEG.Delimiter);
-            sb.Append(HBCI.v300);
+            sb.Append((int) FinTsVersion.v300);
             sb.Append(sEG.Delimiter);
             sb.Append(DialogID);
             sb.Append(sEG.Delimiter);
