@@ -77,7 +77,7 @@ namespace libfintx.FinTS
             var response = await FinTSMessage.Send(client, FinTSMessage.Create(client, client.HNHBS, client.HNHBK,
                 segments, client.HIRMS));
 
-            Helper.Parse_Message(client, response);
+            client.Parse_Message(response);
 
             return response;
         }

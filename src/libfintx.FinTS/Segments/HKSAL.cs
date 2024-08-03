@@ -113,7 +113,7 @@ namespace libfintx.FinTS
             string message = FinTSMessage.Create(client, client.HNHBS, client.HNHBK, segments, client.HIRMS);
             string response = await FinTSMessage.Send(client, message);
 
-            Helper.Parse_Message(client, response);
+            client.Parse_Message(response);
 
             return response;
         }

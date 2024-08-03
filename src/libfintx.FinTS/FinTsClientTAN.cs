@@ -21,9 +21,8 @@
  * 	
  */
 
-using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace libfintx.FinTS
@@ -39,8 +38,8 @@ namespace libfintx.FinTS
         /// </returns>
         public async Task<HBCIDialogResult> TAN(string TAN)
         {
-            string BankCode = await Transaction.TAN(this, TAN);
-            var result = new HBCIDialogResult(Helper.Parse_BankCode(BankCode), BankCode);
+            string bankCode = await Transaction.TAN(this, TAN);
+            var result = new HBCIDialogResult(Parse_BankCode(bankCode), bankCode);
 
             return result;
         }
@@ -55,8 +54,8 @@ namespace libfintx.FinTS
         /// </returns>
         public async Task<HBCIDialogResult> TAN4(string TAN, string MediumName)
         {
-            string BankCode = await Transaction.TAN4(this, TAN, MediumName);
-            var result = new HBCIDialogResult(Helper.Parse_BankCode(BankCode), BankCode);
+            string bankCode = await Transaction.TAN4(this, TAN, MediumName);
+            var result = new HBCIDialogResult(Parse_BankCode(bankCode), bankCode);
 
             return result;
         }
@@ -64,7 +63,6 @@ namespace libfintx.FinTS
         /// <summary>
         /// Request tan medium name
         /// </summary>
-        /// <param name="connectionDetails">ConnectionDetails object must atleast contain the fields: Url, HBCIVersion, UserId, Pin, Blz</param>
         /// <returns>
         /// TAN Medium Name
         /// </returns>
@@ -80,7 +78,7 @@ namespace libfintx.FinTS
             //    return result.TypedResult<List<string>>();
 
             string BankCode = await Transaction.HKTAB(this);
-            result = new HBCIDialogResult<List<string>>(Helper.Parse_BankCode(BankCode), BankCode);
+            result = new HBCIDialogResult<List<string>>(Parse_BankCode(BankCode), BankCode);
             if (!result.IsSuccess)
                 return result.TypedResult<List<string>>();
 
@@ -91,7 +89,7 @@ namespace libfintx.FinTS
 
             BankCode = result.RawData;
             string BankCode_ = "HITAB" + Helper.Parse_String(BankCode, "'HITAB", "'");
-            return result.TypedResult(Helper.Parse_TANMedium(BankCode_));
+            return result.TypedResult(Parse_TANMedium(BankCode_).ToList());
         }
     }
 }

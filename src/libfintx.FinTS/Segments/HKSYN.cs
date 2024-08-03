@@ -168,7 +168,7 @@ namespace libfintx.FinTS
             string message = FinTSMessage.CreateSync(client, segments);
             string response = await FinTSMessage.Send(client, message);
 
-            Helper.Parse_Segments(client, response);
+            client.Parse_Segments(response);
 
             return response;
         }
