@@ -56,7 +56,8 @@ namespace libfintx.Sample.Ui
 
             if (connectionDetailsChanged)
             {
-                if (_oldConnectionDetails.Blz == connectionDetails.Blz &&
+                if (_oldConnectionDetails != null &&
+                    _oldConnectionDetails.Blz == connectionDetails.Blz &&
                     _oldConnectionDetails.BlzHeadquarter == connectionDetails.BlzHeadquarter &&
                     _oldConnectionDetails.Bic == connectionDetails.Bic)
                 {
