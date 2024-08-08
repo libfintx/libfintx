@@ -32,7 +32,7 @@ public class MT940Parser
     protected SwiftStatement CurrentSwiftStatement = null;
 
     public string Account { get; } = null;
-    public bool SetPending { get; }= false;
+    public bool SetPending { get; } = false;
 
     /// <summary>
     /// Optional callback to trace each swift statement.
@@ -349,12 +349,8 @@ public class MT940Parser
                 else if ((key >= 20) && (key <= 29))
                 {
                     // No space between description lines
-                    if (value.EndsWith(" "))
-                        SWIFTTransaction.Description += value;
-                    else
-                        SWIFTTransaction.Description += value + " ";
-                    AssignDescriptionSubField(SWIFTTransaction, value, ref lastDescriptionSubfield);
-                    SWIFTTransaction.Description = SWIFTTransaction.Description.TrimEnd(' ');
+                    if (!value.EndsWith(" ")) value += " ";
+                    SWIFTTransaction.Description += value;
                 }
                 else if (key == 30)
                 {
@@ -381,7 +377,6 @@ public class MT940Parser
                 else if ((key >= 60) && (key <= 63))
                 {
                     SWIFTTransaction.Description += value;
-                    AssignDescriptionSubField(SWIFTTransaction, value, ref lastDescriptionSubfield);
                 }
                 else
                 {
@@ -593,7 +588,7 @@ public class MT940Parser
         {
             if (string.IsNullOrWhiteSpace(tx.Description))
                 continue;
-
+            tx.Description = tx.Description.TrimEnd();
             // Collect all occuring SEPA purposes ordered by their position
             var indices = new List<Tuple<int, SepaPurpose>>();
             foreach (SepaPurpose sepaPurpose in Enum.GetValues(typeof(SepaPurpose)))
@@ -624,45 +619,6 @@ public class MT940Parser
         }
     }
 
-    private static bool SetDescriptionSubField(string designator, SwiftTransaction transaction, string value)
-    {
-        switch (designator)
-        {
-            case "ABWA": transaction.ABWA += value; break;
-            case "EREF": transaction.EREF += value; break;
-            case "KREF": transaction.KREF += value; break;
-            case "MREF": transaction.MREF += value; break;
-            case "BREF": transaction.BREF += value; break;
-            case "RREF": transaction.RREF += value; break;
-            case "CRED": transaction.CRED += value; break;
-            case "DEBT": transaction.DEBT += value; break;
-            case "COAM": transaction.COAM += value; break;
-            case "OAMT": transaction.OAMT += value; break;
-            case "SVWZ": transaction.SVWZ += value; break;
-            case "ABWE": transaction.ABWE += value; break;
-            case "IBAN": transaction.IBAN += value; break;
-            case "BIC": transaction.BIC += value; break;
-            default:
-                //something is wrong here
-                return false;
-        }
-        return true;
-    }
-
-    private static void AssignDescriptionSubField(SwiftTransaction transaction, string value, ref string lastSubfield)
-    {
-        string pattern = @"^((?<designator>EREF|KREF|MREF|BREF|RREF|CRED|DEBT|COAM|OAMT|SVWZ|ABWA|ABWE|IBAN|BIC)\+)(?<content>.+)";
-        Match result = Regex.Match(value, pattern);
-        if (result.Success)
-        {
-            if (SetDescriptionSubField(result.Groups["designator"].Value, transaction, result.Groups["content"].Value))
-                lastSubfield = result.Groups["designator"].Value;
-            else
-                lastSubfield = string.Empty;
-        }
-        else if (!string.IsNullOrEmpty(lastSubfield))
-            SetDescriptionSubField(lastSubfield, transaction, value);
-    }
 
     private string _readLineCache = null;
     private string ReadLine(StreamReader streamReader)
