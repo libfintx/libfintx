@@ -165,7 +165,7 @@ namespace libfintx.FinTS
                     var message = FinTSMessage.Create(client, 1, "0", segments, client.HIRMS);
                     var response = await FinTSMessage.Send(client, message);
 
-                    Helper.Parse_Segments(client, response);
+                    client.Parse_Segments(response);
 
                     return response;
                 }
@@ -250,7 +250,7 @@ namespace libfintx.FinTS
                     string message = FinTsMessageAnonymous.Create(connectionDetails.HbciVersion, "1", "0", connectionDetails.Blz, connectionDetails.UserIdEscaped, connectionDetails.Pin, "0", segments, null, client.SEGNUM);
                     string response = await FinTSMessage.Send(client, message);
 
-                    var messages = Helper.Parse_Segments(client, response);
+                    var messages = client.Parse_Segments(response);
                     var result = new HBCIDialogResult(messages, response);
                     if (!result.IsSuccess)
                     {
@@ -329,7 +329,7 @@ namespace libfintx.FinTS
                     message = FinTSMessage.Create(client, 1, "0", segments, client.HIRMS);
                     response = await FinTSMessage.Send(client, message);
 
-                    Helper.Parse_Segments(client, response);
+                    client.Parse_Segments(response);
 
                     return response;
                 }

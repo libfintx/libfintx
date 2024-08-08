@@ -63,7 +63,7 @@ namespace libfintx.FinTS
 
             // Success
             string BankCode = await Transaction.HKKAZ(this, startDateStr, endDateStr, null);
-            result = new HBCIDialogResult(Helper.Parse_BankCode(BankCode), BankCode);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
             if (result.HasError)
                 return result.TypedResult<List<SwiftStatement>>();
 
@@ -86,12 +86,12 @@ namespace libfintx.FinTS
             string BankCode_ = BankCode;
             while (BankCode_.Contains("+3040::"))
             {
-                Helper.Parse_Message(this, BankCode_);
+                Parse_Message(BankCode_);
 
-                string Startpoint = Helper.Parse_Transactions_Startpoint(BankCode_);
+                string Startpoint = Parse_Transactions_Startpoint(BankCode_);
 
                 BankCode_ = await Transaction.HKKAZ(this, startDateStr, endDateStr, Startpoint);
-                result = new HBCIDialogResult(Helper.Parse_BankCode(BankCode_), BankCode_);
+                result = new HBCIDialogResult(Parse_BankCode(BankCode_), BankCode_);
                 if (result.HasError)
                     return result.TypedResult<List<SwiftStatement>>();
 
@@ -151,7 +151,7 @@ namespace libfintx.FinTS
 
             // Success
             string BankCode = await Transaction.HKCAZ(this, startDateStr, endDateStr, null, camtVers);
-            result = new HBCIDialogResult<List<CamtStatement>>(Helper.Parse_BankCode(BankCode), BankCode);
+            result = new HBCIDialogResult<List<CamtStatement>>(Parse_BankCode(BankCode), BankCode);
             if (result.HasError)
                 return result.TypedResult<List<CamtStatement>>();
 
@@ -223,12 +223,12 @@ namespace libfintx.FinTS
 
             while (BankCode_.Contains("+3040::"))
             {
-                Helper.Parse_Message(this, BankCode_);
+                Parse_Message(BankCode_);
 
-                string Startpoint = Helper.Parse_Transactions_Startpoint(BankCode_);
+                string Startpoint = Parse_Transactions_Startpoint(BankCode_);
 
                 BankCode_ = await Transaction.HKCAZ(this, startDateStr, endDateStr, Startpoint, camtVers);
-                result = new HBCIDialogResult<List<CamtStatement>>(Helper.Parse_BankCode(BankCode_), BankCode_);
+                result = new HBCIDialogResult<List<CamtStatement>>(Parse_BankCode(BankCode_), BankCode_);
                 if (result.HasError)
                     return result.TypedResult<List<CamtStatement>>();
 

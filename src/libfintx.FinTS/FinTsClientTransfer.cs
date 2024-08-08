@@ -68,7 +68,7 @@ namespace libfintx.FinTS
                 HIRMS = hirms;
 
             string BankCode = await Transaction.HKCCS(this, receiverName, receiverIBAN, receiverBIC, amount, purpose);
-            result = new HBCIDialogResult(Helper.Parse_BankCode(BankCode), BankCode);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
             if (result.HasError)
                 return result;
 
@@ -112,7 +112,7 @@ namespace libfintx.FinTS
                 HIRMS = hirms;
 
             string BankCode = await Transaction.HKCSE(this, receiverName, receiverIBAN, receiverBIC, amount, purpose, executionDay);
-            result = new HBCIDialogResult(Helper.Parse_BankCode(BankCode), BankCode);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
             if (result.HasError)
                 return result;
 
@@ -154,7 +154,7 @@ namespace libfintx.FinTS
                 HIRMS = hirms;
 
             string BankCode = await Transaction.HKCCM(this, painData, numberOfTransactions, totalAmount);
-            result = new HBCIDialogResult(Helper.Parse_BankCode(BankCode), BankCode);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
             if (result.HasError)
                 return result;
 
@@ -196,7 +196,7 @@ namespace libfintx.FinTS
                 HIRMS = hirms;
 
             string BankCode = await Transaction.HKCME(this, painData, numberOfTransactions, totalAmount, executionDay);
-            result = new HBCIDialogResult(Helper.Parse_BankCode(BankCode), BankCode);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
             if (result.HasError)
                 return result;
 
@@ -223,7 +223,7 @@ namespace libfintx.FinTS
 
             // Success
             string BankCode = await Transaction.HKCSB(this);
-            result = new HBCIDialogResult(Helper.Parse_BankCode(BankCode), BankCode);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
             if (result.HasError)
                 return result.TypedResult<List<TerminatedTransfer>>();
 
@@ -295,7 +295,7 @@ namespace libfintx.FinTS
                 HIRMS = hirms;
 
             string BankCode = await Transaction.HKCSA(this, orderId, receiverName, receiverIBAN, receiverBIC, amount, usage, executionDay);
-            result = new HBCIDialogResult(Helper.Parse_BankCode(BankCode), BankCode);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
             if (result.HasError)
                 return result;
 
@@ -321,7 +321,7 @@ namespace libfintx.FinTS
                 HIRMS = hirms;
 
             string BankCode = await Transaction.HKCSL(this, orderId, receiverName, receiverIBAN, receiverBIC, amount, usage, executionDay);
-            result = new HBCIDialogResult(Helper.Parse_BankCode(BankCode), BankCode);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
             if (result.HasError)
                 return result;
 

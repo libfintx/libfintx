@@ -113,7 +113,7 @@ namespace libfintx.FinTS
             }
             BankCode = await Transaction.INI(this, hkTanSegmentId);
 
-            var bankMessages = Helper.Parse_BankCode(BankCode);
+            var bankMessages = Parse_BankCode(BankCode);
             result = new HBCIDialogResult(bankMessages, BankCode);
             if (!result.IsSuccess)
                 Log.Write("Initialisation failed: " + result);
@@ -133,7 +133,7 @@ namespace libfintx.FinTS
 
             string data = await Transaction.HKSYN(this, bpdVersion);
 
-            var messages = Helper.Parse_BankCode(data);
+            var messages = Parse_BankCode(data);
 
             return new HBCIDialogResult<string>(messages, data, SystemId);
         }
@@ -173,7 +173,7 @@ namespace libfintx.FinTS
 
             // Success
             string BankCode = await Transaction.HKSAL(this);
-            result = new HBCIDialogResult(Helper.Parse_BankCode(BankCode), BankCode);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
             if (result.HasError)
                 return result.TypedResult<AccountBalance>();
 
@@ -182,7 +182,7 @@ namespace libfintx.FinTS
                 return result.TypedResult<AccountBalance>();
 
             BankCode = result.RawData;
-            AccountBalance balance = Helper.Parse_Balance(BankCode);
+            AccountBalance balance = Parse_Balance(BankCode);
             return result.TypedResult(balance);
         }
 
@@ -220,7 +220,7 @@ namespace libfintx.FinTS
                 HIRMS = hirms;
 
             string BankCode = await Transaction.HKCUM(this, receiverName, receiverIBAN, receiverBIC, amount, purpose);
-            result = new HBCIDialogResult(Helper.Parse_BankCode(BankCode), BankCode);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
             if (result.HasError)
                 return result;
 
@@ -268,7 +268,7 @@ namespace libfintx.FinTS
                 HIRMS = hirms;
 
             string BankCode = await Transaction.HKDSE(this, payerName, payerIBAN, payerBIC, amount, purpose, settlementDate, mandateNumber, mandateDate, creditorIdNumber);
-            result = new HBCIDialogResult(Helper.Parse_BankCode(BankCode), BankCode);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
             if (result.HasError)
                 return result;
 
@@ -310,7 +310,7 @@ namespace libfintx.FinTS
                 HIRMS = hirms;
 
             string BankCode = await Transaction.HKDME(this, settlementDate, painData, numberOfTransactions, totalAmount);
-            result = new HBCIDialogResult(Helper.Parse_BankCode(BankCode), BankCode);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
             if (result.HasError)
                 return result;
 
@@ -351,7 +351,7 @@ namespace libfintx.FinTS
                 HIRMS = hirms;
 
             string BankCode = await Transaction.HKPPD(this, mobileServiceProvider, phoneNumber, amount);
-            result = new HBCIDialogResult(Helper.Parse_BankCode(BankCode), BankCode);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
             if (result.HasError)
                 return result;
 
@@ -419,7 +419,7 @@ namespace libfintx.FinTS
             if (result.IsSuccess && ini)
             {
                 // Fand die SCA direkt nach der Initialisierung statt, ist in der Antwort BPD/UPD enthalten
-                Helper.Parse_Segments(this, result.RawData);
+                Parse_Segments(result.RawData);
             }
 
             return result;

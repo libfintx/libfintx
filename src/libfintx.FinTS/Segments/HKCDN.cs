@@ -84,7 +84,7 @@ namespace libfintx.FinTS
             string message = FinTSMessage.Create(client, client.HNHBS, client.HNHBK, segments, client.HIRMS);
             var TAN = await FinTSMessage.Send(client, message);
 
-            Helper.Parse_Message(client, TAN);
+            client.Parse_Message(TAN);
 
             return TAN;
         }

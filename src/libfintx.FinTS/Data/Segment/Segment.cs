@@ -54,10 +54,7 @@ namespace libfintx.FinTS.Data.Segment
 
                 return _dataElements;
             }
-            set
-            {
-                _dataElements = value;
-            }
+            set => _dataElements = value;
         }
 
         public Segment(string value)
