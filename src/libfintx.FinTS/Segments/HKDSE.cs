@@ -27,8 +27,8 @@ using System.Threading.Tasks;
 using libfintx.FinTS.Data;
 using libfintx.FinTS.Message;
 using libfintx.FinTS.Segments;
-using libfintx.Logger.Log;
 using libfintx.Sepa;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
@@ -41,7 +41,7 @@ namespace libfintx.FinTS
             string PayerBIC, decimal Amount, string Usage, DateTime SettlementDate, string MandateNumber,
             DateTime MandateDate, string CreditorIDNumber)
         {
-            Log.Write("Starting job HKDSE: Collect money");
+            client.Logger.LogInformation("Starting job HKDSE: Collect money");
 
             client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg4);
 

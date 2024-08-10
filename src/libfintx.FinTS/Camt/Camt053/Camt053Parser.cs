@@ -34,7 +34,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
-using libfintx.Logger.Log;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace libfintx.FinTS.Camt.Camt053
 {
@@ -47,6 +48,19 @@ namespace libfintx.FinTS.Camt.Camt053
     /// </summary>
     public class Camt053Parser
     {
+        private readonly ILogger<Camt053Parser> _logger;
+
+        public Camt053Parser()
+        {
+            _logger = NullLoggerFactory.Instance.CreateLogger<Camt053Parser>();
+        }
+
+        public Camt053Parser(ILoggerFactory? loggerFactory = null)
+        {
+            _logger = loggerFactory?.CreateLogger<Camt053Parser>()
+                      ?? NullLoggerFactory.Instance.CreateLogger<Camt053Parser>();
+        }
+
         /// <summary>
         /// the parsed bank statements
         /// </summary>
@@ -77,7 +91,7 @@ namespace libfintx.FinTS.Camt.Camt053
         /// <param name="filename"></param>
         public void ProcessFile(string filename)
         {
-            Log.Write("Read file " + filename);
+            _logger.LogInformation("Read file " + filename);
 
             try
             {
@@ -256,7 +270,7 @@ namespace libfintx.FinTS.Camt.Camt053
                             else if (ownName != string.Empty)
                             {
                                 // sometimes donors write the project or recipient in the field where the organisation is supposed to be
-                                Log.Write("CrdtName is not like expected: " + tr.Description + " --- " + CrdtName);
+                                _logger.LogInformation("CrdtName is not like expected: " + tr.Description + " --- " + CrdtName);
                             }
                         }
 
@@ -294,7 +308,7 @@ namespace libfintx.FinTS.Camt.Camt053
 
                         stmt.Transactions.Add(tr);
 
-                        Log.Write("count : " + stmt.Transactions.Count.ToString());
+                        _logger.LogInformation("count : " + stmt.Transactions.Count.ToString());
                     }
                 }
 

@@ -26,9 +26,9 @@ using System.Threading.Tasks;
 using libfintx.FinTS.Camt;
 using libfintx.FinTS.Data;
 using libfintx.FinTS.Message;
-using libfintx.Logger.Log;
 using libfintx.FinTS.Segments;
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
@@ -50,7 +50,7 @@ namespace libfintx.FinTS
             switch (camtVers)
             {
                 case CamtVersion.Camt052:
-                    Log.Write("Starting job HKCAZ: Request transactions in camt052 format");
+                    client.Logger.LogInformation("Starting job HKCAZ: Request transactions in camt052 format");
 
                     if (string.IsNullOrEmpty(FromDate))
                     {
@@ -191,7 +191,7 @@ namespace libfintx.FinTS
                     break;
 
                 case CamtVersion.Camt053:
-                    Log.Write("Starting job HKCAZ: Request transactions in camt053 format");
+                    client.Logger.LogInformation("Starting job HKCAZ: Request transactions in camt053 format");
 
                     if (string.IsNullOrEmpty(FromDate))
                     {

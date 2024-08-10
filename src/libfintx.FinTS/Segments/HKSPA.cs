@@ -24,7 +24,7 @@
 using System;
 using System.Threading.Tasks;
 using libfintx.FinTS.Message;
-using libfintx.Logger.Log;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
@@ -37,7 +37,7 @@ namespace libfintx.FinTS
         /// <returns></returns>
         public static async Task<String> Init_HKSPA(FinTsClient client)
         {
-            Log.Write("Starting job HKSPA: Request SEPA account connection");
+            client.Logger.LogInformation("Starting job HKSPA: Request SEPA account connection");
 
             var connectionDetails = client.ConnectionDetails;
             string segments = string.Empty;

@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using libfintx.Logger.Log;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
@@ -15,12 +13,9 @@ namespace libfintx.FinTS
         /// <summary>
         /// Fill given <code>TANDialog</code> and wait for user to enter a TAN.
         /// </summary>
-        /// <param name="BankCode"></param>
-        /// <param name="pictureBox"></param>
-        /// <param name="flickerImage"></param>
-        /// <param name="flickerWidth"></param>
-        /// <param name="flickerHeight"></param>
-        /// <param name="renderFlickerCodeAsGif"></param>
+        /// <param name="client"></param>
+        /// <param name="dialogResult"></param>
+        /// <param name="tanDialog"></param>
         public static async Task<string> WaitForTanAsync(FinTsClient client, HBCIDialogResult dialogResult, TANDialog tanDialog)
         {
             var BankCode_ = "HIRMS" + Parse_String(dialogResult.RawData, "'HIRMS", "'");
@@ -45,7 +40,7 @@ namespace libfintx.FinTS
                     processname = item.Name;
             }
 
-            Log.Write($"Processing TAN process '{processname}' ...");
+            client.Logger.LogInformation($"Processing TAN process '{processname}' ...");
 
             // Smart-TAN plus optisch
             // chipTAN optisch

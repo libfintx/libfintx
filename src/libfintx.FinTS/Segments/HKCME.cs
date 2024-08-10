@@ -24,12 +24,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using libfintx.Logger.Log;
 using libfintx.Sepa;
 using libfintx.FinTS.Message;
 using libfintx.FinTS.Data;
 using System.Text;
 using libfintx.FinTS.Segments;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
@@ -41,7 +41,7 @@ namespace libfintx.FinTS
         public static async Task<String> Init_HKCME(FinTsClient client, List<Pain00100203CtData> PainData,
             string NumberofTransactions, decimal TotalAmount, DateTime ExecutionDay)
         {
-            Log.Write("Starting job HKCME: Collective transfer money terminated");
+            client.Logger.LogInformation("Starting job HKCME: Collective transfer money terminated");
 
             var TotalAmount_ = TotalAmount.ToString().Replace(",", ".");
 

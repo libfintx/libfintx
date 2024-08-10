@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using libfintx.FinTS.Camt;
 using libfintx.FinTS.Data.Segment;
-using libfintx.Logger.Log;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS;
 
@@ -15,7 +15,7 @@ public partial class FinTsClient
     /// </summary>
     private const string PatternResultMessage = @"(\d{4}):.*?:(.+)";
 
-    private static Segment Parse_Segment(string segmentCode)
+    private Segment Parse_Segment(string segmentCode)
     {
         Segment segment = null;
         try
@@ -24,7 +24,7 @@ public partial class FinTsClient
         }
         catch (Exception ex)
         {
-            Log.Write($"Couldn't parse segment: {ex.Message}{Environment.NewLine}{segmentCode}");
+            Logger.LogInformation($"Couldn't parse segment: {ex.Message}{Environment.NewLine}{segmentCode}");
         }
         return segment;
     }
@@ -36,7 +36,7 @@ public partial class FinTsClient
     /// <returns></returns>
     internal List<HBCIBankMessage> Parse_Segments(string Message)
     {
-        Log.Write("Parsing segments ...");
+        Logger.LogInformation("Parsing segments ...");
 
         try
         {
@@ -64,7 +64,7 @@ public partial class FinTsClient
 
                 this.BdpStore.SaveBPD(280, ConnectionDetails.Blz, rawBpd)
                     .Wait();
-                this.BPD = BankParameterData.BPD.Parse(rawBpd);
+                this.BPD = BankParameterData.BPD.Parse(rawBpd, Logger);
             }
 
             // UPD
@@ -75,7 +75,7 @@ public partial class FinTsClient
             if (upd.Length > 0)
             {
                 Helper.SaveUPD(ConnectionDetails.Blz, ConnectionDetails.UserId, upd);
-                UPD.ParseUpd(upd);
+                UPD.ParseUpd(upd, Logger);
             }
 
             if (UPD.AccountList != null)
@@ -168,7 +168,7 @@ public partial class FinTsClient
                 if (segment.Name == "HISYN")
                 {
                     this.SystemId = segment.Payload;
-                    Log.Write("Customer System ID: " + this.SystemId);
+                    Logger.LogInformation("Customer System ID: " + this.SystemId);
                 }
 
                 if (segment.Name == "HNHBS")
@@ -264,7 +264,7 @@ public partial class FinTsClient
         }
         catch (Exception ex)
         {
-            Log.Write(ex.ToString());
+            Logger.LogInformation(ex.ToString());
 
             throw new InvalidOperationException($"Software error.", ex);
         }
@@ -306,7 +306,7 @@ public partial class FinTsClient
         return segments;
     }
 
-    internal static AccountBalance Parse_Balance(string message)
+    internal AccountBalance Parse_Balance(string message)
     {
         var hirms = message.Substring(message.IndexOf("HIRMS") + 5);
         hirms = hirms.Substring(0, (hirms.Contains("'") ? hirms.IndexOf('\'') : hirms.Length));
@@ -388,7 +388,7 @@ public partial class FinTsClient
             {
                 msg = msg + "??" + hirmsParts[i].Replace("::", ": ");
             }
-            Log.Write(msg);
+            Logger.LogInformation(msg);
         }
 
         return balance;
@@ -487,7 +487,7 @@ public partial class FinTsClient
     /// </summary>
     /// <param name="bankCode"></param>
     /// <returns>Banks messages with "??" as seperator.</returns>
-    internal static IEnumerable<HBCIBankMessage> Parse_BankCode(string bankCode)
+    internal IEnumerable<HBCIBankMessage> Parse_BankCode(string bankCode)
     {
         var rawSegments = Helper.SplitEncryptedSegments(bankCode);
         var segments = new List<Segment>();

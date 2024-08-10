@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 using libfintx.FinTS.Data;
 using libfintx.FinTS.Message;
 using libfintx.FinTS.Segments;
-using libfintx.Logger.Log;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
@@ -38,7 +38,7 @@ namespace libfintx.FinTS
         /// </summary>
         public static async Task<String> Init_HKCSB(FinTsClient client)
         {
-            Log.Write("Starting job HKCSB: Get terminated transfers");
+            client.Logger.LogInformation("Starting job HKCSB: Get terminated transfers");
 
             client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg3);
 

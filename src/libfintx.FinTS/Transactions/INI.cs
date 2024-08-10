@@ -25,10 +25,10 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 using libfintx.FinTS.Data;
+using libfintx.FinTS.Exceptions;
 using libfintx.FinTS.Message;
 using libfintx.Globals;
-using libfintx.Logger.Debug;
-using libfintx.Logger.Log;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
@@ -46,305 +46,266 @@ namespace libfintx.FinTS
             if (!client.Anonymous)
             {
                 // Sync
-                try
+                string segments;
+
+                // INI
+                if (connectionDetails.FinTSVersion == FinTsVersion.v220)
                 {
-                    string segments;
+                    sb = new StringBuilder();
+                    sb.Append("HKIDN");
+                    sb.Append(DEG.Separator);
+                    sb.Append(SEG_NUM.Seg3);
+                    sb.Append(DEG.Separator);
+                    sb.Append("2");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(SEG_COUNTRY.Germany);
+                    sb.Append(DEG.Separator);
+                    sb.Append(connectionDetails.BlzPrimary);
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(connectionDetails.UserIdEscaped);
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(client.SystemId);
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("1");
+                    sb.Append(sEG.Terminator);
 
-                    // INI
-                    if (connectionDetails.FinTSVersion == FinTsVersion.v220)
+                    sb.Append("HKVVB");
+                    sb.Append(DEG.Separator);
+                    sb.Append(SEG_NUM.Seg4);
+                    sb.Append(DEG.Separator);
+                    sb.Append("2");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("0");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("0");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("0");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(FinTsGlobals.ProductId);
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(FinTsGlobals.Version);
+                    sb.Append(sEG.Terminator);
+
+                    string segments_ = sb.ToString();
+
+                    // string segments_ =
+                    //    "HKIDN:" + SEG_NUM.Seg3 + ":2+" + SEG_COUNTRY.Germany + ":" + connectionDetails.BlzPrimary + "+" + connectionDetails.UserId + "+" + client.SystemId + "+1'" +
+                    //    "HKVVB:" + SEG_NUM.Seg4 + ":2+0+0+0+" + FinTsGlobals.ProductId + "+" + FinTsGlobals.Version + "'";
+
+                    segments = segments_;
+                }
+                else if (connectionDetails.FinTSVersion == FinTsVersion.v300)
+                {
+                    sb = new StringBuilder();
+                    sb.Append("HKIDN");
+                    sb.Append(DEG.Separator);
+                    sb.Append(SEG_NUM.Seg3);
+                    sb.Append(DEG.Separator);
+                    sb.Append("2");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(SEG_COUNTRY.Germany);
+                    sb.Append(DEG.Separator);
+                    sb.Append(connectionDetails.BlzPrimary);
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(connectionDetails.UserIdEscaped);
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(client.SystemId);
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("1");
+                    sb.Append(sEG.Terminator);
+
+                    sb.Append("HKVVB");
+                    sb.Append(DEG.Separator);
+                    sb.Append(SEG_NUM.Seg4);
+                    sb.Append(DEG.Separator);
+                    sb.Append("3");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("0");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("0");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("0");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(FinTsGlobals.ProductId);
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(FinTsGlobals.Version);
+                    sb.Append(sEG.Terminator);
+
+                    string segments_ = sb.ToString();
+
+                    // string segments_ =
+                    //    "HKIDN:" + SEG_NUM.Seg3 + ":2+" + SEG_COUNTRY.Germany + ":" + connectionDetails.BlzPrimary + "+" + connectionDetails.UserId + "+" + client.SystemId + "+1'" +
+                    //    "HKVVB:" + SEG_NUM.Seg4 + ":3+0+0+0+" + FinTsGlobals.ProductId + "+" + FinTsGlobals.Version + "'";
+
+                    if (client.HITANS >= 6)
                     {
-                        sb = new StringBuilder();
-                        sb.Append("HKIDN");
-                        sb.Append(DEG.Separator);
-                        sb.Append(SEG_NUM.Seg3);
-                        sb.Append(DEG.Separator);
-                        sb.Append("2");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(SEG_COUNTRY.Germany);
-                        sb.Append(DEG.Separator);
-                        sb.Append(connectionDetails.BlzPrimary);
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(connectionDetails.UserIdEscaped);
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(client.SystemId);
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("1");
-                        sb.Append(sEG.Terminator);
-
-                        sb.Append("HKVVB");
-                        sb.Append(DEG.Separator);
-                        sb.Append(SEG_NUM.Seg4);
-                        sb.Append(DEG.Separator);
-                        sb.Append("2");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("0");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("0");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("0");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(FinTsGlobals.ProductId);
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(FinTsGlobals.Version);
-                        sb.Append(sEG.Terminator);
-
-                        string segments_ = sb.ToString();
-
-                        // string segments_ =
-                        //    "HKIDN:" + SEG_NUM.Seg3 + ":2+" + SEG_COUNTRY.Germany + ":" + connectionDetails.BlzPrimary + "+" + connectionDetails.UserId + "+" + client.SystemId + "+1'" +
-                        //    "HKVVB:" + SEG_NUM.Seg4 + ":2+0+0+0+" + FinTsGlobals.ProductId + "+" + FinTsGlobals.Version + "'";
-
-                        segments = segments_;
-                    }
-                    else if (connectionDetails.FinTSVersion == FinTsVersion.v300)
-                    {
-                        sb = new StringBuilder();
-                        sb.Append("HKIDN");
-                        sb.Append(DEG.Separator);
-                        sb.Append(SEG_NUM.Seg3);
-                        sb.Append(DEG.Separator);
-                        sb.Append("2");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(SEG_COUNTRY.Germany);
-                        sb.Append(DEG.Separator);
-                        sb.Append(connectionDetails.BlzPrimary);
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(connectionDetails.UserIdEscaped);
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(client.SystemId);
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("1");
-                        sb.Append(sEG.Terminator);
-
-                        sb.Append("HKVVB");
-                        sb.Append(DEG.Separator);
-                        sb.Append(SEG_NUM.Seg4);
-                        sb.Append(DEG.Separator);
-                        sb.Append("3");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("0");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("0");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("0");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(FinTsGlobals.ProductId);
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(FinTsGlobals.Version);
-                        sb.Append(sEG.Terminator);
-
-                        string segments_ = sb.ToString();
-
-                        // string segments_ =
-                        //    "HKIDN:" + SEG_NUM.Seg3 + ":2+" + SEG_COUNTRY.Germany + ":" + connectionDetails.BlzPrimary + "+" + connectionDetails.UserId + "+" + client.SystemId + "+1'" +
-                        //    "HKVVB:" + SEG_NUM.Seg4 + ":3+0+0+0+" + FinTsGlobals.ProductId + "+" + FinTsGlobals.Version + "'";
-
-                        if (client.HITANS >= 6)
-                        {
-                            client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg5);
-                            segments_ = HKTAN.Init_HKTAN(client, segments_, hkTanSegmentId);
-                        }
-                        else
-                        {
-                            client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg4);
-                        }
-
-                        segments = segments_;
+                        client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg5);
+                        segments_ = HKTAN.Init_HKTAN(client, segments_, hkTanSegmentId);
                     }
                     else
                     {
-                        //Since connectionDetails is a re-usable object, this shouldn't be cleared.
-                        //connectionDetails.UserId = string.Empty;
-                        //connectionDetails.Pin = null;
-
-                        Log.Write("HBCI version not supported");
-
-                        throw new Exception("HBCI version not supported");
+                        client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg4);
                     }
 
-                    var message = FinTSMessage.Create(client, 1, "0", segments, client.HIRMS);
-                    var response = await FinTSMessage.Send(client, message);
-
-                    client.Parse_Segments(response);
-
-                    return response;
+                    segments = segments_;
                 }
-                catch (Exception ex)
+                else
                 {
-                    //Since connectionDetails is a re-usable object, this shouldn't be cleared.
-                    //connectionDetails.UserId = string.Empty;
-                    //connectionDetails.Pin = null;
-
-                    Log.Write(ex.ToString());
-
-                    throw new Exception("Software error", ex);
+                    throw new FinTsVersionNotSupportedException(connectionDetails.FinTSVersion,
+                        new[] { FinTsVersion.v220, FinTsVersion.v300 });
                 }
+
+                var message = FinTSMessage.Create(client, 1, "0", segments, client.HIRMS);
+                var response = await FinTSMessage.Send(client, message);
+
+                client.Parse_Segments(response);
+
+                return response;
             }
             else
             {
                 // Sync
-                try
+                client.Logger.LogInformation("Starting Synchronisation anonymous");
+
+                string segments;
+
+                if (connectionDetails.FinTSVersion == FinTsVersion.v300)
                 {
-                    Log.Write("Starting Synchronisation anonymous");
+                    sb = new StringBuilder();
+                    sb.Append("HKIDN");
+                    sb.Append(DEG.Separator);
+                    sb.Append(SEG_NUM.Seg3);
+                    sb.Append(DEG.Separator);
+                    sb.Append("2");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(SEG_COUNTRY.Germany);
+                    sb.Append(DEG.Separator);
+                    sb.Append(connectionDetails.BlzPrimary);
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("9999999999");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("0");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("0");
+                    sb.Append(sEG.Terminator);
 
-                    string segments;
+                    sb.Append("HKVVB");
+                    sb.Append(DEG.Separator);
+                    sb.Append(SEG_NUM.Seg4);
+                    sb.Append(DEG.Separator);
+                    sb.Append("3");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("0");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("0");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("1");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(FinTsGlobals.ProductId);
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(FinTsGlobals.Version);
+                    sb.Append(sEG.Terminator);
 
-                    if (connectionDetails.FinTSVersion == FinTsVersion.v300)
-                    {
-                        sb = new StringBuilder();
-                        sb.Append("HKIDN");
-                        sb.Append(DEG.Separator);
-                        sb.Append(SEG_NUM.Seg3);
-                        sb.Append(DEG.Separator);
-                        sb.Append("2");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(SEG_COUNTRY.Germany);
-                        sb.Append(DEG.Separator);
-                        sb.Append(connectionDetails.BlzPrimary);
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("9999999999");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("0");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("0");
-                        sb.Append(sEG.Terminator);
+                    string segments_ = sb.ToString();
 
-                        sb.Append("HKVVB");
-                        sb.Append(DEG.Separator);
-                        sb.Append(SEG_NUM.Seg4);
-                        sb.Append(DEG.Separator);
-                        sb.Append("3");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("0");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("0");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("1");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(FinTsGlobals.ProductId);
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(FinTsGlobals.Version);
-                        sb.Append(sEG.Terminator);
+                    // string segments_ =
+                    //    "HKIDN:" + SEG_NUM.Seg2 + ":2+" + SEG_COUNTRY.Germany + ":" + connectionDetails.BlzPrimary + "+" + "9999999999" + "+0+0'" +
+                    //    "HKVVB:" + SEG_NUM.Seg3 + ":3+0+0+1+" + FinTsGlobals.ProductId + "+" + FinTsGlobals.Version + "'";
 
-                        string segments_ = sb.ToString();
+                    segments = segments_;
+                }
+                else
+                {
+                    throw new FinTsVersionNotSupportedException(connectionDetails.FinTSVersion,
+                        new[] { FinTsVersion.v300 });
+                }
 
-                        // string segments_ =
-                        //    "HKIDN:" + SEG_NUM.Seg2 + ":2+" + SEG_COUNTRY.Germany + ":" + connectionDetails.BlzPrimary + "+" + "9999999999" + "+0+0'" +
-                        //    "HKVVB:" + SEG_NUM.Seg3 + ":3+0+0+1+" + FinTsGlobals.ProductId + "+" + FinTsGlobals.Version + "'";
+                client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg4);
 
-                        segments = segments_;
-                    }
-                    else
-                    {
-                        //Since connectionDetails is a re-usable object, this shouldn't be cleared.
-                        //connectionDetails.UserId = string.Empty;
-                        //connectionDetails.Pin = null;
+                string message = FinTsMessageAnonymous.Create(connectionDetails.HbciVersion, "1", "0", connectionDetails.Blz, connectionDetails.UserIdEscaped, connectionDetails.Pin, "0", segments, null, client.SEGNUM);
+                string response = await FinTSMessage.Send(client, message);
 
-                        Log.Write("HBCI version not supported");
-
-                        throw new Exception("HBCI version not supported");
-                    }
-
-                    client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg4);
-
-                    string message = FinTsMessageAnonymous.Create(connectionDetails.HbciVersion, "1", "0", connectionDetails.Blz, connectionDetails.UserIdEscaped, connectionDetails.Pin, "0", segments, null, client.SEGNUM);
-                    string response = await FinTSMessage.Send(client, message);
-
-                    var messages = client.Parse_Segments(response);
-                    var result = new HBCIDialogResult(messages, response);
-                    if (!result.IsSuccess)
-                    {
-                        Log.Write("Synchronisation anonymous failed. " + result);
-                        return response;
-                    }
-
-                    // Sync OK
-                    Log.Write("Synchronisation anonymous ok");
-
-                    // INI
-                    if (connectionDetails.FinTSVersion == FinTsVersion.v300)
-                    {
-                        sb = new StringBuilder();
-                        sb.Append("HKIDN");
-                        sb.Append(DEG.Separator);
-                        sb.Append(SEG_NUM.Seg3);
-                        sb.Append(DEG.Separator);
-                        sb.Append("2");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(SEG_COUNTRY.Germany);
-                        sb.Append(DEG.Separator);
-                        sb.Append(connectionDetails.BlzPrimary);
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(connectionDetails.UserIdEscaped);
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(client.SystemId);
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("1");
-                        sb.Append(sEG.Terminator);
-
-                        sb.Append("HKVVB");
-                        sb.Append(DEG.Separator);
-                        sb.Append(SEG_NUM.Seg4);
-                        sb.Append(DEG.Separator);
-                        sb.Append("3");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("0");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("0");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("0");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(FinTsGlobals.ProductId);
-                        sb.Append(sEG.Delimiter);
-                        sb.Append(FinTsGlobals.Version);
-                        sb.Append(sEG.Terminator);
-
-                        sb.Append("HKSYN");
-                        sb.Append(DEG.Separator);
-                        sb.Append(SEG_NUM.Seg4);
-                        sb.Append(DEG.Separator);
-                        sb.Append("3");
-                        sb.Append(sEG.Delimiter);
-                        sb.Append("0");
-                        sb.Append(sEG.Terminator);
-
-                        string segments__ = sb.ToString();
-
-                        // string segments__ =
-                        //    "HKIDN:" + SEG_NUM.Seg3 + ":2+" + SEG_COUNTRY.Germany + ":" + connectionDetails.BlzPrimary + "+" + connectionDetails.UserId + "+" + client.SystemId + "+1'" +
-                        //    "HKVVB:" + SEG_NUM.Seg4 + ":3+0+0+0+" + FinTsGlobals.ProductId + "+" + FinTsGlobals.Version + "'" +
-                        //    "HKSYN:" + SEG_NUM.Seg5 + ":3+0'";
-
-                        segments = segments__;
-                    }
-                    else
-                    {
-                        Log.Write("HBCI version not supported");
-
-                        throw new Exception("HBCI version not supported");
-                    }
-
-                    client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg5);
-
-                    message = FinTSMessage.Create(client, 1, "0", segments, client.HIRMS);
-                    response = await FinTSMessage.Send(client, message);
-
-                    client.Parse_Segments(response);
-
+                var messages = client.Parse_Segments(response);
+                var result = new HBCIDialogResult(messages, response);
+                if (!result.IsSuccess)
+                {
+                    client.Logger.LogInformation("Synchronisation anonymous failed. " + result);
                     return response;
                 }
-                catch (Exception ex)
+
+                // Sync OK
+                client.Logger.LogInformation("Synchronisation anonymous ok");
+
+                // INI
+                if (connectionDetails.FinTSVersion == FinTsVersion.v300)
                 {
-                    //Since connectionDetails is a re-usable object, this shouldn't be cleared.
-                    //connectionDetails.UserId = string.Empty;
-                    //connectionDetails.Pin = null;
+                    sb = new StringBuilder();
+                    sb.Append("HKIDN");
+                    sb.Append(DEG.Separator);
+                    sb.Append(SEG_NUM.Seg3);
+                    sb.Append(DEG.Separator);
+                    sb.Append("2");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(SEG_COUNTRY.Germany);
+                    sb.Append(DEG.Separator);
+                    sb.Append(connectionDetails.BlzPrimary);
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(connectionDetails.UserIdEscaped);
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(client.SystemId);
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("1");
+                    sb.Append(sEG.Terminator);
 
-                    Log.Write(ex.ToString());
+                    sb.Append("HKVVB");
+                    sb.Append(DEG.Separator);
+                    sb.Append(SEG_NUM.Seg4);
+                    sb.Append(DEG.Separator);
+                    sb.Append("3");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("0");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("0");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("0");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(FinTsGlobals.ProductId);
+                    sb.Append(sEG.Delimiter);
+                    sb.Append(FinTsGlobals.Version);
+                    sb.Append(sEG.Terminator);
 
-                    DEBUG.Write("Software error: " + ex.ToString());
+                    sb.Append("HKSYN");
+                    sb.Append(DEG.Separator);
+                    sb.Append(SEG_NUM.Seg4);
+                    sb.Append(DEG.Separator);
+                    sb.Append("3");
+                    sb.Append(sEG.Delimiter);
+                    sb.Append("0");
+                    sb.Append(sEG.Terminator);
 
-                    throw new Exception("Software error: " + ex.ToString());
+                    string segments__ = sb.ToString();
+
+                    // string segments__ =
+                    //    "HKIDN:" + SEG_NUM.Seg3 + ":2+" + SEG_COUNTRY.Germany + ":" + connectionDetails.BlzPrimary + "+" + connectionDetails.UserId + "+" + client.SystemId + "+1'" +
+                    //    "HKVVB:" + SEG_NUM.Seg4 + ":3+0+0+0+" + FinTsGlobals.ProductId + "+" + FinTsGlobals.Version + "'" +
+                    //    "HKSYN:" + SEG_NUM.Seg5 + ":3+0'";
+
+                    segments = segments__;
                 }
+                else
+                {
+                    throw new FinTsVersionNotSupportedException(connectionDetails.FinTSVersion,
+                        new[] { FinTsVersion.v300 });
+                }
+
+                client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg5);
+
+                message = FinTSMessage.Create(client, 1, "0", segments, client.HIRMS);
+                response = await FinTSMessage.Send(client, message);
+
+                client.Parse_Segments(response);
+
+                return response;
             }
         }
     }

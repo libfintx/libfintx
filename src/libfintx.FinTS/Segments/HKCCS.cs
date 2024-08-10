@@ -27,8 +27,8 @@ using System.Threading.Tasks;
 using libfintx.FinTS.Data;
 using libfintx.FinTS.Message;
 using libfintx.FinTS.Segments;
-using libfintx.Logger.Log;
 using libfintx.Sepa;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
@@ -40,7 +40,7 @@ namespace libfintx.FinTS
         public static async Task<String> Init_HKCCS(FinTsClient client, string ReceiverName, string ReceiverIBAN,
             string ReceiverBIC, decimal Amount, string Usage)
         {
-            Log.Write("Starting job HKCCS: Transfer money");
+            client.Logger.LogInformation("Starting job HKCCS: Transfer money");
             var connectionDetails = client.ConnectionDetails;
             string segments = string.Empty;
 

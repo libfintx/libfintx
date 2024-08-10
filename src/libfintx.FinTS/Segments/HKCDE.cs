@@ -26,8 +26,8 @@ using System.Threading.Tasks;
 using libfintx.FinTS.Data;
 using libfintx.FinTS.Message;
 using libfintx.FinTS.Segments;
-using libfintx.Logger.Log;
 using libfintx.Sepa;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
@@ -40,8 +40,7 @@ namespace libfintx.FinTS
             string ReceiverBIC, decimal Amount, string Usage, DateTime FirstTimeExecutionDay, TimeUnit timeUnit,
             string Rota, int ExecutionDay, DateTime? LastExecutionDay)
         {
-            Log.Write("Starting job HKCDE: Submit bankers order");
-
+            client.Logger.LogInformation("Starting job HKCDE: Submit bankers order");
             client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg3);
 
             var connectionDetails = client.ConnectionDetails;

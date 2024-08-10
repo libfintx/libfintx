@@ -25,9 +25,10 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 using libfintx.FinTS.Data;
+using libfintx.FinTS.Exceptions;
 using libfintx.FinTS.Message;
 using libfintx.Globals;
-using libfintx.Logger.Log;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
@@ -35,7 +36,7 @@ namespace libfintx.FinTS
     {
         public static async Task<String> Init_HKSYN(FinTsClient client, int? bpdVersion = null)
         {
-            Log.Write("Starting Synchronisation");
+            client.Logger.LogInformation("Starting Synchronisation");
 
             string segments;
             var connectionDetails = client.ConnectionDetails;
@@ -154,13 +155,8 @@ namespace libfintx.FinTS
             }
             else
             {
-                //Since connectionDetails is a re-usable object, this shouldn't be cleared.
-                //connectionDetails.UserId = string.Empty;
-                //connectionDetails.Pin = null;
-
-                Log.Write("HBCI version not supported");
-
-                throw new Exception("HBCI version not supported");
+                throw new FinTsVersionNotSupportedException(connectionDetails.FinTSVersion,
+                    new[] { FinTsVersion.v220, FinTsVersion.v300 });
             }
 
             client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg5);

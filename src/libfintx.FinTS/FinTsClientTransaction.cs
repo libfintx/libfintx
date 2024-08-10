@@ -29,7 +29,6 @@ using System.Threading.Tasks;
 using libfintx.FinTS.Camt;
 using libfintx.FinTS.Camt.Camt052;
 using libfintx.FinTS.Camt.Camt053;
-using libfintx.FinTS.Statement;
 using libfintx.Swift;
 using MT940 = libfintx.FinTS.Statement.MT940;
 
@@ -40,8 +39,7 @@ namespace libfintx.FinTS
         /// <summary>
         /// Account transactions in SWIFT-format
         /// </summary>
-        /// <param name="connectionDetails">ConnectionDetails object must atleast contain the fields: Url, HBCIVersion, UserId, Pin, Blz, Account, IBAN, BIC</param>  
-        /// <param name="anonymous"></param>
+        /// <param name="tanDialog"></param>
         /// <param name="startDate"></param>
         /// <param name="endDate"></param>
         /// <param name="saveMt940File"></param>
@@ -127,8 +125,11 @@ namespace libfintx.FinTS
         /// <summary>
         /// Account transactions in camt format
         /// </summary>
+        /// <param name="camtVers"></param>
         /// <param name="startDate"></param>
         /// <param name="endDate"></param>
+        /// <param name="tanDialog"></param>
+        /// <param name="saveCamtFile"></param>
         /// <returns>
         /// Transactions
         /// </returns>
@@ -186,7 +187,7 @@ namespace libfintx.FinTS
                 {
                     case CamtVersion.Camt052:
                         if (camt052Parser == null)
-                            camt052Parser = new Camt052Parser();
+                            camt052Parser = new Camt052Parser(_loggerFactory);
 
                         if (saveCamtFile)
                         {
@@ -199,7 +200,7 @@ namespace libfintx.FinTS
                         break;
                     case CamtVersion.Camt053:
                         if (camt053Parser == null)
-                            camt053Parser = new Camt053Parser();
+                            camt053Parser = new Camt053Parser(_loggerFactory);
 
                         if (saveCamtFile)
                         {
@@ -297,8 +298,7 @@ namespace libfintx.FinTS
         /// <summary>
         /// Account transactions in simplified libfintx-format
         /// </summary>
-        /// <param name="connectionDetails">ConnectionDetails object must atleast contain the fields: Url, HBCIVersion, UserId, Pin, Blz, Account, IBAN, BIC</param>  
-        /// <param name="anonymous"></param>
+        /// <param name="tanDialog"></param>
         /// <param name="startDate"></param>
         /// <param name="endDate"></param>
         /// <returns>
