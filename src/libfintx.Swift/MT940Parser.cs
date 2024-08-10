@@ -13,19 +13,31 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
-using libfintx.Logger.Log;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.Swift;
 
 /// <summary>
-/// MT940 account statement parser
+/// A MT940/MT942 statement parser.
 /// </summary>
 // ReSharper disable once InconsistentNaming
 public class MT940Parser
 {
-    public MT940Parser(bool pending = false)
+    private readonly ILogger<MT940Parser> _logger;
+
+    /// <summary>
+    /// Initializes the parser class.
+    /// </summary>
+    /// <param name="pending">
+    /// If the file is a pending file (MT942) or a final file (MT940).
+    /// </param>
+    /// <param name="loggerFactory">
+    /// A logging factory to create the logging where to write warnings.
+    /// </param>
+    public MT940Parser(bool pending = false, ILoggerFactory? loggerFactory = null)
     {
         SetPending = pending;
+        _logger = loggerFactory?.CreateLogger<MT940Parser>();
     }
 
     protected SwiftStatement PreviousSwiftStatement = null;
@@ -33,11 +45,6 @@ public class MT940Parser
 
     public string Account { get; } = null;
     public bool SetPending { get; }= false;
-
-    /// <summary>
-    /// Optional callback to trace each swift statement.
-    /// </summary>
-    public Action<SwiftStatement> TraceSwiftStatementCallback;
 
     private static string LTrim(string code)
     {
@@ -119,7 +126,7 @@ public class MT940Parser
             }
             catch (FormatException)
             {
-                Log.Write($"Invalid balance: {swiftData}");
+                _logger.LogWarning($"Invalid balance: {swiftData}");
             }
 
             if (swiftTag == "60F" || swiftTag == "60M")
@@ -616,11 +623,6 @@ public class MT940Parser
                 var value = tx.Description.Substring(beginIdx, endIdx - beginIdx);
                 tx.SepaPurposes[indices[i].Item2] = value;
             }
-        }
-
-        if (TraceSwiftStatementCallback != null)
-        {
-            TraceSwiftStatementCallback(statement);
         }
     }
 

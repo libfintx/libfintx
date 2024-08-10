@@ -692,10 +692,17 @@ namespace libfintx.FinTS.Message
 
             var payload = Helper.Encrypt(Segments);
 
-            if (HIRMS_TAN == null)
-                client.Logger.LogInformation(payload.Replace(UserID, "XXXXXX").Replace(PIN, "XXXXXX"));
-            else if (!String.IsNullOrEmpty(TAN_))
-                client.Logger.LogInformation(payload.Replace(UserID, "XXXXXX").Replace(PIN, "XXXXXX").Replace(TAN_, "XXXXXX"));
+            if (!string.IsNullOrEmpty(payload))
+            {
+                if (HIRMS_TAN == null)
+                {
+                    client.Logger.LogInformation(payload.Replace(UserID, "XXXXXX").Replace(PIN, "XXXXXX"));
+                }
+                else if (!string.IsNullOrEmpty(TAN_))
+                {
+                    client.Logger.LogInformation(payload.Replace(UserID, "XXXXXX").Replace(PIN, "XXXXXX").Replace(TAN_, "XXXXXX"));
+                }
+            }
 
             var msgLen = HEAD_LEN + TRAIL_LEN + ($"{MsgNum}".Length * 2) + DialogID.Length + payload.Length + encHead.Length;
 
@@ -773,15 +780,26 @@ namespace libfintx.FinTS.Message
             return msgHead + encHead + payload + msgEnd;
         }
 
-#if DEBUG
         private static void TraceUserTan(FinTsClient client, string message, string userId, string pin)
         {
             message = Regex.Replace(message, $@"\b{Regex.Escape(userId)}", new string('X', userId.Length));
             message = Regex.Replace(message, $@"\b{Regex.Escape(pin)}", new string('X', pin.Length));
 
-            client.Logger.LogTrace(message);
+            if (client.FormattedTrace)
+            {
+                var formatted = string.Empty;
+                var matches = Regex.Matches(message, "[A-Z]+?[^']*'+");
+                foreach (Match match in matches)
+                {
+                    formatted += match.Value + Environment.NewLine;
+                }
+                client.Logger.LogTrace(formatted);
+            }
+            else
+            {
+                client.Logger.LogTrace(message);
+            }
         }
-#endif
 
         /// <summary>
         /// Send FinTS message
@@ -794,9 +812,7 @@ namespace libfintx.FinTS.Message
             client.Logger.LogInformation("Connect to FinTS Server");
             client.Logger.LogInformation("Url: " + client.ConnectionDetails.Url);
 
-#if DEBUG
             TraceUserTan(client, Message, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.Pin);
-#endif
 
             return await SendAsync(client, Message);
         }
@@ -840,9 +856,7 @@ namespace libfintx.FinTS.Message
                     }
                 }
 
-#if DEBUG
                 TraceUserTan(client, Message, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.Pin);
-#endif
 
                 return FinTSMessage;
             }

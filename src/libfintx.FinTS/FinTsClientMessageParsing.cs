@@ -74,6 +74,7 @@ public partial class FinTsClient
                 upd = upaMatch.Groups[1].Value;
             if (upd.Length > 0)
             {
+                Logger.LogInformation("Saving UPD ...");
                 Helper.SaveUPD(ConnectionDetails.Blz, ConnectionDetails.UserId, upd);
                 UPD.ParseUpd(upd, Logger);
             }

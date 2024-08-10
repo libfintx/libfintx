@@ -23,14 +23,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using libfintx.FinTS.Camt;
 using libfintx.FinTS.Camt.Camt052;
 using libfintx.FinTS.Camt.Camt053;
+using libfintx.Globals;
 using libfintx.Swift;
-using MT940 = libfintx.FinTS.Statement.MT940;
 
 namespace libfintx.FinTS
 {
@@ -108,18 +109,53 @@ namespace libfintx.FinTS
 
             var swiftStatements = new List<SwiftStatement>();
 
-            swiftStatements.AddRange(MT940.Deserialize(TransactionsMt940.ToString(), ConnectionDetails.Account));
+            swiftStatements.AddRange(MT940.Deserialize(TransactionsMt940.ToString(), loggerFactory: _loggerFactory));
             if (saveMt940File)
             {
-                MT940.WriteToFile(TransactionsMt940.ToString(), ConnectionDetails.Account);
+                WriteMT940ToFile(TransactionsMt940.ToString(), ConnectionDetails.Account);
             }
-            swiftStatements.AddRange(MT940.Deserialize(TransactionsMt942.ToString(), ConnectionDetails.Account, pending: true));
+            swiftStatements.AddRange(MT940.Deserialize(TransactionsMt942.ToString(), pending: true, _loggerFactory));
             if (saveMt940File)
             {
-                MT940.WriteToFile(TransactionsMt942.ToString(), ConnectionDetails.Account);
+                WriteMT940ToFile(TransactionsMt942.ToString(), ConnectionDetails.Account);
             }
 
             return result.TypedResult(swiftStatements);
+        }
+
+        /// <summary>
+        /// Writes a MT940 statement into the library own folder for further use.
+        /// </summary>
+        /// <param name="sta">
+        /// The raw text of the MT940 statement.
+        /// </param>
+        /// <param name="account">
+        /// The account name.
+        /// </param>
+        // ReSharper disable once InconsistentNaming
+        private static void WriteMT940ToFile(string sta, string account)
+        {
+            string dir = FinTsGlobals.ProgramBaseDir;
+
+            dir = Path.Combine(dir, "STA");
+
+            string filename = Path.Combine(dir, Helper.MakeFilenameValid(account + "_" + DateTime.Now + ".STA"));
+
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            // STA
+            if (!File.Exists(filename))
+            {
+                using (File.Create(filename))
+                { }
+
+                File.AppendAllText(filename, sta);
+            }
+            else
+                File.AppendAllText(filename, sta);
         }
 
         /// <summary>

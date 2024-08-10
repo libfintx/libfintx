@@ -28,728 +28,710 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.txt_hbci_meldung = new System.Windows.Forms.TextBox();
-            this.btn_auftrag_bestätigen_tan = new System.Windows.Forms.Button();
-            this.btn_überweisen = new System.Windows.Forms.Button();
-            this.camt_053_abholen = new System.Windows.Forms.Button();
-            this.camt_052_abholen = new System.Windows.Forms.Button();
-            this.btn_umsätze_abholen = new System.Windows.Forms.Button();
-            this.btn_kontostand_abfragen = new System.Windows.Forms.Button();
-            this.btn_synchronisation = new System.Windows.Forms.Button();
-            this.pBox_tan = new System.Windows.Forms.PictureBox();
-            this.txt_tanverfahren = new System.Windows.Forms.TextBox();
-            this.lbl_tanverfahren = new System.Windows.Forms.Label();
-            this.txt_verwendungszweck = new System.Windows.Forms.TextBox();
-            this.lbl_verwendungszweck = new System.Windows.Forms.Label();
-            this.txt_betrag = new System.Windows.Forms.TextBox();
-            this.lbl_betrag = new System.Windows.Forms.Label();
-            this.txt_empfängerbic = new System.Windows.Forms.TextBox();
-            this.lbl_empfängerbic = new System.Windows.Forms.Label();
-            this.txt_empfängeriban = new System.Windows.Forms.TextBox();
-            this.lbl_empfängeriban = new System.Windows.Forms.Label();
-            this.txt_empfängername = new System.Windows.Forms.TextBox();
-            this.lbl_empfängername = new System.Windows.Forms.Label();
-            this.txt_pin = new System.Windows.Forms.TextBox();
-            this.lbl_pin = new System.Windows.Forms.Label();
-            this.txt_userid = new System.Windows.Forms.TextBox();
-            this.lbl_userid = new System.Windows.Forms.Label();
-            this.txt_hbci_version = new System.Windows.Forms.TextBox();
-            this.lbl_hbci_version = new System.Windows.Forms.Label();
-            this.txt_url = new System.Windows.Forms.TextBox();
-            this.lbl_url = new System.Windows.Forms.Label();
-            this.txt_iban = new System.Windows.Forms.TextBox();
-            this.lbl_iban = new System.Windows.Forms.Label();
-            this.txt_bic = new System.Windows.Forms.TextBox();
-            this.lbl_bic = new System.Windows.Forms.Label();
-            this.txt_bankleitzahl = new System.Windows.Forms.TextBox();
-            this.lbl_bankleitzahl = new System.Windows.Forms.Label();
-            this.txt_kontonummer = new System.Windows.Forms.TextBox();
-            this.lbl_kontonummer = new System.Windows.Forms.Label();
-            this.btn_zugelassene_tanverfahren = new System.Windows.Forms.Button();
-            this.btn_bankdaten_laden = new System.Windows.Forms.Button();
-            this.btn_überweisungsdaten_laden = new System.Windows.Forms.Button();
-            this.txt_tan = new System.Windows.Forms.TextBox();
-            this.lbl_tan = new System.Windows.Forms.Label();
-            this.btn_konten_anzeigen = new System.Windows.Forms.Button();
-            this.btn_tan_medium_name_abfragen = new System.Windows.Forms.Button();
-            this.chk_tracing = new System.Windows.Forms.CheckBox();
-            this.chk_tracingFormatted = new System.Windows.Forms.CheckBox();
-            this.lbl_bankleitzahl_zentrale = new System.Windows.Forms.Label();
-            this.txt_bankleitzahl_zentrale = new System.Windows.Forms.TextBox();
-            this.txt_tan_medium = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.date_umsatzabruf_von = new System.Windows.Forms.DateTimePicker();
-            this.chk_umsatzabruf_von = new System.Windows.Forms.CheckBox();
-            this.chk_umsatzabruf_bis = new System.Windows.Forms.CheckBox();
-            this.date_umsatzabruf_bis = new System.Windows.Forms.DateTimePicker();
-            this.label3 = new System.Windows.Forms.Label();
-            this.btn_daueraufträge_abholen = new System.Windows.Forms.Button();
-            this.btn_terminueberweisungen_abholen = new System.Windows.Forms.Button();
-            this.chk_tracingMaskCredentials = new System.Windows.Forms.CheckBox();
-            ((System.ComponentModel.ISupportInitialize)(this.pBox_tan)).BeginInit();
-            this.SuspendLayout();
+            txt_hbci_meldung = new System.Windows.Forms.TextBox();
+            btn_auftrag_bestätigen_tan = new System.Windows.Forms.Button();
+            btn_überweisen = new System.Windows.Forms.Button();
+            camt_053_abholen = new System.Windows.Forms.Button();
+            camt_052_abholen = new System.Windows.Forms.Button();
+            btn_umsätze_abholen = new System.Windows.Forms.Button();
+            btn_kontostand_abfragen = new System.Windows.Forms.Button();
+            btn_synchronisation = new System.Windows.Forms.Button();
+            pBox_tan = new System.Windows.Forms.PictureBox();
+            txt_tanverfahren = new System.Windows.Forms.TextBox();
+            lbl_tanverfahren = new System.Windows.Forms.Label();
+            txt_verwendungszweck = new System.Windows.Forms.TextBox();
+            lbl_verwendungszweck = new System.Windows.Forms.Label();
+            txt_betrag = new System.Windows.Forms.TextBox();
+            lbl_betrag = new System.Windows.Forms.Label();
+            txt_empfängerbic = new System.Windows.Forms.TextBox();
+            lbl_empfängerbic = new System.Windows.Forms.Label();
+            txt_empfängeriban = new System.Windows.Forms.TextBox();
+            lbl_empfängeriban = new System.Windows.Forms.Label();
+            txt_empfängername = new System.Windows.Forms.TextBox();
+            lbl_empfängername = new System.Windows.Forms.Label();
+            txt_pin = new System.Windows.Forms.TextBox();
+            lbl_pin = new System.Windows.Forms.Label();
+            txt_userid = new System.Windows.Forms.TextBox();
+            lbl_userid = new System.Windows.Forms.Label();
+            txt_hbci_version = new System.Windows.Forms.TextBox();
+            lbl_hbci_version = new System.Windows.Forms.Label();
+            txt_url = new System.Windows.Forms.TextBox();
+            lbl_url = new System.Windows.Forms.Label();
+            txt_iban = new System.Windows.Forms.TextBox();
+            lbl_iban = new System.Windows.Forms.Label();
+            txt_bic = new System.Windows.Forms.TextBox();
+            lbl_bic = new System.Windows.Forms.Label();
+            txt_bankleitzahl = new System.Windows.Forms.TextBox();
+            lbl_bankleitzahl = new System.Windows.Forms.Label();
+            txt_kontonummer = new System.Windows.Forms.TextBox();
+            lbl_kontonummer = new System.Windows.Forms.Label();
+            btn_zugelassene_tanverfahren = new System.Windows.Forms.Button();
+            btn_bankdaten_laden = new System.Windows.Forms.Button();
+            btn_überweisungsdaten_laden = new System.Windows.Forms.Button();
+            txt_tan = new System.Windows.Forms.TextBox();
+            lbl_tan = new System.Windows.Forms.Label();
+            btn_konten_anzeigen = new System.Windows.Forms.Button();
+            btn_tan_medium_name_abfragen = new System.Windows.Forms.Button();
+            chk_tracing = new System.Windows.Forms.CheckBox();
+            chk_tracingFormatted = new System.Windows.Forms.CheckBox();
+            lbl_bankleitzahl_zentrale = new System.Windows.Forms.Label();
+            txt_bankleitzahl_zentrale = new System.Windows.Forms.TextBox();
+            txt_tan_medium = new System.Windows.Forms.TextBox();
+            label1 = new System.Windows.Forms.Label();
+            label2 = new System.Windows.Forms.Label();
+            date_umsatzabruf_von = new System.Windows.Forms.DateTimePicker();
+            chk_umsatzabruf_von = new System.Windows.Forms.CheckBox();
+            chk_umsatzabruf_bis = new System.Windows.Forms.CheckBox();
+            date_umsatzabruf_bis = new System.Windows.Forms.DateTimePicker();
+            label3 = new System.Windows.Forms.Label();
+            btn_daueraufträge_abholen = new System.Windows.Forms.Button();
+            btn_terminueberweisungen_abholen = new System.Windows.Forms.Button();
+            ((System.ComponentModel.ISupportInitialize) pBox_tan).BeginInit();
+            SuspendLayout();
             // 
             // txt_hbci_meldung
             // 
-            this.txt_hbci_meldung.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txt_hbci_meldung.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.txt_hbci_meldung.ForeColor = System.Drawing.SystemColors.Window;
-            this.txt_hbci_meldung.Location = new System.Drawing.Point(0, 670);
-            this.txt_hbci_meldung.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_hbci_meldung.Multiline = true;
-            this.txt_hbci_meldung.Name = "txt_hbci_meldung";
-            this.txt_hbci_meldung.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txt_hbci_meldung.Size = new System.Drawing.Size(2235, 728);
-            this.txt_hbci_meldung.TabIndex = 88;
+            txt_hbci_meldung.Anchor =  System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            txt_hbci_meldung.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            txt_hbci_meldung.ForeColor = System.Drawing.SystemColors.Window;
+            txt_hbci_meldung.Location = new System.Drawing.Point(0, 698);
+            txt_hbci_meldung.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_hbci_meldung.Multiline = true;
+            txt_hbci_meldung.Name = "txt_hbci_meldung";
+            txt_hbci_meldung.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            txt_hbci_meldung.Size = new System.Drawing.Size(2032, 758);
+            txt_hbci_meldung.TabIndex = 88;
             // 
             // btn_auftrag_bestätigen_tan
             // 
-            this.btn_auftrag_bestätigen_tan.Location = new System.Drawing.Point(1514, 504);
-            this.btn_auftrag_bestätigen_tan.Margin = new System.Windows.Forms.Padding(6);
-            this.btn_auftrag_bestätigen_tan.Name = "btn_auftrag_bestätigen_tan";
-            this.btn_auftrag_bestätigen_tan.Size = new System.Drawing.Size(216, 72);
-            this.btn_auftrag_bestätigen_tan.TabIndex = 81;
-            this.btn_auftrag_bestätigen_tan.Text = "Mit TAN bestätigen";
-            this.btn_auftrag_bestätigen_tan.UseVisualStyleBackColor = true;
-            this.btn_auftrag_bestätigen_tan.Click += new System.EventHandler(this.btn_auftrag_bestätigen_tan_Click);
+            btn_auftrag_bestätigen_tan.Location = new System.Drawing.Point(1376, 525);
+            btn_auftrag_bestätigen_tan.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            btn_auftrag_bestätigen_tan.Name = "btn_auftrag_bestätigen_tan";
+            btn_auftrag_bestätigen_tan.Size = new System.Drawing.Size(196, 75);
+            btn_auftrag_bestätigen_tan.TabIndex = 81;
+            btn_auftrag_bestätigen_tan.Text = "Mit TAN bestätigen";
+            btn_auftrag_bestätigen_tan.UseVisualStyleBackColor = true;
+            btn_auftrag_bestätigen_tan.Click += btn_auftrag_bestätigen_tan_Click;
             // 
             // btn_überweisen
             // 
-            this.btn_überweisen.Location = new System.Drawing.Point(1357, 504);
-            this.btn_überweisen.Margin = new System.Windows.Forms.Padding(6);
-            this.btn_überweisen.Name = "btn_überweisen";
-            this.btn_überweisen.Size = new System.Drawing.Size(147, 72);
-            this.btn_überweisen.TabIndex = 80;
-            this.btn_überweisen.Text = "Überweisen";
-            this.btn_überweisen.UseVisualStyleBackColor = true;
-            this.btn_überweisen.Click += new System.EventHandler(this.btn_überweisen_Click);
+            btn_überweisen.Location = new System.Drawing.Point(1234, 525);
+            btn_überweisen.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            btn_überweisen.Name = "btn_überweisen";
+            btn_überweisen.Size = new System.Drawing.Size(134, 75);
+            btn_überweisen.TabIndex = 80;
+            btn_überweisen.Text = "Überweisen";
+            btn_überweisen.UseVisualStyleBackColor = true;
+            btn_überweisen.Click += btn_überweisen_Click;
             // 
             // camt_053_abholen
             // 
-            this.camt_053_abholen.Location = new System.Drawing.Point(895, 504);
-            this.camt_053_abholen.Margin = new System.Windows.Forms.Padding(6);
-            this.camt_053_abholen.Name = "camt_053_abholen";
-            this.camt_053_abholen.Size = new System.Drawing.Size(209, 72);
-            this.camt_053_abholen.TabIndex = 79;
-            this.camt_053_abholen.Text = "camt053 abholen";
-            this.camt_053_abholen.UseVisualStyleBackColor = true;
-            this.camt_053_abholen.Click += new System.EventHandler(this.camt_053_abholen_Click);
+            camt_053_abholen.Location = new System.Drawing.Point(814, 525);
+            camt_053_abholen.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            camt_053_abholen.Name = "camt_053_abholen";
+            camt_053_abholen.Size = new System.Drawing.Size(190, 75);
+            camt_053_abholen.TabIndex = 79;
+            camt_053_abholen.Text = "camt053 abholen";
+            camt_053_abholen.UseVisualStyleBackColor = true;
+            camt_053_abholen.Click += camt_053_abholen_Click;
             // 
             // camt_052_abholen
             // 
-            this.camt_052_abholen.Location = new System.Drawing.Point(667, 504);
-            this.camt_052_abholen.Margin = new System.Windows.Forms.Padding(6);
-            this.camt_052_abholen.Name = "camt_052_abholen";
-            this.camt_052_abholen.Size = new System.Drawing.Size(216, 72);
-            this.camt_052_abholen.TabIndex = 78;
-            this.camt_052_abholen.Text = "camt052 abholen";
-            this.camt_052_abholen.UseVisualStyleBackColor = true;
-            this.camt_052_abholen.Click += new System.EventHandler(this.camt_052_abholen_Click);
+            camt_052_abholen.Location = new System.Drawing.Point(606, 525);
+            camt_052_abholen.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            camt_052_abholen.Name = "camt_052_abholen";
+            camt_052_abholen.Size = new System.Drawing.Size(196, 75);
+            camt_052_abholen.TabIndex = 78;
+            camt_052_abholen.Text = "camt052 abholen";
+            camt_052_abholen.UseVisualStyleBackColor = true;
+            camt_052_abholen.Click += camt_052_abholen_Click;
             // 
             // btn_umsätze_abholen
             // 
-            this.btn_umsätze_abholen.Location = new System.Drawing.Point(475, 504);
-            this.btn_umsätze_abholen.Margin = new System.Windows.Forms.Padding(6);
-            this.btn_umsätze_abholen.Name = "btn_umsätze_abholen";
-            this.btn_umsätze_abholen.Size = new System.Drawing.Size(182, 72);
-            this.btn_umsätze_abholen.TabIndex = 77;
-            this.btn_umsätze_abholen.Text = "Umsätze abholen";
-            this.btn_umsätze_abholen.UseVisualStyleBackColor = true;
-            this.btn_umsätze_abholen.Click += new System.EventHandler(this.btn_umsätze_abholen_Click);
+            btn_umsätze_abholen.Location = new System.Drawing.Point(432, 525);
+            btn_umsätze_abholen.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            btn_umsätze_abholen.Name = "btn_umsätze_abholen";
+            btn_umsätze_abholen.Size = new System.Drawing.Size(165, 75);
+            btn_umsätze_abholen.TabIndex = 77;
+            btn_umsätze_abholen.Text = "Umsätze abholen";
+            btn_umsätze_abholen.UseVisualStyleBackColor = true;
+            btn_umsätze_abholen.Click += btn_umsätze_abholen_Click;
             // 
             // btn_kontostand_abfragen
             // 
-            this.btn_kontostand_abfragen.Location = new System.Drawing.Point(244, 504);
-            this.btn_kontostand_abfragen.Margin = new System.Windows.Forms.Padding(6);
-            this.btn_kontostand_abfragen.Name = "btn_kontostand_abfragen";
-            this.btn_kontostand_abfragen.Size = new System.Drawing.Size(220, 72);
-            this.btn_kontostand_abfragen.TabIndex = 76;
-            this.btn_kontostand_abfragen.Text = "Kontostand abfragen";
-            this.btn_kontostand_abfragen.UseVisualStyleBackColor = true;
-            this.btn_kontostand_abfragen.Click += new System.EventHandler(this.btn_kontostand_abfragen_Click);
+            btn_kontostand_abfragen.Location = new System.Drawing.Point(222, 525);
+            btn_kontostand_abfragen.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            btn_kontostand_abfragen.Name = "btn_kontostand_abfragen";
+            btn_kontostand_abfragen.Size = new System.Drawing.Size(200, 75);
+            btn_kontostand_abfragen.TabIndex = 76;
+            btn_kontostand_abfragen.Text = "Kontostand abfragen";
+            btn_kontostand_abfragen.UseVisualStyleBackColor = true;
+            btn_kontostand_abfragen.Click += btn_kontostand_abfragen_Click;
             // 
             // btn_synchronisation
             // 
-            this.btn_synchronisation.Location = new System.Drawing.Point(28, 504);
-            this.btn_synchronisation.Margin = new System.Windows.Forms.Padding(6);
-            this.btn_synchronisation.Name = "btn_synchronisation";
-            this.btn_synchronisation.Size = new System.Drawing.Size(205, 72);
-            this.btn_synchronisation.TabIndex = 75;
-            this.btn_synchronisation.Text = "Synchronisation";
-            this.btn_synchronisation.UseVisualStyleBackColor = true;
-            this.btn_synchronisation.Click += new System.EventHandler(this.btn_synchronisation_Click);
+            btn_synchronisation.Location = new System.Drawing.Point(25, 525);
+            btn_synchronisation.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            btn_synchronisation.Name = "btn_synchronisation";
+            btn_synchronisation.Size = new System.Drawing.Size(186, 75);
+            btn_synchronisation.TabIndex = 75;
+            btn_synchronisation.Text = "Synchronisation";
+            btn_synchronisation.UseVisualStyleBackColor = true;
+            btn_synchronisation.Click += btn_synchronisation_Click;
             // 
             // pBox_tan
             // 
-            this.pBox_tan.ErrorImage = global::libfintx_test.Properties.Resources.tan;
-            this.pBox_tan.Image = global::libfintx_test.Properties.Resources.tan;
-            this.pBox_tan.InitialImage = global::libfintx_test.Properties.Resources.tan;
-            this.pBox_tan.Location = new System.Drawing.Point(1689, 11);
-            this.pBox_tan.Margin = new System.Windows.Forms.Padding(6);
-            this.pBox_tan.Name = "pBox_tan";
-            this.pBox_tan.Size = new System.Drawing.Size(458, 369);
-            this.pBox_tan.TabIndex = 73;
-            this.pBox_tan.TabStop = false;
+            pBox_tan.ErrorImage = libfintx_test.Properties.Resources.tan;
+            pBox_tan.Image = libfintx_test.Properties.Resources.tan;
+            pBox_tan.InitialImage = libfintx_test.Properties.Resources.tan;
+            pBox_tan.Location = new System.Drawing.Point(1535, 11);
+            pBox_tan.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            pBox_tan.Name = "pBox_tan";
+            pBox_tan.Size = new System.Drawing.Size(416, 384);
+            pBox_tan.TabIndex = 73;
+            pBox_tan.TabStop = false;
             // 
             // txt_tanverfahren
             // 
-            this.txt_tanverfahren.Location = new System.Drawing.Point(1084, 251);
-            this.txt_tanverfahren.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_tanverfahren.Name = "txt_tanverfahren";
-            this.txt_tanverfahren.Size = new System.Drawing.Size(541, 29);
-            this.txt_tanverfahren.TabIndex = 72;
+            txt_tanverfahren.Location = new System.Drawing.Point(985, 261);
+            txt_tanverfahren.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_tanverfahren.Name = "txt_tanverfahren";
+            txt_tanverfahren.Size = new System.Drawing.Size(492, 31);
+            txt_tanverfahren.TabIndex = 72;
             // 
             // lbl_tanverfahren
             // 
-            this.lbl_tanverfahren.AutoSize = true;
-            this.lbl_tanverfahren.Location = new System.Drawing.Point(838, 257);
-            this.lbl_tanverfahren.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.lbl_tanverfahren.Name = "lbl_tanverfahren";
-            this.lbl_tanverfahren.Size = new System.Drawing.Size(152, 25);
-            this.lbl_tanverfahren.TabIndex = 71;
-            this.lbl_tanverfahren.Text = "TAN-Verfahren:";
+            lbl_tanverfahren.AutoSize = true;
+            lbl_tanverfahren.Location = new System.Drawing.Point(762, 268);
+            lbl_tanverfahren.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lbl_tanverfahren.Name = "lbl_tanverfahren";
+            lbl_tanverfahren.Size = new System.Drawing.Size(131, 25);
+            lbl_tanverfahren.TabIndex = 71;
+            lbl_tanverfahren.Text = "TAN-Verfahren:";
             // 
             // txt_verwendungszweck
             // 
-            this.txt_verwendungszweck.Location = new System.Drawing.Point(1084, 203);
-            this.txt_verwendungszweck.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_verwendungszweck.Name = "txt_verwendungszweck";
-            this.txt_verwendungszweck.Size = new System.Drawing.Size(541, 29);
-            this.txt_verwendungszweck.TabIndex = 70;
+            txt_verwendungszweck.Location = new System.Drawing.Point(985, 211);
+            txt_verwendungszweck.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_verwendungszweck.Name = "txt_verwendungszweck";
+            txt_verwendungszweck.Size = new System.Drawing.Size(492, 31);
+            txt_verwendungszweck.TabIndex = 70;
             // 
             // lbl_verwendungszweck
             // 
-            this.lbl_verwendungszweck.AutoSize = true;
-            this.lbl_verwendungszweck.Location = new System.Drawing.Point(838, 209);
-            this.lbl_verwendungszweck.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.lbl_verwendungszweck.Name = "lbl_verwendungszweck";
-            this.lbl_verwendungszweck.Size = new System.Drawing.Size(194, 25);
-            this.lbl_verwendungszweck.TabIndex = 69;
-            this.lbl_verwendungszweck.Text = "Verwendungszweck:";
+            lbl_verwendungszweck.AutoSize = true;
+            lbl_verwendungszweck.Location = new System.Drawing.Point(762, 218);
+            lbl_verwendungszweck.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lbl_verwendungszweck.Name = "lbl_verwendungszweck";
+            lbl_verwendungszweck.Size = new System.Drawing.Size(170, 25);
+            lbl_verwendungszweck.TabIndex = 69;
+            lbl_verwendungszweck.Text = "Verwendungszweck:";
             // 
             // txt_betrag
             // 
-            this.txt_betrag.Location = new System.Drawing.Point(1084, 155);
-            this.txt_betrag.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_betrag.Name = "txt_betrag";
-            this.txt_betrag.Size = new System.Drawing.Size(541, 29);
-            this.txt_betrag.TabIndex = 68;
+            txt_betrag.Location = new System.Drawing.Point(985, 161);
+            txt_betrag.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_betrag.Name = "txt_betrag";
+            txt_betrag.Size = new System.Drawing.Size(492, 31);
+            txt_betrag.TabIndex = 68;
             // 
             // lbl_betrag
             // 
-            this.lbl_betrag.AutoSize = true;
-            this.lbl_betrag.Location = new System.Drawing.Point(838, 161);
-            this.lbl_betrag.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.lbl_betrag.Name = "lbl_betrag";
-            this.lbl_betrag.Size = new System.Drawing.Size(75, 25);
-            this.lbl_betrag.TabIndex = 67;
-            this.lbl_betrag.Text = "Betrag:";
+            lbl_betrag.AutoSize = true;
+            lbl_betrag.Location = new System.Drawing.Point(762, 168);
+            lbl_betrag.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lbl_betrag.Name = "lbl_betrag";
+            lbl_betrag.Size = new System.Drawing.Size(67, 25);
+            lbl_betrag.TabIndex = 67;
+            lbl_betrag.Text = "Betrag:";
             // 
             // txt_empfängerbic
             // 
-            this.txt_empfängerbic.Location = new System.Drawing.Point(1084, 107);
-            this.txt_empfängerbic.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_empfängerbic.Name = "txt_empfängerbic";
-            this.txt_empfängerbic.Size = new System.Drawing.Size(541, 29);
-            this.txt_empfängerbic.TabIndex = 66;
+            txt_empfängerbic.Location = new System.Drawing.Point(985, 111);
+            txt_empfängerbic.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_empfängerbic.Name = "txt_empfängerbic";
+            txt_empfängerbic.Size = new System.Drawing.Size(492, 31);
+            txt_empfängerbic.TabIndex = 66;
             // 
             // lbl_empfängerbic
             // 
-            this.lbl_empfängerbic.AutoSize = true;
-            this.lbl_empfängerbic.Location = new System.Drawing.Point(838, 113);
-            this.lbl_empfängerbic.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.lbl_empfängerbic.Name = "lbl_empfängerbic";
-            this.lbl_empfängerbic.Size = new System.Drawing.Size(153, 25);
-            this.lbl_empfängerbic.TabIndex = 65;
-            this.lbl_empfängerbic.Text = "Empfänger-BIC:";
+            lbl_empfängerbic.AutoSize = true;
+            lbl_empfängerbic.Location = new System.Drawing.Point(762, 118);
+            lbl_empfängerbic.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lbl_empfängerbic.Name = "lbl_empfängerbic";
+            lbl_empfängerbic.Size = new System.Drawing.Size(136, 25);
+            lbl_empfängerbic.TabIndex = 65;
+            lbl_empfängerbic.Text = "Empfänger-BIC:";
             // 
             // txt_empfängeriban
             // 
-            this.txt_empfängeriban.Location = new System.Drawing.Point(1084, 59);
-            this.txt_empfängeriban.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_empfängeriban.Name = "txt_empfängeriban";
-            this.txt_empfängeriban.Size = new System.Drawing.Size(541, 29);
-            this.txt_empfängeriban.TabIndex = 64;
+            txt_empfängeriban.Location = new System.Drawing.Point(985, 61);
+            txt_empfängeriban.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_empfängeriban.Name = "txt_empfängeriban";
+            txt_empfängeriban.Size = new System.Drawing.Size(492, 31);
+            txt_empfängeriban.TabIndex = 64;
             // 
             // lbl_empfängeriban
             // 
-            this.lbl_empfängeriban.AutoSize = true;
-            this.lbl_empfängeriban.Location = new System.Drawing.Point(838, 65);
-            this.lbl_empfängeriban.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.lbl_empfängeriban.Name = "lbl_empfängeriban";
-            this.lbl_empfängeriban.Size = new System.Drawing.Size(166, 25);
-            this.lbl_empfängeriban.TabIndex = 63;
-            this.lbl_empfängeriban.Text = "Empfänger-IBAN:";
+            lbl_empfängeriban.AutoSize = true;
+            lbl_empfängeriban.Location = new System.Drawing.Point(762, 68);
+            lbl_empfängeriban.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lbl_empfängeriban.Name = "lbl_empfängeriban";
+            lbl_empfängeriban.Size = new System.Drawing.Size(150, 25);
+            lbl_empfängeriban.TabIndex = 63;
+            lbl_empfängeriban.Text = "Empfänger-IBAN:";
             // 
             // txt_empfängername
             // 
-            this.txt_empfängername.Location = new System.Drawing.Point(1084, 11);
-            this.txt_empfängername.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_empfängername.Name = "txt_empfängername";
-            this.txt_empfängername.Size = new System.Drawing.Size(541, 29);
-            this.txt_empfängername.TabIndex = 62;
+            txt_empfängername.Location = new System.Drawing.Point(985, 11);
+            txt_empfängername.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_empfängername.Name = "txt_empfängername";
+            txt_empfängername.Size = new System.Drawing.Size(492, 31);
+            txt_empfängername.TabIndex = 62;
             // 
             // lbl_empfängername
             // 
-            this.lbl_empfängername.AutoSize = true;
-            this.lbl_empfängername.Location = new System.Drawing.Point(838, 17);
-            this.lbl_empfängername.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.lbl_empfängername.Name = "lbl_empfängername";
-            this.lbl_empfängername.Size = new System.Drawing.Size(172, 25);
-            this.lbl_empfängername.TabIndex = 61;
-            this.lbl_empfängername.Text = "Empfänger-Name:";
+            lbl_empfängername.AutoSize = true;
+            lbl_empfängername.Location = new System.Drawing.Point(762, 18);
+            lbl_empfängername.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lbl_empfängername.Name = "lbl_empfängername";
+            lbl_empfängername.Size = new System.Drawing.Size(157, 25);
+            lbl_empfängername.TabIndex = 61;
+            lbl_empfängername.Text = "Empfänger-Name:";
             // 
             // txt_pin
             // 
-            this.txt_pin.Location = new System.Drawing.Point(204, 347);
-            this.txt_pin.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_pin.Name = "txt_pin";
-            this.txt_pin.Size = new System.Drawing.Size(605, 29);
-            this.txt_pin.TabIndex = 58;
+            txt_pin.Location = new System.Drawing.Point(185, 361);
+            txt_pin.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_pin.Name = "txt_pin";
+            txt_pin.Size = new System.Drawing.Size(550, 31);
+            txt_pin.TabIndex = 58;
             // 
             // lbl_pin
             // 
-            this.lbl_pin.AutoSize = true;
-            this.lbl_pin.Location = new System.Drawing.Point(22, 353);
-            this.lbl_pin.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.lbl_pin.Name = "lbl_pin";
-            this.lbl_pin.Size = new System.Drawing.Size(50, 25);
-            this.lbl_pin.TabIndex = 57;
-            this.lbl_pin.Text = "PIN:";
+            lbl_pin.AutoSize = true;
+            lbl_pin.Location = new System.Drawing.Point(20, 368);
+            lbl_pin.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lbl_pin.Name = "lbl_pin";
+            lbl_pin.Size = new System.Drawing.Size(44, 25);
+            lbl_pin.TabIndex = 57;
+            lbl_pin.Text = "PIN:";
             // 
             // txt_userid
             // 
-            this.txt_userid.Location = new System.Drawing.Point(204, 299);
-            this.txt_userid.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_userid.Name = "txt_userid";
-            this.txt_userid.Size = new System.Drawing.Size(605, 29);
-            this.txt_userid.TabIndex = 56;
+            txt_userid.Location = new System.Drawing.Point(185, 311);
+            txt_userid.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_userid.Name = "txt_userid";
+            txt_userid.Size = new System.Drawing.Size(550, 31);
+            txt_userid.TabIndex = 56;
             // 
             // lbl_userid
             // 
-            this.lbl_userid.AutoSize = true;
-            this.lbl_userid.Location = new System.Drawing.Point(22, 305);
-            this.lbl_userid.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.lbl_userid.Name = "lbl_userid";
-            this.lbl_userid.Size = new System.Drawing.Size(85, 25);
-            this.lbl_userid.TabIndex = 55;
-            this.lbl_userid.Text = "User-ID:";
+            lbl_userid.AutoSize = true;
+            lbl_userid.Location = new System.Drawing.Point(20, 318);
+            lbl_userid.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lbl_userid.Name = "lbl_userid";
+            lbl_userid.Size = new System.Drawing.Size(76, 25);
+            lbl_userid.TabIndex = 55;
+            lbl_userid.Text = "User-ID:";
             // 
             // txt_hbci_version
             // 
-            this.txt_hbci_version.Location = new System.Drawing.Point(204, 251);
-            this.txt_hbci_version.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_hbci_version.Name = "txt_hbci_version";
-            this.txt_hbci_version.Size = new System.Drawing.Size(605, 29);
-            this.txt_hbci_version.TabIndex = 54;
+            txt_hbci_version.Location = new System.Drawing.Point(185, 261);
+            txt_hbci_version.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_hbci_version.Name = "txt_hbci_version";
+            txt_hbci_version.Size = new System.Drawing.Size(550, 31);
+            txt_hbci_version.TabIndex = 54;
             // 
             // lbl_hbci_version
             // 
-            this.lbl_hbci_version.AutoSize = true;
-            this.lbl_hbci_version.Location = new System.Drawing.Point(22, 257);
-            this.lbl_hbci_version.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.lbl_hbci_version.Name = "lbl_hbci_version";
-            this.lbl_hbci_version.Size = new System.Drawing.Size(139, 25);
-            this.lbl_hbci_version.TabIndex = 53;
-            this.lbl_hbci_version.Text = "HBCI-Version:";
+            lbl_hbci_version.AutoSize = true;
+            lbl_hbci_version.Location = new System.Drawing.Point(20, 268);
+            lbl_hbci_version.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lbl_hbci_version.Name = "lbl_hbci_version";
+            lbl_hbci_version.Size = new System.Drawing.Size(120, 25);
+            lbl_hbci_version.TabIndex = 53;
+            lbl_hbci_version.Text = "HBCI-Version:";
             // 
             // txt_url
             // 
-            this.txt_url.Location = new System.Drawing.Point(204, 203);
-            this.txt_url.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_url.Name = "txt_url";
-            this.txt_url.Size = new System.Drawing.Size(605, 29);
-            this.txt_url.TabIndex = 52;
+            txt_url.Location = new System.Drawing.Point(185, 211);
+            txt_url.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_url.Name = "txt_url";
+            txt_url.Size = new System.Drawing.Size(550, 31);
+            txt_url.TabIndex = 52;
             // 
             // lbl_url
             // 
-            this.lbl_url.AutoSize = true;
-            this.lbl_url.Location = new System.Drawing.Point(22, 209);
-            this.lbl_url.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.lbl_url.Name = "lbl_url";
-            this.lbl_url.Size = new System.Drawing.Size(56, 25);
-            this.lbl_url.TabIndex = 51;
-            this.lbl_url.Text = "URL:";
+            lbl_url.AutoSize = true;
+            lbl_url.Location = new System.Drawing.Point(20, 218);
+            lbl_url.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lbl_url.Name = "lbl_url";
+            lbl_url.Size = new System.Drawing.Size(47, 25);
+            lbl_url.TabIndex = 51;
+            lbl_url.Text = "URL:";
             // 
             // txt_iban
             // 
-            this.txt_iban.Location = new System.Drawing.Point(204, 155);
-            this.txt_iban.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_iban.Name = "txt_iban";
-            this.txt_iban.Size = new System.Drawing.Size(605, 29);
-            this.txt_iban.TabIndex = 50;
+            txt_iban.Location = new System.Drawing.Point(185, 161);
+            txt_iban.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_iban.Name = "txt_iban";
+            txt_iban.Size = new System.Drawing.Size(550, 31);
+            txt_iban.TabIndex = 50;
             // 
             // lbl_iban
             // 
-            this.lbl_iban.AutoSize = true;
-            this.lbl_iban.Location = new System.Drawing.Point(22, 161);
-            this.lbl_iban.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.lbl_iban.Name = "lbl_iban";
-            this.lbl_iban.Size = new System.Drawing.Size(64, 25);
-            this.lbl_iban.TabIndex = 49;
-            this.lbl_iban.Text = "IBAN:";
+            lbl_iban.AutoSize = true;
+            lbl_iban.Location = new System.Drawing.Point(20, 168);
+            lbl_iban.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lbl_iban.Name = "lbl_iban";
+            lbl_iban.Size = new System.Drawing.Size(56, 25);
+            lbl_iban.TabIndex = 49;
+            lbl_iban.Text = "IBAN:";
             // 
             // txt_bic
             // 
-            this.txt_bic.Location = new System.Drawing.Point(204, 107);
-            this.txt_bic.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_bic.Name = "txt_bic";
-            this.txt_bic.Size = new System.Drawing.Size(605, 29);
-            this.txt_bic.TabIndex = 48;
+            txt_bic.Location = new System.Drawing.Point(185, 111);
+            txt_bic.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_bic.Name = "txt_bic";
+            txt_bic.Size = new System.Drawing.Size(550, 31);
+            txt_bic.TabIndex = 48;
             // 
             // lbl_bic
             // 
-            this.lbl_bic.AutoSize = true;
-            this.lbl_bic.Location = new System.Drawing.Point(22, 113);
-            this.lbl_bic.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.lbl_bic.Name = "lbl_bic";
-            this.lbl_bic.Size = new System.Drawing.Size(51, 25);
-            this.lbl_bic.TabIndex = 47;
-            this.lbl_bic.Text = "BIC:";
+            lbl_bic.AutoSize = true;
+            lbl_bic.Location = new System.Drawing.Point(20, 118);
+            lbl_bic.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lbl_bic.Name = "lbl_bic";
+            lbl_bic.Size = new System.Drawing.Size(42, 25);
+            lbl_bic.TabIndex = 47;
+            lbl_bic.Text = "BIC:";
             // 
             // txt_bankleitzahl
             // 
-            this.txt_bankleitzahl.Location = new System.Drawing.Point(204, 59);
-            this.txt_bankleitzahl.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_bankleitzahl.Name = "txt_bankleitzahl";
-            this.txt_bankleitzahl.Size = new System.Drawing.Size(237, 29);
-            this.txt_bankleitzahl.TabIndex = 46;
-            this.txt_bankleitzahl.TextChanged += new System.EventHandler(this.Txt_bankleitzahl_TextChanged);
+            txt_bankleitzahl.Location = new System.Drawing.Point(185, 61);
+            txt_bankleitzahl.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_bankleitzahl.Name = "txt_bankleitzahl";
+            txt_bankleitzahl.Size = new System.Drawing.Size(216, 31);
+            txt_bankleitzahl.TabIndex = 46;
+            txt_bankleitzahl.TextChanged += Txt_bankleitzahl_TextChanged;
             // 
             // lbl_bankleitzahl
             // 
-            this.lbl_bankleitzahl.AutoSize = true;
-            this.lbl_bankleitzahl.Location = new System.Drawing.Point(22, 65);
-            this.lbl_bankleitzahl.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.lbl_bankleitzahl.Name = "lbl_bankleitzahl";
-            this.lbl_bankleitzahl.Size = new System.Drawing.Size(123, 25);
-            this.lbl_bankleitzahl.TabIndex = 45;
-            this.lbl_bankleitzahl.Text = "Bankleitzahl:";
+            lbl_bankleitzahl.AutoSize = true;
+            lbl_bankleitzahl.Location = new System.Drawing.Point(20, 68);
+            lbl_bankleitzahl.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lbl_bankleitzahl.Name = "lbl_bankleitzahl";
+            lbl_bankleitzahl.Size = new System.Drawing.Size(108, 25);
+            lbl_bankleitzahl.TabIndex = 45;
+            lbl_bankleitzahl.Text = "Bankleitzahl:";
             // 
             // txt_kontonummer
             // 
-            this.txt_kontonummer.Location = new System.Drawing.Point(204, 11);
-            this.txt_kontonummer.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_kontonummer.Name = "txt_kontonummer";
-            this.txt_kontonummer.Size = new System.Drawing.Size(605, 29);
-            this.txt_kontonummer.TabIndex = 44;
-            this.txt_kontonummer.TextChanged += new System.EventHandler(this.Txt_kontonummer_TextChanged);
+            txt_kontonummer.Location = new System.Drawing.Point(185, 11);
+            txt_kontonummer.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_kontonummer.Name = "txt_kontonummer";
+            txt_kontonummer.Size = new System.Drawing.Size(550, 31);
+            txt_kontonummer.TabIndex = 44;
+            txt_kontonummer.TextChanged += Txt_kontonummer_TextChanged;
             // 
             // lbl_kontonummer
             // 
-            this.lbl_kontonummer.AutoSize = true;
-            this.lbl_kontonummer.Location = new System.Drawing.Point(22, 17);
-            this.lbl_kontonummer.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.lbl_kontonummer.Name = "lbl_kontonummer";
-            this.lbl_kontonummer.Size = new System.Drawing.Size(141, 25);
-            this.lbl_kontonummer.TabIndex = 43;
-            this.lbl_kontonummer.Text = "Kontonummer:";
+            lbl_kontonummer.AutoSize = true;
+            lbl_kontonummer.Location = new System.Drawing.Point(20, 18);
+            lbl_kontonummer.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lbl_kontonummer.Name = "lbl_kontonummer";
+            lbl_kontonummer.Size = new System.Drawing.Size(131, 25);
+            lbl_kontonummer.TabIndex = 43;
+            lbl_kontonummer.Text = "Kontonummer:";
             // 
             // btn_zugelassene_tanverfahren
             // 
-            this.btn_zugelassene_tanverfahren.Location = new System.Drawing.Point(1744, 504);
-            this.btn_zugelassene_tanverfahren.Margin = new System.Windows.Forms.Padding(6);
-            this.btn_zugelassene_tanverfahren.Name = "btn_zugelassene_tanverfahren";
-            this.btn_zugelassene_tanverfahren.Size = new System.Drawing.Size(277, 72);
-            this.btn_zugelassene_tanverfahren.TabIndex = 82;
-            this.btn_zugelassene_tanverfahren.Text = "Zugelassene TAN-Verfahren";
-            this.btn_zugelassene_tanverfahren.UseVisualStyleBackColor = true;
-            this.btn_zugelassene_tanverfahren.Click += new System.EventHandler(this.btn_zugelassene_tanverfahren_Click);
+            btn_zugelassene_tanverfahren.Location = new System.Drawing.Point(1585, 525);
+            btn_zugelassene_tanverfahren.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            btn_zugelassene_tanverfahren.Name = "btn_zugelassene_tanverfahren";
+            btn_zugelassene_tanverfahren.Size = new System.Drawing.Size(252, 75);
+            btn_zugelassene_tanverfahren.TabIndex = 82;
+            btn_zugelassene_tanverfahren.Text = "Zugelassene TAN-Verfahren";
+            btn_zugelassene_tanverfahren.UseVisualStyleBackColor = true;
+            btn_zugelassene_tanverfahren.Click += btn_zugelassene_tanverfahren_Click;
             // 
             // btn_bankdaten_laden
             // 
-            this.btn_bankdaten_laden.Location = new System.Drawing.Point(2031, 504);
-            this.btn_bankdaten_laden.Margin = new System.Windows.Forms.Padding(6);
-            this.btn_bankdaten_laden.Name = "btn_bankdaten_laden";
-            this.btn_bankdaten_laden.Size = new System.Drawing.Size(187, 72);
-            this.btn_bankdaten_laden.TabIndex = 83;
-            this.btn_bankdaten_laden.Text = "Bankdaten laden";
-            this.btn_bankdaten_laden.UseVisualStyleBackColor = true;
-            this.btn_bankdaten_laden.Click += new System.EventHandler(this.btn_lade_bankdaten_Click);
+            btn_bankdaten_laden.Location = new System.Drawing.Point(1846, 525);
+            btn_bankdaten_laden.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            btn_bankdaten_laden.Name = "btn_bankdaten_laden";
+            btn_bankdaten_laden.Size = new System.Drawing.Size(170, 75);
+            btn_bankdaten_laden.TabIndex = 83;
+            btn_bankdaten_laden.Text = "Bankdaten laden";
+            btn_bankdaten_laden.UseVisualStyleBackColor = true;
+            btn_bankdaten_laden.Click += btn_lade_bankdaten_Click;
             // 
             // btn_überweisungsdaten_laden
             // 
-            this.btn_überweisungsdaten_laden.Location = new System.Drawing.Point(530, 587);
-            this.btn_überweisungsdaten_laden.Margin = new System.Windows.Forms.Padding(6);
-            this.btn_überweisungsdaten_laden.Name = "btn_überweisungsdaten_laden";
-            this.btn_überweisungsdaten_laden.Size = new System.Drawing.Size(262, 72);
-            this.btn_überweisungsdaten_laden.TabIndex = 84;
-            this.btn_überweisungsdaten_laden.Text = "Überweisungsdaten laden";
-            this.btn_überweisungsdaten_laden.UseVisualStyleBackColor = true;
-            this.btn_überweisungsdaten_laden.Click += new System.EventHandler(this.btn_lade_überweisungsdaten_Click);
+            btn_überweisungsdaten_laden.Location = new System.Drawing.Point(482, 611);
+            btn_überweisungsdaten_laden.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            btn_überweisungsdaten_laden.Name = "btn_überweisungsdaten_laden";
+            btn_überweisungsdaten_laden.Size = new System.Drawing.Size(238, 75);
+            btn_überweisungsdaten_laden.TabIndex = 84;
+            btn_überweisungsdaten_laden.Text = "Überweisungsdaten laden";
+            btn_überweisungsdaten_laden.UseVisualStyleBackColor = true;
+            btn_überweisungsdaten_laden.Click += btn_lade_überweisungsdaten_Click;
             // 
             // txt_tan
             // 
-            this.txt_tan.Location = new System.Drawing.Point(1084, 347);
-            this.txt_tan.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_tan.Name = "txt_tan";
-            this.txt_tan.Size = new System.Drawing.Size(541, 29);
-            this.txt_tan.TabIndex = 74;
+            txt_tan.Location = new System.Drawing.Point(985, 361);
+            txt_tan.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_tan.Name = "txt_tan";
+            txt_tan.Size = new System.Drawing.Size(492, 31);
+            txt_tan.TabIndex = 74;
             // 
             // lbl_tan
             // 
-            this.lbl_tan.AutoSize = true;
-            this.lbl_tan.Location = new System.Drawing.Point(838, 349);
-            this.lbl_tan.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.lbl_tan.Name = "lbl_tan";
-            this.lbl_tan.Size = new System.Drawing.Size(59, 25);
-            this.lbl_tan.TabIndex = 73;
-            this.lbl_tan.Text = "TAN:";
+            lbl_tan.AutoSize = true;
+            lbl_tan.Location = new System.Drawing.Point(762, 364);
+            lbl_tan.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lbl_tan.Name = "lbl_tan";
+            lbl_tan.Size = new System.Drawing.Size(49, 25);
+            lbl_tan.TabIndex = 73;
+            lbl_tan.Text = "TAN:";
             // 
             // btn_konten_anzeigen
             // 
-            this.btn_konten_anzeigen.Location = new System.Drawing.Point(325, 587);
-            this.btn_konten_anzeigen.Margin = new System.Windows.Forms.Padding(6);
-            this.btn_konten_anzeigen.Name = "btn_konten_anzeigen";
-            this.btn_konten_anzeigen.Size = new System.Drawing.Size(194, 72);
-            this.btn_konten_anzeigen.TabIndex = 85;
-            this.btn_konten_anzeigen.Text = "Konten anzeigen";
-            this.btn_konten_anzeigen.UseVisualStyleBackColor = true;
-            this.btn_konten_anzeigen.Click += new System.EventHandler(this.btn_konten_anzeigen_Click);
+            btn_konten_anzeigen.Location = new System.Drawing.Point(295, 611);
+            btn_konten_anzeigen.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            btn_konten_anzeigen.Name = "btn_konten_anzeigen";
+            btn_konten_anzeigen.Size = new System.Drawing.Size(176, 75);
+            btn_konten_anzeigen.TabIndex = 85;
+            btn_konten_anzeigen.Text = "Konten anzeigen";
+            btn_konten_anzeigen.UseVisualStyleBackColor = true;
+            btn_konten_anzeigen.Click += btn_konten_anzeigen_Click;
             // 
             // btn_tan_medium_name_abfragen
             // 
-            this.btn_tan_medium_name_abfragen.Location = new System.Drawing.Point(28, 587);
-            this.btn_tan_medium_name_abfragen.Margin = new System.Windows.Forms.Padding(6);
-            this.btn_tan_medium_name_abfragen.Name = "btn_tan_medium_name_abfragen";
-            this.btn_tan_medium_name_abfragen.Size = new System.Drawing.Size(286, 72);
-            this.btn_tan_medium_name_abfragen.TabIndex = 86;
-            this.btn_tan_medium_name_abfragen.Text = "TAN-Medium-Name abfragen";
-            this.btn_tan_medium_name_abfragen.UseVisualStyleBackColor = true;
-            this.btn_tan_medium_name_abfragen.Click += new System.EventHandler(this.btn_tan_medium_name_abfragen_Click);
+            btn_tan_medium_name_abfragen.Location = new System.Drawing.Point(25, 611);
+            btn_tan_medium_name_abfragen.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            btn_tan_medium_name_abfragen.Name = "btn_tan_medium_name_abfragen";
+            btn_tan_medium_name_abfragen.Size = new System.Drawing.Size(260, 75);
+            btn_tan_medium_name_abfragen.TabIndex = 86;
+            btn_tan_medium_name_abfragen.Text = "TAN-Medium-Name abfragen";
+            btn_tan_medium_name_abfragen.UseVisualStyleBackColor = true;
+            btn_tan_medium_name_abfragen.Click += btn_tan_medium_name_abfragen_Click;
             // 
             // chk_tracing
             // 
-            this.chk_tracing.AutoSize = true;
-            this.chk_tracing.Checked = true;
-            this.chk_tracing.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chk_tracing.Location = new System.Drawing.Point(1084, 401);
-            this.chk_tracing.Margin = new System.Windows.Forms.Padding(6);
-            this.chk_tracing.Name = "chk_tracing";
-            this.chk_tracing.Size = new System.Drawing.Size(307, 29);
-            this.chk_tracing.TabIndex = 89;
-            this.chk_tracing.Text = "HBCI-Nachrichten aufzeichnen";
-            this.chk_tracing.UseVisualStyleBackColor = true;
-            this.chk_tracing.CheckedChanged += new System.EventHandler(this.chk_Tracing_CheckedChanged);
+            chk_tracing.AutoSize = true;
+            chk_tracing.Checked = true;
+            chk_tracing.CheckState = System.Windows.Forms.CheckState.Checked;
+            chk_tracing.Location = new System.Drawing.Point(985, 418);
+            chk_tracing.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            chk_tracing.Name = "chk_tracing";
+            chk_tracing.Size = new System.Drawing.Size(275, 29);
+            chk_tracing.TabIndex = 89;
+            chk_tracing.Text = "HBCI-Nachrichten aufzeichnen";
+            chk_tracing.UseVisualStyleBackColor = true;
+            chk_tracing.CheckedChanged += chk_Tracing_CheckedChanged;
             // 
             // chk_tracingFormatted
             // 
-            this.chk_tracingFormatted.AutoSize = true;
-            this.chk_tracingFormatted.Checked = true;
-            this.chk_tracingFormatted.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chk_tracingFormatted.Location = new System.Drawing.Point(1496, 402);
-            this.chk_tracingFormatted.Margin = new System.Windows.Forms.Padding(6);
-            this.chk_tracingFormatted.Name = "chk_tracingFormatted";
-            this.chk_tracingFormatted.Size = new System.Drawing.Size(125, 29);
-            this.chk_tracingFormatted.TabIndex = 90;
-            this.chk_tracingFormatted.Text = "Formatiert";
-            this.chk_tracingFormatted.UseVisualStyleBackColor = true;
-            this.chk_tracingFormatted.CheckedChanged += new System.EventHandler(this.chk_tracingFormatted_CheckedChanged);
+            chk_tracingFormatted.AutoSize = true;
+            chk_tracingFormatted.Checked = true;
+            chk_tracingFormatted.CheckState = System.Windows.Forms.CheckState.Checked;
+            chk_tracingFormatted.Location = new System.Drawing.Point(1360, 419);
+            chk_tracingFormatted.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            chk_tracingFormatted.Name = "chk_tracingFormatted";
+            chk_tracingFormatted.Size = new System.Drawing.Size(120, 29);
+            chk_tracingFormatted.TabIndex = 90;
+            chk_tracingFormatted.Text = "Formatiert";
+            chk_tracingFormatted.UseVisualStyleBackColor = true;
+            chk_tracingFormatted.CheckedChanged += chk_tracingFormatted_CheckedChanged;
             // 
             // lbl_bankleitzahl_zentrale
             // 
-            this.lbl_bankleitzahl_zentrale.AutoSize = true;
-            this.lbl_bankleitzahl_zentrale.Location = new System.Drawing.Point(466, 65);
-            this.lbl_bankleitzahl_zentrale.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.lbl_bankleitzahl_zentrale.Name = "lbl_bankleitzahl_zentrale";
-            this.lbl_bankleitzahl_zentrale.Size = new System.Drawing.Size(89, 25);
-            this.lbl_bankleitzahl_zentrale.TabIndex = 91;
-            this.lbl_bankleitzahl_zentrale.Text = "Zentrale:";
+            lbl_bankleitzahl_zentrale.AutoSize = true;
+            lbl_bankleitzahl_zentrale.Location = new System.Drawing.Point(424, 68);
+            lbl_bankleitzahl_zentrale.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lbl_bankleitzahl_zentrale.Name = "lbl_bankleitzahl_zentrale";
+            lbl_bankleitzahl_zentrale.Size = new System.Drawing.Size(79, 25);
+            lbl_bankleitzahl_zentrale.TabIndex = 91;
+            lbl_bankleitzahl_zentrale.Text = "Zentrale:";
             // 
             // txt_bankleitzahl_zentrale
             // 
-            this.txt_bankleitzahl_zentrale.Location = new System.Drawing.Point(572, 59);
-            this.txt_bankleitzahl_zentrale.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_bankleitzahl_zentrale.Name = "txt_bankleitzahl_zentrale";
-            this.txt_bankleitzahl_zentrale.Size = new System.Drawing.Size(237, 29);
-            this.txt_bankleitzahl_zentrale.TabIndex = 47;
+            txt_bankleitzahl_zentrale.Location = new System.Drawing.Point(520, 61);
+            txt_bankleitzahl_zentrale.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_bankleitzahl_zentrale.Name = "txt_bankleitzahl_zentrale";
+            txt_bankleitzahl_zentrale.Size = new System.Drawing.Size(216, 31);
+            txt_bankleitzahl_zentrale.TabIndex = 47;
             // 
             // txt_tan_medium
             // 
-            this.txt_tan_medium.Location = new System.Drawing.Point(1084, 299);
-            this.txt_tan_medium.Margin = new System.Windows.Forms.Padding(6);
-            this.txt_tan_medium.Name = "txt_tan_medium";
-            this.txt_tan_medium.Size = new System.Drawing.Size(541, 29);
-            this.txt_tan_medium.TabIndex = 73;
+            txt_tan_medium.Location = new System.Drawing.Point(985, 311);
+            txt_tan_medium.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            txt_tan_medium.Name = "txt_tan_medium";
+            txt_tan_medium.Size = new System.Drawing.Size(492, 31);
+            txt_tan_medium.TabIndex = 73;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(838, 306);
-            this.label1.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(136, 25);
-            this.label1.TabIndex = 92;
-            this.label1.Text = "TAN-Medium:";
+            label1.AutoSize = true;
+            label1.Location = new System.Drawing.Point(762, 319);
+            label1.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(122, 25);
+            label1.TabIndex = 92;
+            label1.Text = "TAN-Medium:";
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(22, 402);
-            this.label2.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(155, 25);
-            this.label2.TabIndex = 94;
-            this.label2.Text = "Umsatzabruf ab:";
+            label2.AutoSize = true;
+            label2.Location = new System.Drawing.Point(20, 419);
+            label2.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            label2.Name = "label2";
+            label2.Size = new System.Drawing.Size(142, 25);
+            label2.TabIndex = 94;
+            label2.Text = "Umsatzabruf ab:";
             // 
             // date_umsatzabruf_von
             // 
-            this.date_umsatzabruf_von.Location = new System.Drawing.Point(242, 397);
-            this.date_umsatzabruf_von.Margin = new System.Windows.Forms.Padding(6);
-            this.date_umsatzabruf_von.Name = "date_umsatzabruf_von";
-            this.date_umsatzabruf_von.Size = new System.Drawing.Size(567, 29);
-            this.date_umsatzabruf_von.TabIndex = 95;
+            date_umsatzabruf_von.Location = new System.Drawing.Point(220, 414);
+            date_umsatzabruf_von.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            date_umsatzabruf_von.Name = "date_umsatzabruf_von";
+            date_umsatzabruf_von.Size = new System.Drawing.Size(516, 31);
+            date_umsatzabruf_von.TabIndex = 95;
             // 
             // chk_umsatzabruf_von
             // 
-            this.chk_umsatzabruf_von.AutoSize = true;
-            this.chk_umsatzabruf_von.Location = new System.Drawing.Point(204, 402);
-            this.chk_umsatzabruf_von.Margin = new System.Windows.Forms.Padding(6);
-            this.chk_umsatzabruf_von.Name = "chk_umsatzabruf_von";
-            this.chk_umsatzabruf_von.Size = new System.Drawing.Size(22, 21);
-            this.chk_umsatzabruf_von.TabIndex = 96;
-            this.chk_umsatzabruf_von.UseVisualStyleBackColor = true;
+            chk_umsatzabruf_von.AutoSize = true;
+            chk_umsatzabruf_von.Location = new System.Drawing.Point(185, 419);
+            chk_umsatzabruf_von.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            chk_umsatzabruf_von.Name = "chk_umsatzabruf_von";
+            chk_umsatzabruf_von.Size = new System.Drawing.Size(22, 21);
+            chk_umsatzabruf_von.TabIndex = 96;
+            chk_umsatzabruf_von.UseVisualStyleBackColor = true;
             // 
             // chk_umsatzabruf_bis
             // 
-            this.chk_umsatzabruf_bis.AutoSize = true;
-            this.chk_umsatzabruf_bis.Location = new System.Drawing.Point(204, 452);
-            this.chk_umsatzabruf_bis.Margin = new System.Windows.Forms.Padding(6);
-            this.chk_umsatzabruf_bis.Name = "chk_umsatzabruf_bis";
-            this.chk_umsatzabruf_bis.Size = new System.Drawing.Size(22, 21);
-            this.chk_umsatzabruf_bis.TabIndex = 99;
-            this.chk_umsatzabruf_bis.UseVisualStyleBackColor = true;
+            chk_umsatzabruf_bis.AutoSize = true;
+            chk_umsatzabruf_bis.Location = new System.Drawing.Point(185, 471);
+            chk_umsatzabruf_bis.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            chk_umsatzabruf_bis.Name = "chk_umsatzabruf_bis";
+            chk_umsatzabruf_bis.Size = new System.Drawing.Size(22, 21);
+            chk_umsatzabruf_bis.TabIndex = 99;
+            chk_umsatzabruf_bis.UseVisualStyleBackColor = true;
             // 
             // date_umsatzabruf_bis
             // 
-            this.date_umsatzabruf_bis.Location = new System.Drawing.Point(242, 447);
-            this.date_umsatzabruf_bis.Margin = new System.Windows.Forms.Padding(6);
-            this.date_umsatzabruf_bis.Name = "date_umsatzabruf_bis";
-            this.date_umsatzabruf_bis.Size = new System.Drawing.Size(567, 29);
-            this.date_umsatzabruf_bis.TabIndex = 98;
+            date_umsatzabruf_bis.Location = new System.Drawing.Point(220, 466);
+            date_umsatzabruf_bis.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            date_umsatzabruf_bis.Name = "date_umsatzabruf_bis";
+            date_umsatzabruf_bis.Size = new System.Drawing.Size(516, 31);
+            date_umsatzabruf_bis.TabIndex = 98;
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(22, 452);
-            this.label3.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(158, 25);
-            this.label3.TabIndex = 97;
-            this.label3.Text = "Umsatzabruf bis:";
+            label3.AutoSize = true;
+            label3.Location = new System.Drawing.Point(20, 471);
+            label3.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            label3.Name = "label3";
+            label3.Size = new System.Drawing.Size(145, 25);
+            label3.TabIndex = 97;
+            label3.Text = "Umsatzabruf bis:";
             // 
             // btn_daueraufträge_abholen
             // 
-            this.btn_daueraufträge_abholen.Location = new System.Drawing.Point(1115, 504);
-            this.btn_daueraufträge_abholen.Margin = new System.Windows.Forms.Padding(6);
-            this.btn_daueraufträge_abholen.Name = "btn_daueraufträge_abholen";
-            this.btn_daueraufträge_abholen.Size = new System.Drawing.Size(231, 72);
-            this.btn_daueraufträge_abholen.TabIndex = 100;
-            this.btn_daueraufträge_abholen.Text = "Daueraufträge abholen";
-            this.btn_daueraufträge_abholen.UseVisualStyleBackColor = true;
-            this.btn_daueraufträge_abholen.Click += new System.EventHandler(this.btn_daueraufträge_abholen_Click);
+            btn_daueraufträge_abholen.Location = new System.Drawing.Point(1014, 525);
+            btn_daueraufträge_abholen.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            btn_daueraufträge_abholen.Name = "btn_daueraufträge_abholen";
+            btn_daueraufträge_abholen.Size = new System.Drawing.Size(210, 75);
+            btn_daueraufträge_abholen.TabIndex = 100;
+            btn_daueraufträge_abholen.Text = "Daueraufträge abholen";
+            btn_daueraufträge_abholen.UseVisualStyleBackColor = true;
+            btn_daueraufträge_abholen.Click += btn_daueraufträge_abholen_Click;
             // 
             // btn_terminueberweisungen_abholen
             // 
-            this.btn_terminueberweisungen_abholen.Location = new System.Drawing.Point(804, 586);
-            this.btn_terminueberweisungen_abholen.Margin = new System.Windows.Forms.Padding(6);
-            this.btn_terminueberweisungen_abholen.Name = "btn_terminueberweisungen_abholen";
-            this.btn_terminueberweisungen_abholen.Size = new System.Drawing.Size(231, 72);
-            this.btn_terminueberweisungen_abholen.TabIndex = 101;
-            this.btn_terminueberweisungen_abholen.Text = "Terminüberweisungen abholen";
-            this.btn_terminueberweisungen_abholen.UseVisualStyleBackColor = true;
-            this.btn_terminueberweisungen_abholen.Click += new System.EventHandler(this.btn_terminueberweisungen_abholen_Click);
-            // 
-            // chk_tracingMaskCredentials
-            // 
-            this.chk_tracingMaskCredentials.AutoSize = true;
-            this.chk_tracingMaskCredentials.Checked = true;
-            this.chk_tracingMaskCredentials.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chk_tracingMaskCredentials.Location = new System.Drawing.Point(1084, 451);
-            this.chk_tracingMaskCredentials.Margin = new System.Windows.Forms.Padding(6);
-            this.chk_tracingMaskCredentials.Name = "chk_tracingMaskCredentials";
-            this.chk_tracingMaskCredentials.Size = new System.Drawing.Size(259, 29);
-            this.chk_tracingMaskCredentials.TabIndex = 102;
-            this.chk_tracingMaskCredentials.Text = "Zugangsdaten maskieren";
-            this.chk_tracingMaskCredentials.UseVisualStyleBackColor = true;
+            btn_terminueberweisungen_abholen.Location = new System.Drawing.Point(731, 610);
+            btn_terminueberweisungen_abholen.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            btn_terminueberweisungen_abholen.Name = "btn_terminueberweisungen_abholen";
+            btn_terminueberweisungen_abholen.Size = new System.Drawing.Size(210, 75);
+            btn_terminueberweisungen_abholen.TabIndex = 101;
+            btn_terminueberweisungen_abholen.Text = "Terminüberweisungen abholen";
+            btn_terminueberweisungen_abholen.UseVisualStyleBackColor = true;
+            btn_terminueberweisungen_abholen.Click += btn_terminueberweisungen_abholen_Click;
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 24F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(2237, 1401);
-            this.Controls.Add(this.chk_tracingMaskCredentials);
-            this.Controls.Add(this.btn_terminueberweisungen_abholen);
-            this.Controls.Add(this.btn_daueraufträge_abholen);
-            this.Controls.Add(this.chk_umsatzabruf_bis);
-            this.Controls.Add(this.date_umsatzabruf_bis);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.chk_umsatzabruf_von);
-            this.Controls.Add(this.date_umsatzabruf_von);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.txt_tan_medium);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.txt_bankleitzahl_zentrale);
-            this.Controls.Add(this.lbl_bankleitzahl_zentrale);
-            this.Controls.Add(this.chk_tracingFormatted);
-            this.Controls.Add(this.chk_tracing);
-            this.Controls.Add(this.btn_tan_medium_name_abfragen);
-            this.Controls.Add(this.btn_konten_anzeigen);
-            this.Controls.Add(this.txt_tan);
-            this.Controls.Add(this.lbl_tan);
-            this.Controls.Add(this.btn_überweisungsdaten_laden);
-            this.Controls.Add(this.btn_bankdaten_laden);
-            this.Controls.Add(this.btn_zugelassene_tanverfahren);
-            this.Controls.Add(this.txt_hbci_meldung);
-            this.Controls.Add(this.btn_auftrag_bestätigen_tan);
-            this.Controls.Add(this.btn_überweisen);
-            this.Controls.Add(this.camt_053_abholen);
-            this.Controls.Add(this.camt_052_abholen);
-            this.Controls.Add(this.btn_umsätze_abholen);
-            this.Controls.Add(this.btn_kontostand_abfragen);
-            this.Controls.Add(this.btn_synchronisation);
-            this.Controls.Add(this.pBox_tan);
-            this.Controls.Add(this.txt_tanverfahren);
-            this.Controls.Add(this.lbl_tanverfahren);
-            this.Controls.Add(this.txt_verwendungszweck);
-            this.Controls.Add(this.lbl_verwendungszweck);
-            this.Controls.Add(this.txt_betrag);
-            this.Controls.Add(this.lbl_betrag);
-            this.Controls.Add(this.txt_empfängerbic);
-            this.Controls.Add(this.lbl_empfängerbic);
-            this.Controls.Add(this.txt_empfängeriban);
-            this.Controls.Add(this.lbl_empfängeriban);
-            this.Controls.Add(this.txt_empfängername);
-            this.Controls.Add(this.lbl_empfängername);
-            this.Controls.Add(this.txt_pin);
-            this.Controls.Add(this.lbl_pin);
-            this.Controls.Add(this.txt_userid);
-            this.Controls.Add(this.lbl_userid);
-            this.Controls.Add(this.txt_hbci_version);
-            this.Controls.Add(this.lbl_hbci_version);
-            this.Controls.Add(this.txt_url);
-            this.Controls.Add(this.lbl_url);
-            this.Controls.Add(this.txt_iban);
-            this.Controls.Add(this.lbl_iban);
-            this.Controls.Add(this.txt_bic);
-            this.Controls.Add(this.lbl_bic);
-            this.Controls.Add(this.txt_bankleitzahl);
-            this.Controls.Add(this.lbl_bankleitzahl);
-            this.Controls.Add(this.txt_kontonummer);
-            this.Controls.Add(this.lbl_kontonummer);
-            this.Margin = new System.Windows.Forms.Padding(6);
-            this.Name = "MainForm";
-            this.Text = "libfintx Test Framework";
-            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
-            this.Load += new System.EventHandler(this.Form1_Load);
-            ((System.ComponentModel.ISupportInitialize)(this.pBox_tan)).EndInit();
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new System.Drawing.SizeF(10F, 25F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(2034, 1459);
+            Controls.Add(btn_terminueberweisungen_abholen);
+            Controls.Add(btn_daueraufträge_abholen);
+            Controls.Add(chk_umsatzabruf_bis);
+            Controls.Add(date_umsatzabruf_bis);
+            Controls.Add(label3);
+            Controls.Add(chk_umsatzabruf_von);
+            Controls.Add(date_umsatzabruf_von);
+            Controls.Add(label2);
+            Controls.Add(txt_tan_medium);
+            Controls.Add(label1);
+            Controls.Add(txt_bankleitzahl_zentrale);
+            Controls.Add(lbl_bankleitzahl_zentrale);
+            Controls.Add(chk_tracingFormatted);
+            Controls.Add(chk_tracing);
+            Controls.Add(btn_tan_medium_name_abfragen);
+            Controls.Add(btn_konten_anzeigen);
+            Controls.Add(txt_tan);
+            Controls.Add(lbl_tan);
+            Controls.Add(btn_überweisungsdaten_laden);
+            Controls.Add(btn_bankdaten_laden);
+            Controls.Add(btn_zugelassene_tanverfahren);
+            Controls.Add(txt_hbci_meldung);
+            Controls.Add(btn_auftrag_bestätigen_tan);
+            Controls.Add(btn_überweisen);
+            Controls.Add(camt_053_abholen);
+            Controls.Add(camt_052_abholen);
+            Controls.Add(btn_umsätze_abholen);
+            Controls.Add(btn_kontostand_abfragen);
+            Controls.Add(btn_synchronisation);
+            Controls.Add(pBox_tan);
+            Controls.Add(txt_tanverfahren);
+            Controls.Add(lbl_tanverfahren);
+            Controls.Add(txt_verwendungszweck);
+            Controls.Add(lbl_verwendungszweck);
+            Controls.Add(txt_betrag);
+            Controls.Add(lbl_betrag);
+            Controls.Add(txt_empfängerbic);
+            Controls.Add(lbl_empfängerbic);
+            Controls.Add(txt_empfängeriban);
+            Controls.Add(lbl_empfängeriban);
+            Controls.Add(txt_empfängername);
+            Controls.Add(lbl_empfängername);
+            Controls.Add(txt_pin);
+            Controls.Add(lbl_pin);
+            Controls.Add(txt_userid);
+            Controls.Add(lbl_userid);
+            Controls.Add(txt_hbci_version);
+            Controls.Add(lbl_hbci_version);
+            Controls.Add(txt_url);
+            Controls.Add(lbl_url);
+            Controls.Add(txt_iban);
+            Controls.Add(lbl_iban);
+            Controls.Add(txt_bic);
+            Controls.Add(lbl_bic);
+            Controls.Add(txt_bankleitzahl);
+            Controls.Add(lbl_bankleitzahl);
+            Controls.Add(txt_kontonummer);
+            Controls.Add(lbl_kontonummer);
+            Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            Name = "MainForm";
+            Text = "libfintx Test Framework";
+            WindowState = System.Windows.Forms.FormWindowState.Maximized;
+            FormClosed += Form1_FormClosed;
+            Load += Form1_Load;
+            ((System.ComponentModel.ISupportInitialize) pBox_tan).EndInit();
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -812,7 +794,6 @@
         internal System.Windows.Forms.Label label3;
         internal System.Windows.Forms.Button btn_daueraufträge_abholen;
         internal System.Windows.Forms.Button btn_terminueberweisungen_abholen;
-        private System.Windows.Forms.CheckBox chk_tracingMaskCredentials;
     }
 }
 

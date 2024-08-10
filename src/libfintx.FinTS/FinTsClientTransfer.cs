@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -37,17 +36,13 @@ namespace libfintx.FinTS
         /// <summary>
         /// Transfer money - General method
         /// </summary>
+        /// <param name="tanDialog"></param>
         /// <param name="receiverName">Name of the recipient</param>
         /// <param name="receiverIBAN">IBAN of the recipient</param>
         /// <param name="receiverBIC">BIC of the recipient</param>
         /// <param name="amount">Amount to transfer</param>
         /// <param name="purpose">Short description of the transfer (dt. Verwendungszweck)</param>      
-        /// <param name="HIRMS">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
-        /// <param name="pictureBox">Picturebox which shows the TAN</param>
-        /// <param name="flickerImage">(Out) reference to an image object that shall receive the FlickerCode as GIF image</param>
-        /// <param name="flickerWidth">Width of the flicker code</param>
-        /// <param name="flickerHeight">Height of the flicker code</param>
-        /// <param name="renderFlickerCodeAsGif">Renders flicker code as GIF, if 'true'</param>
+        /// <param name="hirms">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
         /// <returns>
         /// Bank return codes
         /// </returns>
@@ -79,19 +74,15 @@ namespace libfintx.FinTS
 
         /// <summary>
         /// Transfer money at a certain time - General method
-        /// </summary>       
+        /// </summary>
+        /// <param name="tanDialog"></param>
         /// <param name="receiverName">Name of the recipient</param>
         /// <param name="receiverIBAN">IBAN of the recipient</param>
         /// <param name="receiverBIC">BIC of the recipient</param>
         /// <param name="amount">Amount to transfer</param>
         /// <param name="purpose">Short description of the transfer (dt. Verwendungszweck)</param>      
         /// <param name="executionDay"></param>
-        /// <param name="HIRMS">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
-        /// <param name="pictureBox">Picturebox which shows the TAN</param>
-        /// <param name="flickerImage">(Out) reference to an image object that shall receive the FlickerCode as GIF image</param>
-        /// <param name="flickerWidth">Width of the flicker code</param>
-        /// <param name="flickerHeight">Height of the flicker code</param>
-        /// <param name="renderFlickerCodeAsGif">Renders flicker code as GIF, if 'true'</param>
+        /// <param name="hirms">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
         /// <returns>
         /// Bank return codes
         /// </returns>
@@ -125,15 +116,11 @@ namespace libfintx.FinTS
         /// <summary>
         /// Collective transfer money - General method
         /// </summary>
+        /// <param name="tanDialog"></param>
         /// <param name="painData"></param>
         /// <param name="numberOfTransactions"></param>
         /// <param name="totalAmount"></param>
-        /// <param name="pictureBox">Picturebox which shows the TAN</param>
-        /// <param name="anonymous"></param>
-        /// <param name="flickerImage">(Out) reference to an image object that shall receive the FlickerCode as GIF image</param>
-        /// <param name="flickerWidth">Width of the flicker code</param>
-        /// <param name="flickerHeight">Height of the flicker code</param>
-        /// <param name="renderFlickerCodeAsGif">Renders flicker code as GIF, if 'true'</param>
+        /// <param name="hirms">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
         /// <returns>
         /// Bank return codes
         /// </returns>
@@ -166,16 +153,12 @@ namespace libfintx.FinTS
         /// <summary>
         /// Collective transfer money terminated - General method
         /// </summary>
+        /// <param name="tanDialog"></param>
         /// <param name="painData"></param>
         /// <param name="numberOfTransactions"></param>
         /// <param name="totalAmount"></param>
-        /// <param name="ExecutionDay"></param>
-        /// <param name="HIRMS">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
-        /// <param name="pictureBox">Picturebox which shows the TAN</param>
-        /// <param name="flickerImage">(Out) reference to an image object that shall receive the FlickerCode as GIF image</param>
-        /// <param name="flickerWidth">Width of the flicker code</param>
-        /// <param name="flickerHeight">Height of the flicker code</param>
-        /// <param name="renderFlickerCodeAsGif">Renders flicker code as GIF, if 'true'</param> 
+        /// <param name="executionDay"></param>
+        /// <param name="hirms">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
         /// <returns>
         /// Bank return codes
         /// </returns>

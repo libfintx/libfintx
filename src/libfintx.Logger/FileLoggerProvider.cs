@@ -41,7 +41,7 @@ namespace libfintx.Logger
                 Directory.CreateDirectory(dir);
             }
 
-            string file = Path.Combine(dir, "Log.txt");
+            string file = Path.Combine(dir, $"Log_{DateTime.Now.ToString("s").Replace(':','_')}.txt");
 
             return new FileLoggerProvider(new StreamWriter(file));
         }

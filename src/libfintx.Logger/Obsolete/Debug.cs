@@ -23,8 +23,10 @@
 
 using System;
 
+// ReSharper disable once CheckNamespace
 namespace libfintx.Logger.Debug
 {
+    [Obsolete("Create a logger class with library Microsoft.Extensions.Logging and use provider libfintx.Logger.FileLoggerProvider.CreateLibfintxLogger()", true)]
     public class DEBUG
     {
         public static bool Enabled { get; set; }

@@ -23,6 +23,7 @@
 
 using System;
 
+// ReSharper disable once CheckNamespace
 namespace libfintx.FinTS.Version;
 
 [Obsolete("Please use libfintx.FinTS.FinTsVersion instead")]

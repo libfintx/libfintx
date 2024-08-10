@@ -43,12 +43,17 @@ namespace libfintx.FinTS
         public bool Anonymous { get; }
         public ConnectionDetails ConnectionDetails { get; }
         public AccountInformation activeAccount { get; set; }
-        public string SystemId { get; internal set; }
+        public string SystemId { get; private set; }
+
+        /// <summary>
+        /// Formats the messages before sending it to the trace log.
+        /// </summary>
+        public bool FormattedTrace { get; set; } = true;
 
         /// <summary>
         /// The bank parameter data store.
         /// </summary>
-        internal IBpdStore BdpStore { get; }
+        private IBpdStore BdpStore { get; }
 
         /// <summary>
         /// The bank parameter data of the bank given in the connection details.
@@ -217,8 +222,6 @@ namespace libfintx.FinTS
         /// </summary>
         /// <param name="tanDialog">The TAN Dialog</param>
         /// <param name="receiverName">Name of the recipient</param>
-        /// <param name="receiverIBAN">IBAN of the recipient</param>
-        /// <param name="receiverBIC">BIC of the recipient</param>
         /// <param name="receiverIBAN">IBAN of the recipient</param>
         /// <param name="receiverBIC">BIC of the recipient</param>
         /// <param name="amount"></param>
