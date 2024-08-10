@@ -25,11 +25,12 @@ using System;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using libfintx.FinTS.Data;
+using libfintx.FinTS.Exceptions;
 using libfintx.FinTS.Security;
-using libfintx.Logger.Log;
-using libfintx.Logger.Trace;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS.Message
 {
@@ -172,7 +173,7 @@ namespace libfintx.FinTS.Message
                 encHead = sb.ToString();
                 //encHead = "HNVSK:" + Enc.SECFUNC_ENC_PLAIN + ":2+" + Enc.SECFUNC_ENC_PLAIN + "+1+1::" + SystemID + "+1:" + date + ":" + time + "+2:2:13:@8@00000000:5:1+" + SEG_COUNTRY.Germany + ":" + BLZ + ":" + UserID + ":V:0:0+0'";
 
-                Log.Write(encHead.Replace(UserID, "XXXXXX"));
+                client.Logger.LogInformation(encHead.Replace(UserID, "XXXXXX"));
 
                 sigHead = string.Empty;
 
@@ -233,7 +234,7 @@ namespace libfintx.FinTS.Message
                     sigHead = sb.ToString();
                     // sigHead = "HNSHK:2:3+" + Sig.SECFUNC_SIG_PT_2STEP_MIN + "+" + secRef + "+1+1+1::" + SystemID + "+1+1:" + date + ":" + time + "+1:" + Sig.SIGMODE_RETAIL_MAC + ":1 +6:10:16+" + SEG_COUNTRY.Germany + ":" + BLZ + ":" + UserID + ":S:0:0'";
 
-                    Log.Write(sigHead.Replace(UserID, "XXXXXX"));
+                    client.Logger.LogInformation(sigHead.Replace(UserID, "XXXXXX"));
                 }
 
                 else
@@ -293,7 +294,7 @@ namespace libfintx.FinTS.Message
                     sigHead = sb.ToString();
                     // sigHead = "HNSHK:2:3+" + HIRMS_TAN + "+" + secRef + "+1+1+1::" + SystemID + "+1+1:" + date + ":" + time + "+1:" + Sig.SIGMODE_RETAIL_MAC + ":1+6:10:16+" + SEG_COUNTRY.Germany + ":" + BLZ + ":" + UserID + ":S:0:0'";
 
-                    Log.Write(sigHead.Replace(UserID, "XXXXXX"));
+                    client.Logger.LogInformation(sigHead.Replace(UserID, "XXXXXX"));
                 }
 
                 if (String.IsNullOrEmpty(TAN_))
@@ -326,7 +327,7 @@ namespace libfintx.FinTS.Message
                     sb.Append("XXXXXX");
                     sb.Append(sEG.Terminator);
 
-                    Log.Write(sb.ToString());
+                    client.Logger.LogInformation(sb.ToString());
                 }
 
                 else
@@ -361,7 +362,7 @@ namespace libfintx.FinTS.Message
                     sb.Append("XXXXXX");
                     sb.Append(sEG.Terminator);
 
-                    Log.Write(sb.ToString());
+                    client.Logger.LogInformation(sb.ToString());
                 }
             }
             else if (version == FinTsVersion.v300)
@@ -482,7 +483,7 @@ namespace libfintx.FinTS.Message
                     // encHead = "HNVSK:" + Enc.SECFUNC_ENC_PLAIN + ":3+PIN:2+" + Enc.SECFUNC_ENC_PLAIN + "+1+1::" + SystemID + "+1:" + date + ":" + time + "+2:2:13:@8@00000000:5:1+" + SEG_COUNTRY.Germany + ":" + BLZ + ":" + UserID + ":V:0:0+0'";
                 }
                     
-                Log.Write(encHead.Replace(UserID, "XXXXXX"));
+                client.Logger.LogInformation(encHead.Replace(UserID, "XXXXXX"));
 
                 if (HIRMS_TAN == null)
                 {
@@ -545,7 +546,7 @@ namespace libfintx.FinTS.Message
                     sigHead = sb.ToString();
                     //sigHead = "HNSHK:2:4+PIN:1+" + Sig.SECFUNC_SIG_PT_1STEP + "+" + secRef + "+1+1+1::" + SystemID + "+1+1:" + date + ":" + time + "+1:" + Sig.SIGMODE_RETAIL_MAC + ":1+6:10:16+" + SEG_COUNTRY.Germany + ":" + BLZ + ":" + UserID + ":S:0:0'";
 
-                    Log.Write(sigHead.Replace(UserID, "XXXXXX"));
+                    client.Logger.LogInformation(sigHead.Replace(UserID, "XXXXXX"));
                 }
                 else
                 {
@@ -610,7 +611,7 @@ namespace libfintx.FinTS.Message
                     sigHead = sb.ToString();
                     // sigHead = "HNSHK:2:4+PIN:" + SECFUNC + "+" + HIRMS_TAN + "+" + secRef + "+1+1+1::" + SystemID + "+1+1:" + date + ":" + time + "+1:" + Sig.SIGMODE_RETAIL_MAC + ":1+6:10:16+" + SEG_COUNTRY.Germany + ":" + BLZ + ":" + UserID + ":S:0:0'";
 
-                    Log.Write(sigHead.Replace(UserID, "XXXXXX"));
+                    client.Logger.LogInformation(sigHead.Replace(UserID, "XXXXXX"));
                 }
 
                 if (String.IsNullOrEmpty(TAN_))
@@ -643,7 +644,7 @@ namespace libfintx.FinTS.Message
                     sb.Append("XXXXXX");
                     sb.Append(sEG.Terminator);
 
-                    Log.Write(sb.ToString());
+                    client.Logger.LogInformation(sb.ToString());
                 }
 
                 else
@@ -678,24 +679,30 @@ namespace libfintx.FinTS.Message
                     sb.Append("XXXXXX");
                     sb.Append(sEG.Terminator);
 
-                    Log.Write(sb.ToString());
+                    client.Logger.LogInformation(sb.ToString());
                 }
             }
             else
             {
-                Log.Write("HBCI version not supported");
-
-                return string.Empty;
+                throw new FinTsVersionNotSupportedException(version,
+                    new[] { FinTsVersion.v220, FinTsVersion.v300 });
             }
 
             Segments = sigHead + Segments + sigTrail;
 
             var payload = Helper.Encrypt(Segments);
 
-            if (HIRMS_TAN == null)
-                Log.Write(payload.Replace(UserID, "XXXXXX").Replace(PIN, "XXXXXX"));
-            else if (!String.IsNullOrEmpty(TAN_))
-                Log.Write(payload.Replace(UserID, "XXXXXX").Replace(PIN, "XXXXXX").Replace(TAN_, "XXXXXX"));
+            if (!string.IsNullOrEmpty(payload))
+            {
+                if (HIRMS_TAN == null)
+                {
+                    client.Logger.LogInformation(payload.Replace(UserID, "XXXXXX").Replace(PIN, "XXXXXX"));
+                }
+                else if (!string.IsNullOrEmpty(TAN_))
+                {
+                    client.Logger.LogInformation(payload.Replace(UserID, "XXXXXX").Replace(PIN, "XXXXXX").Replace(TAN_, "XXXXXX"));
+                }
+            }
 
             var msgLen = HEAD_LEN + TRAIL_LEN + ($"{MsgNum}".Length * 2) + DialogID.Length + payload.Length + encHead.Length;
 
@@ -723,7 +730,7 @@ namespace libfintx.FinTS.Message
                 msgHead = sb.ToString();
                 //msgHead = "HNHBK:1:3+" + paddedLen + "+" + (HBCI.v220) + "+" + DialogID + "+" + MsgNum + "'";
 
-                Log.Write(msgHead);
+                client.Logger.LogInformation(msgHead);
             }
             else if (version == FinTsVersion.v300)
             {
@@ -745,13 +752,12 @@ namespace libfintx.FinTS.Message
                 msgHead = sb.ToString();
                 //msgHead = "HNHBK:1:3+" + paddedLen + "+" + (HBCI.v300) + "+" + DialogID + "+" + MsgNum + "'";
 
-                Log.Write(msgHead);
+                client.Logger.LogInformation(msgHead);
             }
             else
             {
-                Log.Write($"FinTS version {version} is not supported");
-
-                return string.Empty;
+                throw new FinTsVersionNotSupportedException(version,
+                    new[] { FinTsVersion.v220, FinTsVersion.v300 });
             }
 
             sb = new StringBuilder();
@@ -766,12 +772,33 @@ namespace libfintx.FinTS.Message
             var msgEnd = sb.ToString();
             // var msgEnd = "HNHBS:" + Convert.ToString(SegmentNum + 2) + ":1+" + MsgNum + "'";
 
-            Log.Write(msgEnd);
+            client.Logger.LogInformation(msgEnd);
 
             //UserID = string.Empty;
             //PIN = null;
 
             return msgHead + encHead + payload + msgEnd;
+        }
+
+        private static void TraceUserTan(FinTsClient client, string message, string userId, string pin)
+        {
+            message = Regex.Replace(message, $@"\b{Regex.Escape(userId)}", new string('X', userId.Length));
+            message = Regex.Replace(message, $@"\b{Regex.Escape(pin)}", new string('X', pin.Length));
+
+            if (client.FormattedTrace)
+            {
+                var formatted = string.Empty;
+                var matches = Regex.Matches(message, "[A-Z]+?[^']*'+");
+                foreach (Match match in matches)
+                {
+                    formatted += match.Value + Environment.NewLine;
+                }
+                client.Logger.LogTrace(formatted);
+            }
+            else
+            {
+                client.Logger.LogTrace(message);
+            }
         }
 
         /// <summary>
@@ -782,19 +809,10 @@ namespace libfintx.FinTS.Message
         /// <returns></returns>
         public static async Task<string> Send(FinTsClient client, string Message)
         {
-            Log.Write("Connect to FinTS Server");
-            Log.Write("Url: " + client.ConnectionDetails.Url);
+            client.Logger.LogInformation("Connect to FinTS Server");
+            client.Logger.LogInformation("Url: " + client.ConnectionDetails.Url);
 
-            // Warning:
-            // This writes plain message incl. PIN, UserID and TAN human readable into a textfile!
-            if (Trace.Enabled)
-            {
-                if (Trace.MaskCredentials)
-                    //Trace.Write(Message, client.ConnectionDetails.UserId, client.ConnectionDetails.Pin);
-                    Trace.Write(Message, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.Pin);
-                else
-                    Trace.Write(Message);
-            }
+            TraceUserTan(client, Message, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.Pin);
 
             return await SendAsync(client, Message);
         }
@@ -838,16 +856,7 @@ namespace libfintx.FinTS.Message
                     }
                 }
 
-                // Warning:
-                // This writes plain message incl. PIN, UserID and TAN human readable into a textfile!
-                if (Trace.Enabled)
-                {
-                    if (Trace.MaskCredentials)
-                        //Trace.Write(FinTSMessage, client.ConnectionDetails.UserId, client.ConnectionDetails.Pin);
-                        Trace.Write(Message, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.Pin);
-                    else
-                        Trace.Write(FinTSMessage);
-                }
+                TraceUserTan(client, Message, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.Pin);
 
                 return FinTSMessage;
             }

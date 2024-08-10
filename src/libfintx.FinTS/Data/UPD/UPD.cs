@@ -25,7 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using libfintx.Logger.Log;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
@@ -35,10 +35,10 @@ namespace libfintx.FinTS
 
         public static List<AccountInformation> AccountList { get; set; }
 
-        public static void ParseUpd(string upd)
+        public static void ParseUpd(string upd, ILogger? logger = null)
         {
             Value = upd;
-            ParseAccounts(upd);
+            ParseAccounts(upd, logger);
         }
 
         public static AccountInformation GetAccountInformations(string accountnumber, string bankcode)
@@ -52,7 +52,7 @@ namespace libfintx.FinTS
         /// <param name="message"></param>
         /// <param name="items"></param>
         /// <returns></returns>
-        private static bool ParseAccounts(string message)
+        private static bool ParseAccounts(string message, ILogger? logger)
         {
             AccountList = new List<AccountInformation>();
             try
@@ -161,7 +161,7 @@ namespace libfintx.FinTS
             }
             catch (Exception ex)
             {
-                Log.Write(ex.ToString());
+                logger?.LogInformation(ex.ToString());
                 return false;
             }
         }

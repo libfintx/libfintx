@@ -21,9 +21,9 @@
  */
 
 using libfintx.FinTS.Data.Segment;
-using libfintx.Logger.Log;
 using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS.BankParameterData
 {
@@ -41,7 +41,7 @@ namespace libfintx.FinTS.BankParameterData
 
         public List<Segment> SegmentList { get; set; } = new();
 
-        public static BPD Parse(string rawBpd)
+        public static BPD Parse(string rawBpd, ILogger? logger = null)
         {
             var bpd = new BPD();
             bpd.Raw = rawBpd;
@@ -69,7 +69,7 @@ namespace libfintx.FinTS.BankParameterData
                 }
                 catch (Exception ex)
                 {
-                    Log.Write($"Couldn't parse segment: {ex.Message}{Environment.NewLine}{rawSegment}");
+                    logger.LogInformation($"Couldn't parse segment: {ex.Message}{Environment.NewLine}{rawSegment}");
                 }
             }
 

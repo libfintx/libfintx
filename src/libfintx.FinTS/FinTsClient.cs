@@ -23,36 +23,44 @@
 
 using libfintx.FinTS.Data;
 using libfintx.FinTS.BankParameterData;
-using libfintx.Logger.Log;
 using libfintx.Sepa;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using libfintx.Globals;
+using libfintx.Logger;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
     public partial class FinTsClient : IFinTsClient
     {
+        private readonly ILoggerFactory _loggerFactory;
+        internal readonly ILogger<FinTsClient> Logger;
         private BPD? _bpd;
 
         public bool Anonymous { get; }
         public ConnectionDetails ConnectionDetails { get; }
         public AccountInformation activeAccount { get; set; }
-        public string SystemId { get; internal set; }
+        public string SystemId { get; private set; }
+
+        /// <summary>
+        /// Formats the messages before sending it to the trace log.
+        /// </summary>
+        public bool FormattedTrace { get; set; } = true;
 
         /// <summary>
         /// The bank parameter data store.
         /// </summary>
-        internal IBpdStore BdpStore { get; }
+        private IBpdStore BdpStore { get; }
 
         /// <summary>
         /// The bank parameter data of the bank given in the connection details.
         /// </summary>
         public BPD? BPD
         {
-            get => _bpd ?? BPD.Parse(BdpStore.GetBPD(280, ConnectionDetails.Blz).Result);
+            get => _bpd ?? BPD.Parse(BdpStore.GetBPD(280, ConnectionDetails.Blz).Result, Logger);
             set => _bpd = value;
         }
 
@@ -81,18 +89,31 @@ namespace libfintx.FinTS
         /// <param name="bpdDataStore">
         /// A data store for the bank parameter data (BPD). If not given, a file store in the folder <c>FinTsGlobals.ProgramBaseDir</c> will be used.
         /// </param>
-        public FinTsClient(ConnectionDetails connection, bool anonymous = false, IBpdStore? bpdDataStore = null)
+        /// <param name="loggerFactory">
+        /// A logger factory to where to log information to. When not given, a default file logger is used.
+        /// It is recommended to passa logger factory.
+        /// <b>Note </b> that at next major version upgrade, the default file logger will be replaced by
+        /// a null logger not logging output anywhere.
+        /// </param>
+        public FinTsClient(ConnectionDetails connection, bool anonymous = false, IBpdStore? bpdDataStore = null, ILoggerFactory? loggerFactory = null)
         {
             ConnectionDetails = connection;
             Anonymous = anonymous;
             BdpStore = bpdDataStore
                        ?? new BpdFileStore(Path.Combine(FinTsGlobals.ProgramBaseDir, "BPD"));
             activeAccount = null;
+
+            _loggerFactory = loggerFactory ?? LoggerFactory.Create(builder => { builder.AddProvider(FileLoggerProvider.CreateLibfintxLogger()); });
+            Logger = _loggerFactory.CreateLogger<FinTsClient>();
+
+            // When deprecating the default file logger maybe in next MAJOR VERSION UPGRADE, use this:
+            //_logger = loggerFactory?.CreateLogger<FinTsClient>()
+            //    ?? NullLoggerFactory.Instance.CreateLogger<FinTsClient>();
         }
 
         internal async Task<HBCIDialogResult> InitializeConnection(string hkTanSegmentId = "HKIDN")
         {
-            Log.Write("Initializing connection ...");
+            Logger.LogInformation("Initializing connection ...");
 
             HBCIDialogResult result;
             string BankCode;
@@ -103,7 +124,7 @@ namespace libfintx.FinTS
                 result = await Synchronization();
                 if (!result.IsSuccess)
                 {
-                    Log.Write("Synchronisation failed.");
+                    Logger.LogInformation("Synchronisation failed.");
                     return result;
                 }
             }
@@ -111,12 +132,22 @@ namespace libfintx.FinTS
             {
                 SystemId = ConnectionDetails.CustomerSystemId;
             }
-            BankCode = await Transaction.INI(this, hkTanSegmentId);
+
+            try
+            {
+                BankCode = await Transaction.INI(this, hkTanSegmentId);
+            }
+            catch (Exception e)
+            {
+                Logger.LogInformation(e.ToString());
+
+                throw new Exception("Software error", e);
+            }
 
             var bankMessages = Parse_BankCode(BankCode);
             result = new HBCIDialogResult(bankMessages, BankCode);
             if (!result.IsSuccess)
-                Log.Write("Initialisation failed: " + result);
+                Logger.LogInformation("Initialisation failed: " + result);
 
             return result;
         }
@@ -189,17 +220,13 @@ namespace libfintx.FinTS
         /// <summary>
         /// Rebook money from one to another account - General method
         /// </summary>
+        /// <param name="tanDialog">The TAN Dialog</param>
         /// <param name="receiverName">Name of the recipient</param>
         /// <param name="receiverIBAN">IBAN of the recipient</param>
         /// <param name="receiverBIC">BIC of the recipient</param>
+        /// <param name="amount"></param>
         /// <param name="purpose">Short description of the transfer (dt. Verwendungszweck)</param>      
-        /// <param name="HIRMS">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
-        /// <param name="pictureBox">Picturebox which shows the TAN</param>
-        /// <param name="anonymous"></param>
-        /// <param name="flickerImage">(Out) reference to an image object that shall receive the FlickerCode as GIF image</param>
-        /// <param name="flickerWidth">Width of the flicker code</param>
-        /// <param name="flickerHeight">Height of the flicker code</param>
-        /// <param name="renderFlickerCodeAsGif">Renders flicker code as GIF, if 'true'</param>  
+        /// <param name="hirms">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
         /// <returns>
         /// Bank return codes
         /// </returns>
@@ -232,6 +259,7 @@ namespace libfintx.FinTS
         /// <summary>
         /// Collect money from another account - General method
         /// </summary>
+        /// <param name="tanDialog">The TAN Dialog</param>
         /// <param name="payerName">Name of the payer</param>
         /// <param name="payerIBAN">IBAN of the payer</param>
         /// <param name="payerBIC">BIC of the payer</param>         
@@ -241,12 +269,7 @@ namespace libfintx.FinTS
         /// <param name="mandateNumber"></param>
         /// <param name="mandateDate"></param>
         /// <param name="creditorIdNumber"></param>
-        /// <param name="HIRMS">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
-        /// <param name="pictureBox">Picturebox which shows the TAN</param>
-        /// <param name="flickerImage">(Out) reference to an image object that shall receive the FlickerCode as GIF image</param>
-        /// <param name="flickerWidth">Width of the flicker code</param>
-        /// <param name="flickerHeight">Height of the flicker code</param>
-        /// <param name="renderFlickerCodeAsGif">Renders flicker code as GIF, if 'true'</param>
+        /// <param name="hirms">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
         /// <returns>
         /// Bank return codes
         /// </returns>
@@ -280,16 +303,12 @@ namespace libfintx.FinTS
         /// <summary>
         /// Collective collect money from other accounts - General method
         /// </summary>
+        /// <param name="tanDialog">The TAN Dialog</param>
         /// <param name="settlementDate"></param>
         /// <param name="painData"></param>
         /// <param name="numberOfTransactions"></param>
         /// <param name="totalAmount"></param>        
-        /// <param name="HIRMS">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
-        /// <param name="pictureBox">Picturebox which shows the TAN</param>
-        /// <param name="flickerImage">(Out) reference to an image object that shall receive the FlickerCode as GIF image</param>
-        /// <param name="flickerWidth">Width of the flicker code</param>
-        /// <param name="flickerHeight">Height of the flicker code</param>
-        /// <param name="renderFlickerCodeAsGif">Renders flicker code as GIF, if 'true'</param>
+        /// <param name="hirms">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
         /// <returns>
         /// Bank return codes
         /// </returns>
@@ -322,15 +341,11 @@ namespace libfintx.FinTS
         /// <summary>
         /// Load mobile phone prepaid card - General method
         /// </summary>
+        /// <param name="tanDialog">The TAN Dialog</param>
         /// <param name="mobileServiceProvider"></param>
         /// <param name="phoneNumber"></param>
         /// <param name="amount">Amount to transfer</param>            
-        /// <param name="HIRMS">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
-        /// <param name="pictureBox">Picturebox which shows the TAN</param>
-        /// <param name="flickerImage">(Out) reference to an image object that shall receive the FlickerCode as GIF image</param>
-        /// <param name="flickerWidth">Width of the flicker code</param>
-        /// <param name="flickerHeight">Height of the flicker code</param>
-        /// <param name="renderFlickerCodeAsGif">Renders flicker code as GIF, if 'true'</param>
+        /// <param name="hirms">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
         /// <returns>
         /// Bank return codes
         /// </returns>

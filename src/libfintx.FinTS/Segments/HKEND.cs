@@ -26,7 +26,7 @@ using System.Text;
 using System.Threading.Tasks;
 using libfintx.FinTS.Data;
 using libfintx.FinTS.Message;
-using libfintx.Logger.Log;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
@@ -35,11 +35,11 @@ namespace libfintx.FinTS
         /// <summary>
         /// End of dialog
         /// </summary>
-        /// <param name="connectionDetails"></param>
+        /// <param name="client"></param>
         /// <param name="dialogID"></param>
         public static async Task<String> Init_HKEND(FinTsClient client, string dialogID)
         {
-            Log.Write("Starting job HKEND: End of dialog");
+            client.Logger.LogInformation("Starting job HKEND: End of dialog");
 
             var connectionDetails = client.ConnectionDetails;
             string segments = string.Empty;

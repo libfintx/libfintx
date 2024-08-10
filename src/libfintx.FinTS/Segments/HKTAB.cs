@@ -25,7 +25,7 @@ using System;
 using System.Threading.Tasks;
 using libfintx.FinTS.Message;
 using libfintx.FinTS.Segments;
-using libfintx.Logger.Log;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
@@ -194,7 +194,7 @@ namespace libfintx.FinTS
         /// </summary>
         public static async Task<string> Init_HKTAB(FinTsClient client)
         {
-            Log.Write("Starting job HKTAB: Request tan medium name");
+            client.Logger.LogInformation("Starting job HKTAB: Request tan medium name");
 
             var seg = new SEG();
 

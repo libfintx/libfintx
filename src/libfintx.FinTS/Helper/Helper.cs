@@ -270,7 +270,6 @@ namespace libfintx.FinTS
             string dir = GetUPDDir();
             Directory.CreateDirectory(dir);
             var file = GetUPDFile(dir, BLZ, UserID);
-            Log.Write($"Saving UPD to '{file}' ...");
             if (!File.Exists(file))
             {
                 using (File.Create(file)) { };

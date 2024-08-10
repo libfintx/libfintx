@@ -26,7 +26,7 @@ using System.Text;
 using System.Threading.Tasks;
 using libfintx.FinTS.Message;
 using libfintx.FinTS.Segments;
-using libfintx.Logger.Log;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
@@ -37,7 +37,7 @@ namespace libfintx.FinTS
         /// </summary>
         public static async Task<String> Send_TAN4(FinTsClient client, string TAN, string MediumName)
         {
-            Log.Write("Starting job TAN process 4");
+            client.Logger.LogInformation("Starting job TAN process 4");
 
             string segments = string.Empty;
 

@@ -74,7 +74,7 @@ namespace libfintx.FinTS
                 byte[] b = new byte[2];
                 Array.Copy(data, offset, b, 0, 2);
 
-                int mimeTypeLen = Int32.Parse(Decode(b));
+                int mimeTypeLen = int.Parse(Decode(b));
                 b = new byte[mimeTypeLen];
                 offset += 2;
 
@@ -91,9 +91,7 @@ namespace libfintx.FinTS
             }
             catch (Exception ex)
             {
-                var errMsg = $"Invalid photoTan image returned. Error: {ex.Message}";
-                Log.Write(errMsg);
-                throw new Exception(errMsg, ex);
+                throw new InvalidDataException($"Invalid photoTan image returned. Error: {ex.Message}", ex);
             }
         }
 

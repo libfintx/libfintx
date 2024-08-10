@@ -1,9 +1,9 @@
 ﻿using libfintx.FinTS;
 using libfintx.FinTS.Camt;
 using libfintx.FinTS.Data;
-using libfintx.FinTSConfig;
 using libfintx.Globals;
 using libfintx.Sepa;
+using libfintx.Logger;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -13,11 +13,13 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.Sample.Ui
 {
     public partial class MainForm : Form
     {
+        private ILoggerFactory _loggerFactory;
         private List<Bank> _bankList;
         private FinTsClient _client;
 
@@ -34,6 +36,17 @@ namespace libfintx.Sample.Ui
         // NOTE: The Client System Id should be stored per bank code (BLZ) and saved permanently in a real application.
         private string _customerSystemId = null;
 
+        private void RecreateLoggerFactory()
+        {
+            _loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddProvider(FileLoggerProvider.CreateLibfintxLogger());
+
+                builder.SetMinimumLevel(chk_tracing.Checked ? LogLevel.Trace : LogLevel.Information);
+            });
+
+            _client = null;  // enforce that the client is recreated
+        }
 
         /// <summary>
         /// This runs the synchronization if required.
@@ -43,6 +56,7 @@ namespace libfintx.Sample.Ui
             var connectionDetails = GetConnectionDetails();
 
             bool connectionDetailsChanged =
+                _client == null ||
                 _oldConnectionDetails == null ||
                 _oldConnectionDetails.Account != connectionDetails.Account ||
                 _oldConnectionDetails.Blz != _oldConnectionDetails.Blz ||
@@ -67,11 +81,13 @@ namespace libfintx.Sample.Ui
 
                 _isSynchronized = false;
                 _customerSystemId = null;
-                _client = new FinTsClient(connectionDetails);
+                _client = new FinTsClient(connectionDetails, loggerFactory: _loggerFactory);
+                _client.FormattedTrace = chk_tracingFormatted.Checked;
                 _customerSystemId = _client.SystemId;
             }
             else if (_isSynchronized)
             {
+                _client.FormattedTrace = chk_tracingFormatted.Checked;
                 return true;
             }
 
@@ -471,8 +487,6 @@ namespace libfintx.Sample.Ui
         /// <param name="e"></param>
         private async void btn_überweisen_Click(object sender, EventArgs e)
         {
-            Config.Logging(true);
-
             if (await SynchronizeInternal())
             {
                 // TAN-Verfahren
@@ -524,17 +538,13 @@ namespace libfintx.Sample.Ui
 
         private void chk_Tracing_CheckedChanged(object sender, EventArgs e)
         {
-            Config.Tracing(chk_tracing.Checked, false, chk_tracingMaskCredentials.Checked);
-            if (chk_tracing.Checked)
-            {
-                MessageBox.Show("Achtung: Die Nachrichten werden im Klartext (inkl. PIN, Benutzerkennung, TAN) in eine Textdatei geschrieben!");
-            }
+            RecreateLoggerFactory();
             chk_tracingFormatted.Visible = chk_tracing.Checked;
         }
 
         private void chk_tracingFormatted_CheckedChanged(object sender, EventArgs e)
         {
-            Config.Tracing(chk_tracing.Checked, chk_tracingFormatted.Checked);
+            RecreateLoggerFactory();
         }
 
         private ConnectionDetails GetConnectionDetails()
@@ -689,8 +699,7 @@ namespace libfintx.Sample.Ui
         {
             _bankList = Bank.GetBankList();
 
-            if (chk_tracing.Checked)
-                Config.Tracing(true, chk_tracingFormatted.Checked);
+            RecreateLoggerFactory();
 
             if (File.Exists(AccountFile))
             {

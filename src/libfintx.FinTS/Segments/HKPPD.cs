@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 using libfintx.FinTS.Data;
 using libfintx.FinTS.Message;
 using libfintx.FinTS.Segments;
-using libfintx.Logger.Log;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
@@ -39,7 +39,7 @@ namespace libfintx.FinTS
         public static async Task<String> Init_HKPPD(FinTsClient client, int MobileServiceProvider, string PhoneNumber,
             int Amount)
         {
-            Log.Write("Starting job HKPPD: Load prepaid");
+            client.Logger.LogInformation("Starting job HKPPD: Load prepaid");
 
             client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg3);
 

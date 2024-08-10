@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.Swift;
 
@@ -33,7 +34,7 @@ namespace libfintx.Swift;
 ///
 /// This class holds functions to process MT940 messages.
 /// </summary>
-public static partial class MT940
+public static class MT940
 {
     /// <summary>
     /// Deserializes a MT940 statement into a <see cref="SwiftStatement"/> class objects.
@@ -44,12 +45,15 @@ public static partial class MT940
     /// <param name="pending">
     /// If the Swift statements shall be marked as pending.
     /// </param>
+    /// <param name="loggerFactory">
+    /// A logging factory to create the logging where to write warnings.
+    /// </param>
     /// <returns>
     /// A enumerable object returning a list of swift statements from the MT940 statement.
     /// </returns>
-    public static IEnumerable<SwiftStatement> Deserialize(Stream stream, bool pending = false)
+    public static IEnumerable<SwiftStatement> Deserialize(Stream stream, bool pending = false, ILoggerFactory? loggerFactory = null)
     {
-        var mt940Parser = new MT940Parser(pending);
+        var mt940Parser = new MT940Parser(pending, loggerFactory);
         return mt940Parser.Deserialize(stream);
     }
 
@@ -62,14 +66,15 @@ public static partial class MT940
     /// <param name="pending">
     /// If the Swift statements shall be marked as pending.
     /// </param>
+    /// <param name="loggerFactory">
+    /// A logging factory to create the logging where to write warnings.
+    /// </param>
     /// <returns>
     /// A enumerable object returning a list of swift statements from the MT940 statement.
     /// </returns>
-    public static IEnumerable<SwiftStatement> Deserialize(string sta, bool pending = false)
+    public static IEnumerable<SwiftStatement> Deserialize(string sta, bool pending = false, ILoggerFactory? loggerFactory = null)
     {
-        var mt940Parser = new MT940Parser(pending);
-        var memStream = new MemoryStream(Encoding.UTF8.GetBytes(sta));
-        return mt940Parser.Deserialize(memStream);
+        return Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(sta)), pending, loggerFactory);
     }
 
     public static List<Record> Parse(string source)

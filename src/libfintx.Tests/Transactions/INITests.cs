@@ -2,24 +2,23 @@
 using Xunit;
 using libfintx.FinTS;
 
-namespace libfintx.Tests.Transactions
+namespace libfintx.Tests.Transactions;
+
+public class INITests
 {
-    public class INITests
+    [Fact(Skip = "You have to set the Arrange variables for this test")]
+    public async Task Init_INI_StateUnderTest_ExpectedBehavior()
     {
-        [Fact(Skip = "You have to set the Arrange variables for this test")]
-        public async Task Init_INI_StateUnderTest_ExpectedBehavior()
-        {
-            // Arrange
-            FinTsClient client = null;
-            string hkTanSegmentId = null;
+        // Arrange
+        var client = TestHelper.CreateTestClient();
+        string hkTanSegmentId = null;
 
-            // Act
-            var result = await INI.Init_INI(
-                client,
-                hkTanSegmentId);
+        // Act
+        var result = await INI.Init_INI(
+            client,
+            hkTanSegmentId);
 
-            // Assert
-            Assert.True(false);
-        }
+        // Assert
+        Assert.True(false);
     }
 }

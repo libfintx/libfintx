@@ -23,53 +23,31 @@
 
 using System;
 using System.IO;
-using System.Text.RegularExpressions;
 using libfintx.Globals;
 
-namespace libfintx.Logger.Trace
+// ReSharper disable once CheckNamespace
+namespace libfintx.Logger.Log
 {
-    public static class Trace
+    [Obsolete("Create a logger class with library Microsoft.Extensions.Logging and use provider libfintx.Logger.FileLoggerProvider.CreateLibfintxLogger()", true)]
+    public static class Log
     {
-        /// <summary>
-        /// Enable tracecing
-        /// 
-        /// Warning:
-        /// This enables the library to write plain message incl. PIN, UserID and TAN
-        /// human readable into a textfile!
-        /// </summary>
         public static bool Enabled { get; set; }
-
-        public static bool Formatted { get; set; }
-
-        /// <summary>
-        /// Mask credentials (User-ID, PIN) before writing to trace file.
-        /// </summary>
-        public static bool MaskCredentials { get; set; }
 
         /// <summary>
         /// Maximum size of trace file in MB after file will be cleared. Non-positive value means that file will never be cleared.
         /// </summary>
         public static int MaxFileSize { get; set; }
 
-        /// <summary>
-        /// Used to mask credentials.
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="userId"></param>
-        /// <param name="pin"></param>
-        public static void Write(string message, string userId, string pin)
+        public static void Write(object obj)
         {
-            message = Regex.Replace(message, $@"\b{Regex.Escape(userId)}", new string('X', userId.Length));
-            message = Regex.Replace(message, $@"\b{Regex.Escape(pin)}", new string('X', pin.Length));
-
-            Write(message);
+            Write(obj.ToString());
         }
 
         /// <summary>
-        /// Trace
+        /// Log
         /// </summary>
-        /// <param name="message"></param>
-        public static void Write(string message)
+        /// <param name="Message"></param>
+        public static void Write(string Message)
         {
             if (Enabled)
             {
@@ -81,18 +59,18 @@ namespace libfintx.Logger.Trace
                     Directory.CreateDirectory(dir);
                 }
 
-                // Tracefile
-                dir = Path.Combine(dir, "TRACE");
+                // Logfile
+                dir = Path.Combine(dir, "LOG");
 
                 if (!Directory.Exists(dir))
                 {
                     Directory.CreateDirectory(dir);
                 }
 
-                string file = Path.Combine(dir, "Trace.txt");
+                string file = Path.Combine(dir, "Log.txt");
                 if (!File.Exists(file))
                 {
-                    using (File.Create(Path.Combine(dir, "Trace.txt")))
+                    using (File.Create(file))
                     { };
                 }
 
@@ -103,21 +81,7 @@ namespace libfintx.Logger.Trace
                         File.WriteAllText(file, string.Empty);
                 }
 
-                if (Formatted)
-                {
-                    var formatted = string.Empty;
-                    var matches = Regex.Matches(message, "[A-Z]+?[^']*'+");
-                    foreach (Match match in matches)
-                    {
-                        formatted += match.Value + Environment.NewLine;
-                    }
-
-                    File.AppendAllText(file, "[" + DateTime.Now + "]" + Environment.NewLine + formatted + Environment.NewLine);
-                }
-                else
-                {
-                    File.AppendAllText(file, "[" + DateTime.Now + "]" + " " + message + Environment.NewLine);
-                }
+                File.AppendAllText(file, "[" + DateTime.Now + "]" + " " + Message + Environment.NewLine);
             }
         }
     }

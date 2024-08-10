@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 using libfintx.FinTS.Data;
 using libfintx.FinTS.Message;
 using libfintx.FinTS.Segments;
-using libfintx.Logger.Log;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
@@ -38,7 +38,7 @@ namespace libfintx.FinTS
         /// </summary>
         public static async Task<String> Init_HKKAZ(FinTsClient client, string FromDate, string ToDate, string Startpoint)
         {
-            Log.Write("Starting job HKKAZ: Request transactions");
+            client.Logger.LogInformation("Starting job HKKAZ: Request transactions");
 
             SEG sEG = new SEG();
 

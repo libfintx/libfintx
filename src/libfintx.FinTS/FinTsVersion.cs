@@ -9,6 +9,7 @@ namespace libfintx.FinTS;
 public enum FinTsVersion : int
 {
     // ReSharper disable UnusedMember.Global
+    // ReSharper disable InconsistentNaming
 
     /// <summary>
     /// HBCI 2.2
@@ -35,4 +36,5 @@ public enum FinTsVersion : int
     v410 = 410
 
     // ReSharper restore UnusedMember.Global
+    // ReSharper restore InconsistentNaming
 }
