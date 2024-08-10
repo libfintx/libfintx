@@ -42,228 +42,162 @@ using System.Windows.Forms;
 using SixLabors.ImageSharp;
 #endif
 
-namespace libfintx.Tests
+namespace libfintx.Tests;
+
+public class Test
 {
-    public class Test
+    private readonly ITestOutputHelper output;
+
+    public Test(ITestOutputHelper output)
     {
-        private readonly ITestOutputHelper output;
+        this.output = output;
+    }
 
-        public Test(ITestOutputHelper output)
+    [Fact(Skip = "You have to provide the connection details for this test")]
+    public async void Test_Balance()
+    {
+        var connectionDetails = new ConnectionDetails()
         {
-            this.output = output;
+            Account = "xxx",
+            Blz = 76061482,
+            Bic = "GENODEF1HSB",
+            Iban = "xxx",
+            Url = "https://fints2.atruvia.de/cgi-bin/hbciservlet",
+            HbciVersion = 300,
+            UserId = "xxx",
+            Pin = "xxx"
+        };
+
+        var client = TestHelper.CreateTestClient(connectionDetails);
+
+        #region Balance
+
+        /* Balance */
+
+        var balance = await client.Balance(new TANDialog(WaitForTanAsync));
+
+        Console.WriteLine("[ Balance ]");
+        Console.WriteLine();
+        Console.WriteLine(balance.Data.Balance);
+        Console.WriteLine();
+
+        #endregion
+
+        Console.ReadLine();
+    }
+
+    [Fact(Skip = "You have to provide the connection details for this test")]
+    public async void Test_Accounts()
+    {
+        var connectionDetails = new ConnectionDetails()
+        {
+            // ...
+        };
+
+        /* Sync */
+        var client = TestHelper.CreateTestClient(connectionDetails);
+
+        var accounts = await client.Accounts(new TANDialog(WaitForTanAsync));
+        foreach (var acc in accounts.Data)
+        {
+            output.WriteLine(acc.ToString());
         }
+    }
 
-        [Fact(Skip = "You have to provide the connection details for this test")]
-        public async void Test_Balance()
+    [Fact(Skip = "You have to provide the connection details for this test")]
+    public async void Test_Request_TANMediumName()
+    {
+        var connectionDetails = new ConnectionDetails()
         {
-            var connectionDetails = new ConnectionDetails()
-            {
-                Account = "xxx",
-                Blz = 76061482,
-                Bic = "GENODEF1HSB",
-                Iban = "xxx",
-                Url = "https://fints2.atruvia.de/cgi-bin/hbciservlet",
-                HbciVersion = 300,
-                UserId = "xxx",
-                Pin = "xxx"
-            };
+            Blz = 76050101,
+            Url = "https://banking-by1.s-fints-pt-by.de/fints30",
+            HbciVersion = 300,
+            UserId = "xxx",
+            Pin = "xxx"
+        };
 
-            var client = new FinTsClient(connectionDetails);
+        var client = TestHelper.CreateTestClient(connectionDetails);
 
-            #region Balance
+        #region TanMediumName
 
-            /* Balance */
+        /* TANMediumname */
 
-            var balance = await client.Balance(new TANDialog(WaitForTanAsync));
+        var tanmediumname = await client.RequestTANMediumName();
 
-            Console.WriteLine("[ Balance ]");
-            Console.WriteLine();
-            Console.WriteLine(balance.Data.Balance);
-            Console.WriteLine();
+        var t = tanmediumname.Data?.FirstOrDefault();
 
-            #endregion
+        Console.WriteLine("[ TAN Medium Name ]");
+        Console.WriteLine();
+        Console.WriteLine(t);
+        Console.WriteLine();
 
-            Console.ReadLine();
-        }
+        #endregion
 
-        [Fact(Skip = "You have to provide the connection details for this test")]
-        public async void Test_Accounts()
-        {
-            var connectionDetails = new ConnectionDetails()
-            {
-                // ...
-            };
+        Console.ReadLine();
+    }
 
-            /* Sync */
-            var client = new FinTsClient(connectionDetails);
+    [Fact(Skip = "matrixcode.txt file is missing")]
+    public void Test_PhotoTAN()
+    {
+        var PhotoCode = File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}\\..\\..\\assets\\matrixcode.txt");
 
-            var accounts = await client.Accounts(new TANDialog(WaitForTanAsync));
-            foreach (var acc in accounts.Data)
-            {
-                output.WriteLine(acc.ToString());
-            }
-        }
+        var mCode = new MatrixCode(PhotoCode);
 
-        [Fact(Skip = "You have to provide the connection details for this test")]
-        public async void Test_Request_TANMediumName()
-        {
-            var connectionDetails = new ConnectionDetails()
-            {
-                Blz = 76050101,
-                Url = "https://banking-by1.s-fints-pt-by.de/fints30",
-                HbciVersion = 300,
-                UserId = "xxx",
-                Pin = "xxx"
-            };
-
-            var client = new FinTsClient(connectionDetails);
-
-            #region TanMediumName
-
-            /* TANMediumname */
-
-            var tanmediumname = await client.RequestTANMediumName();
-
-            var t = tanmediumname.Data?.FirstOrDefault();
-
-            Console.WriteLine("[ TAN Medium Name ]");
-            Console.WriteLine();
-            Console.WriteLine(t);
-            Console.WriteLine();
-
-            #endregion
-
-            Console.ReadLine();
-        }
-
-        [Fact(Skip = "matrixcode.txt file is missing")]
-        public void Test_PhotoTAN()
-        {
-            var PhotoCode = File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}\\..\\..\\assets\\matrixcode.txt");
-
-            var mCode = new MatrixCode(PhotoCode);
-
-            Assert.NotNull(mCode.ImageMimeType);
-            Assert.NotNull(mCode.ImageData);
+        Assert.NotNull(mCode.ImageMimeType);
+        Assert.NotNull(mCode.ImageData);
 
 #if USE_LIB_SixLabors_ImageSharp
             mCode.CodeImage.SaveAsPng(File.OpenWrite(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "matrixcode.png")));
 #endif
-        }
+    }
 
-        [Fact(Skip = "You have to provide the connection details for this test")]
-        public async void Test_PushTAN()
+    [Fact(Skip = "You have to provide the connection details for this test")]
+    public async void Test_PushTAN()
+    {
+        string receiver = string.Empty;
+        string receiverIBAN = string.Empty;
+        string receiverBIC = string.Empty;
+        decimal amount = 0;
+        string usage = string.Empty;
+
+        ConnectionDetails connectionDetails = new ConnectionDetails()
         {
-            string receiver = string.Empty;
-            string receiverIBAN = string.Empty;
-            string receiverBIC = string.Empty;
-            decimal amount = 0;
-            string usage = string.Empty;
+            AccountHolder = "Torsten Klinger",
+            Blz = 76050101,
+            Bic = "SSKNDE77XXX",
+            Iban = "xxx",
+            Url = "https://banking-by1.s-fints-pt-by.de/fints30",
+            HbciVersion = 300,
+            UserId = "xxx",
+            Pin = "xxx"
+        };
 
-            ConnectionDetails connectionDetails = new ConnectionDetails()
-            {
-                AccountHolder = "Torsten Klinger",
-                Blz = 76050101,
-                Bic = "SSKNDE77XXX",
-                Iban = "xxx",
-                Url = "https://banking-by1.s-fints-pt-by.de/fints30",
-                HbciVersion = 300,
-                UserId = "xxx",
-                Pin = "xxx"
-            };
+        var client = TestHelper.CreateTestClient(connectionDetails);
 
-            var client = new FinTsClient(connectionDetails);
+        receiver = "Klinger";
+        receiverIBAN = "xxx";
+        receiverBIC = "GENODEF1HSB";
+        amount = 1.0m;
+        usage = "TEST";
 
-            receiver = "Klinger";
-            receiverIBAN = "xxx";
-            receiverBIC = "GENODEF1HSB";
-            amount = 1.0m;
-            usage = "TEST";
+        var result = await client.Synchronization();
 
-            var result = await client.Synchronization();
-
-            if (result.IsSuccess)
-            {
-                string hirms = "921"; // -> pushTAN
-
-                var tanmediumname = await client.RequestTANMediumName();
-                client.HITAB = tanmediumname.Data.FirstOrDefault();
-
-                Console.WriteLine(client.Transfer(new TANDialog(WaitForTanAsync), receiver, receiverIBAN, receiverBIC, amount, usage, hirms));
-            }
-        }
-
-#if (WINDOWS)
-        static bool anonymous = false;
-
-        static string receiver = string.Empty;
-        static string receiverIBAN = string.Empty;
-        static string receiverBIC = string.Empty;
-        static decimal amount = 0;
-        static string usage = string.Empty;
-        public static ConnectionDetails connectionDetails;
-
-        public static PictureBox pictureBox { get; set; }
-
-        [Fact]
-        public void Test_Flicker()
+        if (result.IsSuccess)
         {
-            connectionDetails = new ConnectionDetails()
-            {
-                AccountHolder = "Torsten Klinger",
-                Blz = 76061482,
-                BIC = "GENODEF1HSB",
-                IBAN = "xxx",
-                Url = "https://fints2.atruvia.de/cgi-bin/hbciservlet",
-                HBCIVersion = 300,
-                UserId = "xxx",
-                Pin = "xxx"
-            };
+            string hirms = "921"; // -> pushTAN
 
-            receiver = "Klinger";
-            receiverIBAN = "xxx";
-            receiverBIC = "SSKNDE77XXX";
-            amount = 1.0m;
-            usage = "TEST";
+            var tanmediumname = await client.RequestTANMediumName();
+            client.HITAB = tanmediumname.Data.FirstOrDefault();
 
-            HBCI.Assembly("libfintx", "1");
-
-            HBCI.Tracing(true);
-
-            if (HBCI.Synchronization(connectionDetails, anonymous))
-            {
-                Segment.HIRMS = "972"; // -> chip-TAN               
-
-                Image flickerImage = null;
-                output.WriteLine(EncodingHelper.ConvertToUTF8(HBCI.Transfer(connectionDetails, receiver, receiverIBAN, receiverBIC, amount, usage, Segment.HIRMS, anonymous, out flickerImage, 220, 160)));
-
-                Form frm = new Form();
-                frm.Size = new Size(flickerImage.Width + 5, flickerImage.Height + 5);
-                PictureBox pb = new PictureBox();
-                pb.Dock = DockStyle.Fill;
-                frm.Controls.Add(pb);
-                pb.Image = flickerImage;
-                Application.Run(frm);
-            }
-
-            var timer = new System.Threading.Timer(
-                e => Output(),
-                null,
-                TimeSpan.Zero,
-                TimeSpan.FromSeconds(10));
+            Console.WriteLine(client.Transfer(new TANDialog(WaitForTanAsync), receiver, receiverIBAN, receiverBIC, amount, usage, hirms));
         }
+    }
 
-        void Output()
-        {
-            output.WriteLine(HBCI.Transaction_Output());
-        }
-#endif
-        public async Task<string> WaitForTanAsync(TANDialog tanDialog)
-        {
-            foreach (var msg in tanDialog.DialogResult.Messages)
-                Console.WriteLine(msg);
+    public async Task<string> WaitForTanAsync(TANDialog tanDialog)
+    {
+        foreach (var msg in tanDialog.DialogResult.Messages)
+            Console.WriteLine(msg);
 
-            return Console.ReadLine();
-        }
+        return Console.ReadLine();
     }
 }

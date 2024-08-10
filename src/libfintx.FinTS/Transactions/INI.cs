@@ -37,7 +37,7 @@ namespace libfintx.FinTS
         /// <summary>
         /// INI
         /// </summary>
-        public static async Task<String> Init_INI(FinTsClient client, string hkTanSegmentId = null)
+        public static async Task<string> Init_INI(FinTsClient client, string? hkTanSegmentId = null)
         {
             SEG sEG = new SEG();
             StringBuilder sb = new StringBuilder();

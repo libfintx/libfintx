@@ -266,7 +266,7 @@ public partial class FinTsClient
         {
             Logger.LogInformation(ex.ToString());
 
-            throw new InvalidOperationException($"Software error.", ex);
+            throw new InvalidOperationException($"Software error: {ex.Message}", ex);
         }
     }
 

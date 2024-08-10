@@ -3,18 +3,18 @@ using System.Linq;
 using libfintx.FinTS.Statement;
 using Xunit;
 
-namespace libfintx.Tests
+namespace libfintx.Tests;
+
+public class Test_MT942
 {
-    public class Test_MT942
+    /// <summary>
+    /// Deutsche Bank
+    /// </summary>
+    [Fact]
+    public void Test_10070848()
     {
-        /// <summary>
-        /// Deutsche Bank
-        /// </summary>
-        [Fact]
-        public void Test_10070848()
-        {
-            string mt942 =
-@"
+        string mt942 =
+            @"
 :20:DEUTDEFFXXXX
 :25:10070848/12345670000
 :28C:00000/001
@@ -32,48 +32,48 @@ namespace libfintx.Tests
 :90C:0EUR0,
 -
 ";
-            var result = MT940.Deserialize(mt942, "123456700", true).ToList();
+        var result = MT940.Deserialize(mt942, "123456700", true).ToList();
 
-            Assert.Equal(2, result.Count);
-            Assert.True(result.All(s => s.Pending));
+        Assert.Equal(2, result.Count);
+        Assert.True(result.All(s => s.Pending));
 
-            var stmt = result[0];
-            Assert.Equal("DEUTDEFFXXXX", stmt.Type);
-            Assert.Equal("10070848", stmt.BankCode);
-            Assert.Equal("12345670000", stmt.AccountCode);
+        var stmt = result[0];
+        Assert.Equal("DEUTDEFFXXXX", stmt.Type);
+        Assert.Equal("10070848", stmt.BankCode);
+        Assert.Equal("12345670000", stmt.AccountCode);
 
-            Assert.Equal(new DateTime(2019, 12, 9, 23, 59, 0), stmt.CreationDate);
+        Assert.Equal(new DateTime(2019, 12, 9, 23, 59, 0), stmt.CreationDate);
 
-            Assert.Equal(0, stmt.CountDebit);
-            Assert.Equal(0, stmt.AmountDebit);
-            Assert.Equal(0, stmt.CountCredit);
-            Assert.Equal(0, stmt.AmountCredit);
+        Assert.Equal(0, stmt.CountDebit);
+        Assert.Equal(0, stmt.AmountDebit);
+        Assert.Equal(0, stmt.CountCredit);
+        Assert.Equal(0, stmt.AmountCredit);
 
-            Assert.Empty(stmt.SwiftTransactions);
+        Assert.Empty(stmt.SwiftTransactions);
 
-            stmt = result[1];
-            Assert.Equal("DEUTDEFFXXXX", stmt.Type);
-            Assert.Equal("00000000", stmt.BankCode);
-            Assert.Equal("DE78100708480123456700", stmt.AccountCode);
+        stmt = result[1];
+        Assert.Equal("DEUTDEFFXXXX", stmt.Type);
+        Assert.Equal("00000000", stmt.BankCode);
+        Assert.Equal("DE78100708480123456700", stmt.AccountCode);
 
-            Assert.Equal(new DateTime(2019, 12, 9, 9, 1, 00), stmt.CreationDate);
+        Assert.Equal(new DateTime(2019, 12, 9, 9, 1, 00), stmt.CreationDate);
 
-            Assert.Equal(0, stmt.CountDebit);
-            Assert.Equal(0, stmt.AmountDebit);
-            Assert.Equal(0, stmt.CountCredit);
-            Assert.Equal(0, stmt.AmountCredit);
+        Assert.Equal(0, stmt.CountDebit);
+        Assert.Equal(0, stmt.AmountDebit);
+        Assert.Equal(0, stmt.CountCredit);
+        Assert.Equal(0, stmt.AmountCredit);
 
-            Assert.Empty(stmt.SwiftTransactions);
-        }
+        Assert.Empty(stmt.SwiftTransactions);
+    }
 
-        /// <summary>
-        /// Berliner Sparkasse
-        /// </summary>
-        [Fact]
-        public void Test_10050000()
-        {
-            string mt942 =
-@"
+    /// <summary>
+    /// Berliner Sparkasse
+    /// </summary>
+    [Fact]
+    public void Test_10050000()
+    {
+        string mt942 =
+            @"
 :20:STARTDISPE
 :25:10050000/0123456789
 :28C:00000/001
@@ -99,25 +99,24 @@ NOLADE21HAM?31DE71207500000060017852?32FAX.de GmbH?34992
 :90C:0EUR0,00
 -
 ";
-            var result = MT940.Deserialize(mt942, "0123456789", true).ToList();
+        var result = MT940.Deserialize(mt942, "0123456789", true).ToList();
 
-            Assert.Single(result);
-            Assert.True(result.All(s => s.Pending));
+        Assert.Single(result);
+        Assert.True(result.All(s => s.Pending));
 
-            var stmt = result[0];
-            Assert.Equal("STARTDISPE", stmt.Type);
-            Assert.Equal("10050000", stmt.BankCode);
-            Assert.Equal("123456789", stmt.AccountCode);
+        var stmt = result[0];
+        Assert.Equal("STARTDISPE", stmt.Type);
+        Assert.Equal("10050000", stmt.BankCode);
+        Assert.Equal("123456789", stmt.AccountCode);
 
-            Assert.Equal(new DateTime(2019, 11, 7, 13, 0, 0), stmt.CreationDate);
+        Assert.Equal(new DateTime(2019, 11, 7, 13, 0, 0), stmt.CreationDate);
 
-            Assert.Equal(3, stmt.CountDebit);
-            Assert.Equal(-838.83m, stmt.AmountDebit);
-            Assert.Equal(0, stmt.CountCredit);
-            Assert.Equal(0, stmt.AmountCredit);
+        Assert.Equal(3, stmt.CountDebit);
+        Assert.Equal(-838.83m, stmt.AmountDebit);
+        Assert.Equal(0, stmt.CountCredit);
+        Assert.Equal(0, stmt.AmountCredit);
 
-            Assert.Equal(3, stmt.SwiftTransactions.Count);
+        Assert.Equal(3, stmt.SwiftTransactions.Count);
 
-        }
     }
 }
