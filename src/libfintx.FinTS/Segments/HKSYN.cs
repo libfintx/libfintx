@@ -22,6 +22,7 @@
  */
 
 using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using libfintx.FinTS.Data;
@@ -164,7 +165,17 @@ namespace libfintx.FinTS
             string message = FinTSMessage.CreateSync(client, segments);
             string response = await FinTSMessage.Send(client, message);
 
-            client.Parse_Segments(response);
+            try
+            {
+                client.Parse_Segments(response)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                client.Logger.LogError(ex, ex.ToString());
+
+                throw new InvalidOperationException($"Software error: {ex.Message}", ex);
+            }
 
             return response;
         }

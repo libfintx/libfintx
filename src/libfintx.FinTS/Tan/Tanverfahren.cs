@@ -33,7 +33,7 @@ namespace libfintx.FinTS
         /// </summary>
         /// <param name="HIRMSf"></param>
         /// <returns></returns>
-        public List<TanProcess> Parse(String HIRMSf)
+        public List<TanProcess> Parse(string HIRMSf)
         {
             List<TanProcess> list = new List<TanProcess>();
 
@@ -72,7 +72,7 @@ namespace libfintx.FinTS
                         case "944": // SecureGo
                             list.Add(new TanProcess { ProcessNumber = "944", ProcessName = "SecureGo" });
                             break;
-                        case "962": // Sm@rt-TAN plus manuell
+                        case "962": // Smart-TAN plus manuell
                             list.Add(new TanProcess { ProcessNumber = "962", ProcessName = "Sm@rt-TAN plus manuell" });
                             break;
                         case "972": // Smart-TAN plus optisch
