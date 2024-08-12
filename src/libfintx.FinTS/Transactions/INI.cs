@@ -22,6 +22,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using libfintx.FinTS.Data;
@@ -158,7 +159,16 @@ namespace libfintx.FinTS
                 var message = FinTSMessage.Create(client, 1, "0", segments, client.HIRMS);
                 var response = await FinTSMessage.Send(client, message);
 
-                client.Parse_Segments(response);
+                try
+                {
+                    client.Parse_Segments(response);
+                }
+                catch (Exception ex)
+                {
+                    client.Logger.LogError(ex, ex.ToString());
+
+                    throw new InvalidOperationException($"Software error: {ex.Message}", ex);
+                }
 
                 return response;
             }
@@ -225,7 +235,18 @@ namespace libfintx.FinTS
                 string message = FinTsMessageAnonymous.Create(connectionDetails.HbciVersion, "1", "0", connectionDetails.Blz, connectionDetails.UserIdEscaped, connectionDetails.Pin, "0", segments, null, client.SEGNUM);
                 string response = await FinTSMessage.Send(client, message);
 
-                var messages = client.Parse_Segments(response);
+                IEnumerable<HBCIBankMessage> messages;
+                try
+                {
+                    messages = client.Parse_Segments(response);
+                }
+                catch (Exception ex)
+                {
+                    client.Logger.LogError(ex, ex.ToString());
+
+                    throw new InvalidOperationException($"Software error: {ex.Message}", ex);
+                }
+
                 var result = new HBCIDialogResult(messages, response);
                 if (!result.IsSuccess)
                 {
@@ -303,7 +324,16 @@ namespace libfintx.FinTS
                 message = FinTSMessage.Create(client, 1, "0", segments, client.HIRMS);
                 response = await FinTSMessage.Send(client, message);
 
-                client.Parse_Segments(response);
+                try
+                {
+                    client.Parse_Segments(response);
+                }
+                catch (Exception ex)
+                {
+                    client.Logger.LogError(ex, ex.ToString());
+
+                    throw new InvalidOperationException($"Software error: {ex.Message}", ex);
+                }
 
                 return response;
             }

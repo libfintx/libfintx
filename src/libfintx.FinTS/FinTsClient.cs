@@ -26,6 +26,7 @@ using libfintx.FinTS.BankParameterData;
 using libfintx.Sepa;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using libfintx.Globals;
@@ -37,7 +38,13 @@ namespace libfintx.FinTS
     public partial class FinTsClient : IFinTsClient
     {
         private readonly ILoggerFactory _loggerFactory;
+
+        // A logger returning logs from the FinTsClient including trace data
         internal readonly ILogger<FinTsClient> Logger;
+
+        // A logger returning logs from the bank. The class is the full qualified class name of 'FinTsClient' with '.Bank' as suffix.
+        private readonly ILogger _bankMessageLogger;
+
         private BPD? _bpd;
 
         public bool Anonymous { get; }
@@ -60,7 +67,7 @@ namespace libfintx.FinTS
         /// </summary>
         public BPD? BPD
         {
-            get => _bpd ?? BPD.Parse(BdpStore.GetBPD(280, ConnectionDetails.Blz).Result, Logger);
+            get => _bpd ??= BPD.Parse(BdpStore.GetBPD(280, ConnectionDetails.Blz).Result, Logger);
             set => _bpd = value;
         }
 
@@ -105,10 +112,43 @@ namespace libfintx.FinTS
 
             _loggerFactory = loggerFactory ?? LoggerFactory.Create(builder => { builder.AddProvider(FileLoggerProvider.CreateLibfintxLogger()); });
             Logger = _loggerFactory.CreateLogger<FinTsClient>();
+            _bankMessageLogger = _loggerFactory.CreateLogger($"{typeof(FinTsClient).FullName}.Bank");
 
             // When deprecating the default file logger maybe in next MAJOR VERSION UPGRADE, use this:
             //_logger = loggerFactory?.CreateLogger<FinTsClient>()
             //    ?? NullLoggerFactory.Instance.CreateLogger<FinTsClient>();
+        }
+
+        private void LogBankMessage(HBCIBankMessage bankMessage)
+        {
+            var codeInt = int.Parse(bankMessage.Code, NumberStyles.None, CultureInfo.InvariantCulture);
+
+            var eventId = new EventId(codeInt, BankReturnCodes.GetReturnCodeMeaning(codeInt));
+
+            LogLevel logLevel;
+
+            switch (bankMessage.Type)
+            {
+                case HBCIBankMessage.TypeEnum.Success:
+                    // These messages are not passed to the logger.
+                    return;
+                case HBCIBankMessage.TypeEnum.Info:
+                    logLevel = LogLevel.Information;
+                    break;
+                case HBCIBankMessage.TypeEnum.Warning:
+                    logLevel = LogLevel.Warning;
+                    break;
+                case HBCIBankMessage.TypeEnum.Error:
+                    logLevel = LogLevel.Error;
+                    break;
+                case HBCIBankMessage.TypeEnum.Unknown:
+                    logLevel = LogLevel.Critical;  // I don't know what the right type is here, so I use the highest available level
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            _bankMessageLogger.Log(logLevel, eventId, bankMessage.Message);
         }
 
         internal async Task<HBCIDialogResult> InitializeConnection(string hkTanSegmentId = "HKIDN")
@@ -252,7 +292,6 @@ namespace libfintx.FinTS
                 return result;
 
             result = await ProcessSCA(result, tanDialog);
-
             return result;
         }
 
@@ -434,7 +473,16 @@ namespace libfintx.FinTS
             if (result.IsSuccess && ini)
             {
                 // Fand die SCA direkt nach der Initialisierung statt, ist in der Antwort BPD/UPD enthalten
-                Parse_Segments(result.RawData);
+                try
+                {
+                    Parse_Segments(result.RawData);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, ex.ToString());
+
+                    throw new InvalidOperationException($"Software error: {ex.Message}", ex);
+                }
             }
 
             return result;
