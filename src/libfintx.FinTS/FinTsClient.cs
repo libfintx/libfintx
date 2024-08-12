@@ -32,6 +32,7 @@ using System.Threading.Tasks;
 using libfintx.Globals;
 using libfintx.Logger;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 
 namespace libfintx.FinTS
 {
@@ -67,7 +68,16 @@ namespace libfintx.FinTS
         /// </summary>
         public BPD? BPD
         {
-            get => _bpd ??= BPD.Parse(BdpStore.GetBPD(280, ConnectionDetails.Blz).Result, Logger);
+            get
+            {
+                var bdpRaw = BdpStore.GetBPD(280, ConnectionDetails.Blz).Result;
+                if (bdpRaw == null)
+                {
+                    return null;
+                }
+
+                return _bpd ?? BPD.Parse(bdpRaw, Logger);
+            }
             set => _bpd = value;
         }
 
@@ -475,7 +485,8 @@ namespace libfintx.FinTS
                 // Fand die SCA direkt nach der Initialisierung statt, ist in der Antwort BPD/UPD enthalten
                 try
                 {
-                    Parse_Segments(result.RawData);
+                    Parse_Segments(result.RawData)
+                        .ToList();
                 }
                 catch (Exception ex)
                 {

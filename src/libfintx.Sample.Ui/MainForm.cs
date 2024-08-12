@@ -107,7 +107,7 @@ namespace libfintx.Sample.Ui
 
             return false;
         }
-        
+
 
         /// <summary>
         /// Synchronisation

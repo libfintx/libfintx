@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using libfintx.FinTS.Data;
@@ -161,7 +162,8 @@ namespace libfintx.FinTS
 
                 try
                 {
-                    client.Parse_Segments(response);
+                    client.Parse_Segments(response)
+                        .ToList();
                 }
                 catch (Exception ex)
                 {
@@ -238,7 +240,8 @@ namespace libfintx.FinTS
                 IEnumerable<HBCIBankMessage> messages;
                 try
                 {
-                    messages = client.Parse_Segments(response);
+                    messages = client.Parse_Segments(response)
+                        .ToList();
                 }
                 catch (Exception ex)
                 {
@@ -326,7 +329,8 @@ namespace libfintx.FinTS
 
                 try
                 {
-                    client.Parse_Segments(response);
+                    client.Parse_Segments(response)
+                        .ToList();
                 }
                 catch (Exception ex)
                 {
