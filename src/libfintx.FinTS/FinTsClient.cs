@@ -1,10 +1,10 @@
-﻿/*	
- * 	
+﻿/*
+ *
  *  This file is part of libfintx.
- *  
+ *
  *  Copyright (C) 2016 - 2022 Torsten Klinger
  * 	E-Mail: torsten.klinger@googlemail.com
- *  
+ *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
  *  License as published by the Free Software Foundation; either
@@ -18,7 +18,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with this program; if not, write to the Free Software Foundation,
  *  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 	
+ *
  */
 
 using libfintx.FinTS.Data;
@@ -62,6 +62,8 @@ namespace libfintx.FinTS
         /// The bank parameter data store.
         /// </summary>
         private IBpdStore BdpStore { get; }
+
+        internal bool SepaAccountNationalAllowed { get; set; }
 
         /// <summary>
         /// The bank parameter data of the bank given in the connection details.
@@ -275,7 +277,7 @@ namespace libfintx.FinTS
         /// <param name="receiverIBAN">IBAN of the recipient</param>
         /// <param name="receiverBIC">BIC of the recipient</param>
         /// <param name="amount"></param>
-        /// <param name="purpose">Short description of the transfer (dt. Verwendungszweck)</param>      
+        /// <param name="purpose">Short description of the transfer (dt. Verwendungszweck)</param>
         /// <param name="hirms">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
         /// <returns>
         /// Bank return codes
@@ -311,9 +313,9 @@ namespace libfintx.FinTS
         /// <param name="tanDialog">The TAN Dialog</param>
         /// <param name="payerName">Name of the payer</param>
         /// <param name="payerIBAN">IBAN of the payer</param>
-        /// <param name="payerBIC">BIC of the payer</param>         
+        /// <param name="payerBIC">BIC of the payer</param>
         /// <param name="amount">Amount to transfer</param>
-        /// <param name="purpose">Short description of the transfer (dt. Verwendungszweck)</param>    
+        /// <param name="purpose">Short description of the transfer (dt. Verwendungszweck)</param>
         /// <param name="settlementDate"></param>
         /// <param name="mandateNumber"></param>
         /// <param name="mandateDate"></param>
@@ -356,7 +358,7 @@ namespace libfintx.FinTS
         /// <param name="settlementDate"></param>
         /// <param name="painData"></param>
         /// <param name="numberOfTransactions"></param>
-        /// <param name="totalAmount"></param>        
+        /// <param name="totalAmount"></param>
         /// <param name="hirms">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
         /// <returns>
         /// Bank return codes
@@ -393,7 +395,7 @@ namespace libfintx.FinTS
         /// <param name="tanDialog">The TAN Dialog</param>
         /// <param name="mobileServiceProvider"></param>
         /// <param name="phoneNumber"></param>
-        /// <param name="amount">Amount to transfer</param>            
+        /// <param name="amount">Amount to transfer</param>
         /// <param name="hirms">Numerical SecurityMode; e.g. 911 for "Sparkasse chipTan optisch"</param>
         /// <returns>
         /// Bank return codes

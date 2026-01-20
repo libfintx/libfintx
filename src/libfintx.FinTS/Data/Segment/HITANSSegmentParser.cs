@@ -1,9 +1,9 @@
-﻿/*	
- * 	
+﻿/*
+ *
  *  This file is part of libfintx.
- *  
+ *
  *  Copyright (C) 2021 - 2022 Abid Hussain
- *  
+ *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
  *  License as published by the Free Software Foundation; either
@@ -17,7 +17,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with this program; if not, write to the Free Software Foundation,
  *  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 	
+ *
  */
 
 using System;
@@ -38,19 +38,64 @@ namespace libfintx.FinTS.Data.Segment
             if (matches.Count == 0)
                 throw new ArgumentException($"Could not parse segment '{segment.Name}':{Environment.NewLine}{segment.Payload}");
 
-            foreach (Match match in matches)
+            if (segment.Version == 6)
             {
-                var tanProcess = new HITANS_TanProcess();
+                var paramElements = segment.DataElements[3];
+                for (int i = 3; i < paramElements.DataElements.Count; i += 21)
+                {
+                    if (paramElements.DataElements.Count < i + 20)
+                        break; // Prevent out of range exception
 
-                var tanCode = match.Groups["1"].Value;
-                if (tanCode != null)
-                    tanProcess.TanCode = Convert.ToInt32(tanCode);
+                    var tanCode = paramElements.DataElements[i];
+                    var processName = paramElements.DataElements[i + 5];
+                    var tanMediumRequired = paramElements.DataElements[i + 18];
 
-                var processName = match.Groups["6"].Value;
-                if (processName != null)
-                    tanProcess.Name = processName;
+                    var tanProcess = new HITANS_TanProcess
+                    {
+                        TanCode = Convert.ToInt32(tanCode.Value),
+                        Name = processName.Value,
+                        TanMediumRequired = Convert.ToInt16(tanMediumRequired.Value)
+                    };
+                    result.TanProcesses.Add(tanProcess);
+                }
+            }
+            else if (segment.Version == 7)
+            {
+                var paramElements = segment.DataElements[3];
+                for (int i = 3; i < paramElements.DataElements.Count; i += 26)
+                {
+                    if (paramElements.DataElements.Count < i + 25)
+                        break; // Prevent out of range exception
 
-                result.TanProcesses.Add(tanProcess);
+                    var tanCode = paramElements.DataElements[i];
+                    var processName = paramElements.DataElements[i + 5];
+                    var tanMediumRequired = paramElements.DataElements[i + 18];
+
+                    var tanProcess = new HITANS_TanProcess
+                    {
+                        TanCode = Convert.ToInt32(tanCode.Value),
+                        Name = processName.Value,
+                        TanMediumRequired = Convert.ToInt16(tanMediumRequired.Value)
+                    };
+                    result.TanProcesses.Add(tanProcess);
+                }
+            }
+            else // Fallback
+            {
+                foreach (Match match in matches)
+                {
+                    var tanProcess = new HITANS_TanProcess();
+
+                    var tanCode = match.Groups["1"].Value;
+                    if (tanCode != null)
+                        tanProcess.TanCode = Convert.ToInt32(tanCode);
+
+                    var processName = match.Groups["6"].Value;
+                    if (processName != null)
+                        tanProcess.Name = processName;
+
+                    result.TanProcesses.Add(tanProcess);
+                }
             }
 
             return result;
