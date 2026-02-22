@@ -441,7 +441,7 @@ namespace libfintx.FinTS
             }
 
             tanDialog.DialogResult = result;
-            if (result.IsTanRequired)
+            if (result.IsTanRequired && !result.IsApprovalRequired)
             {
                 string tan = await Helper.WaitForTanAsync(this, result, tanDialog);
                 if (tan == null)
