@@ -50,10 +50,7 @@ namespace libfintx.EBICS.Letters
         }
         static byte[] CalcHash(byte[] modulus, byte[] exponent)
         {
-            var txt = BitConverter.ToString(exponent).TrimStart('0').Replace("-", "").ToLower() +
-                BitConverter.ToString(modulus).TrimStart('0').Replace("-", "").ToLower();
-            var cert = System.Text.Encoding.UTF8.GetBytes(txt);
-            return System.Security.Cryptography.SHA256.Create().ComputeHash(cert);
+            return libfintx.EBICSConfig.KeyDigest.ComputeGermanHash(modulus, exponent);
         }
         public void Build(byte[] certificate,byte [] modulus, byte [] exponent)
         {
