@@ -114,16 +114,7 @@ namespace libfintx.EBICSConfig
                 }
 
                 var p = _publicKey.ExportParameters(false);
-                var hexExp = BitConverter.ToString(p.Exponent).Replace("-", string.Empty).ToLower()
-                    .TrimStart('0');
-                var hexMod = BitConverter.ToString(p.Modulus).Replace("-", string.Empty).ToLower()
-                    .TrimStart('0');
-                var hashInput = Encoding.ASCII.GetBytes(string.Format("{0} {1}", hexExp, hexMod));
-
-                using (var sha256 = SHA256.Create())
-                {
-                    return sha256.ComputeHash(hashInput);
-                }
+                return KeyDigest.ComputeGermanHash(p.Modulus, p.Exponent);
             }
         }
 
@@ -227,5 +218,24 @@ namespace libfintx.EBICSConfig
         }
 
         public override string ToString() => _printer.PrintObject(this);
+    }
+
+    /// <summary>
+    /// Computes the EBICS public key digest: SHA-256 of ASCII(hex(exponent) + " " + hex(modulus)),
+    /// with leading zeros stripped from each hex string.
+    /// This is the hash shown in German INI/HIA letters and verified by the bank.
+    /// </summary>
+    public static class KeyDigest
+    {
+        public static byte[] ComputeGermanHash(byte[] modulus, byte[] exponent)
+        {
+            var hexExp = BitConverter.ToString(exponent).Replace("-", string.Empty).ToLower().TrimStart('0');
+            var hexMod = BitConverter.ToString(modulus).Replace("-", string.Empty).ToLower().TrimStart('0');
+            var hashInput = Encoding.ASCII.GetBytes(string.Format("{0} {1}", hexExp, hexMod));
+            using (var sha256 = SHA256.Create())
+            {
+                return sha256.ComputeHash(hashInput);
+            }
+        }
     }
 }
