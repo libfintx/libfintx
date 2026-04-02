@@ -123,6 +123,15 @@ namespace libfintx.EBICS
             }
         }
 
+        public C53Response C53(C53Params p)
+        {
+            using (new MethodLogger(Logger))
+            {
+                var resp = _commandHandler.Send<C53Response>(p);
+                return resp;
+            }
+        }
+
         public CctResponse CCT(CctParams p)
         {
             using (new MethodLogger(Logger))

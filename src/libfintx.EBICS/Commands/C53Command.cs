@@ -79,12 +79,12 @@ namespace libfintx.EBICS.Commands
                             _initLastSegment = dr.LastSegment;
                             _orderData = new string[_numSegments];
                             _orderData[dr.SegmentNumber - 1] =
-                                Encoding.UTF8.GetString(Decompress(DecryptOrderData(xph)));
+                                Encoding.Latin1.GetString(Decompress(DecryptOrderData(xph)));
                             Response.Data = string.Join("", _orderData);
                             break;
                         case TransactionPhase.Transfer:
                             _orderData[dr.SegmentNumber - 1] =
-                                Encoding.UTF8.GetString(Decompress(DecryptOrderData(xph)));
+                                Encoding.Latin1.GetString(Decompress(DecryptOrderData(xph)));
                             // Zip File ausgeben
                             Guid myuuid = Guid.NewGuid();
                             string myuuidAsString = myuuid.ToString();
