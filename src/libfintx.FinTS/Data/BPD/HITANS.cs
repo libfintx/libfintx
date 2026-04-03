@@ -42,5 +42,7 @@ namespace libfintx.FinTS
         public int TanCode { get; set; }
 
         public string Name { get; set; }
+
+        public short TanMediumRequired { get; set; }
     }
 }

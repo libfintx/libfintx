@@ -40,42 +40,42 @@ namespace libfintx.FinTS.Data.Segment
 
             if (segment.Version == 6)
             {
-                var paramElements = segment.DataElements[3];
-                for (int i = 3; i < paramElements.DataElements.Count; i += 21)
+                var paramElements = segment.DataElements[3].Split(':');
+                for (int i = 3; i < paramElements.Length; i += 21)
                 {
-                    if (paramElements.DataElements.Count < i + 20)
+                    if (paramElements.Length < i + 20)
                         break; // Prevent out of range exception
 
-                    var tanCode = paramElements.DataElements[i];
-                    var processName = paramElements.DataElements[i + 5];
-                    var tanMediumRequired = paramElements.DataElements[i + 18];
+                    var tanCode = paramElements[i];
+                    var processName = paramElements[i + 5];
+                    var tanMediumRequired = paramElements[i + 18];
 
                     var tanProcess = new HITANS_TanProcess
                     {
-                        TanCode = Convert.ToInt32(tanCode.Value),
-                        Name = processName.Value,
-                        TanMediumRequired = Convert.ToInt16(tanMediumRequired.Value)
+                        TanCode = Convert.ToInt32(tanCode),
+                        Name = processName,
+                        TanMediumRequired = Convert.ToInt16(tanMediumRequired)
                     };
                     result.TanProcesses.Add(tanProcess);
                 }
             }
             else if (segment.Version == 7)
             {
-                var paramElements = segment.DataElements[3];
-                for (int i = 3; i < paramElements.DataElements.Count; i += 26)
+                var paramElements = segment.DataElements[3].Split(':');
+                for (int i = 3; i < paramElements.Length; i += 26)
                 {
-                    if (paramElements.DataElements.Count < i + 25)
+                    if (paramElements.Length < i + 25)
                         break; // Prevent out of range exception
 
-                    var tanCode = paramElements.DataElements[i];
-                    var processName = paramElements.DataElements[i + 5];
-                    var tanMediumRequired = paramElements.DataElements[i + 18];
+                    var tanCode = paramElements[i];
+                    var processName = paramElements[i + 5];
+                    var tanMediumRequired = paramElements[i + 18];
 
                     var tanProcess = new HITANS_TanProcess
                     {
-                        TanCode = Convert.ToInt32(tanCode.Value),
-                        Name = processName.Value,
-                        TanMediumRequired = Convert.ToInt16(tanMediumRequired.Value)
+                        TanCode = Convert.ToInt32(tanCode),
+                        Name = processName,
+                        TanMediumRequired = Convert.ToInt16(tanMediumRequired)
                     };
                     result.TanProcesses.Add(tanProcess);
                 }
