@@ -261,6 +261,39 @@ public partial class FinTsClient
             if (this.HIKAZS == 0)
                 this.HIKAZS = 0;
 
+            // If HITANS wasn't set from the response (e.g. bank skipped BPD because version is unchanged),
+            // fall back to the cached BPD file so that HKTAN is included in the next INI message.
+            if (this.HITANS == 0)
+            {
+                var cachedBpd = this.BPD;
+                if (cachedBpd?.HITANS?.Count > 0)
+                {
+                    if (!string.IsNullOrEmpty(this.HIRMS) && int.TryParse(this.HIRMS, out int hirmsCode))
+                    {
+                        foreach (var hitansEntry in cachedBpd.HITANS)
+                        {
+                            if (hitansEntry.TanProcesses.Any(tp => tp.TanCode == hirmsCode))
+                            {
+                                this.HITANS = hitansEntry.Version;
+                                break;
+                            }
+                        }
+                    }
+                    else if (!string.IsNullOrEmpty(this.HIRMSf))
+                    {
+                        var tanCodes = this.HIRMSf.Split(';').Where(s => int.TryParse(s, out _)).Select(s => Convert.ToInt32(s)).ToList();
+                        foreach (var hitansEntry in cachedBpd.HITANS)
+                        {
+                            if (hitansEntry.TanProcesses.Select(tp => tp.TanCode).Intersect(tanCodes).Any())
+                            {
+                                this.HITANS = hitansEntry.Version;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
             return result;
         }
         catch (Exception ex)
