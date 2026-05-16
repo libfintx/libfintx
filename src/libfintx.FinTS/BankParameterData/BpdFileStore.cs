@@ -61,11 +61,21 @@ public class BpdFileStore : IBpdStore
             return null;
         }
 
-        var segmentRaw = Helper.SplitSegments(bpd).First();
+        try
+        {
+            var segmentRaw = Helper.SplitSegments(bpd).FirstOrDefault();
+            if (segmentRaw == null)
+                return null;
 
-        var segment = (HIBPA)SegmentParserFactory.ParseSegment(segmentRaw);
-
-        return segment.BpdVersion;
+            return (SegmentParserFactory.ParseSegment(segmentRaw) as HIBPA)?.BpdVersion;
+        }
+        catch (ArgumentException)
+        {
+            // Cached BPD file is malformed (e.g. truncated, partial PAIN payload). Drop it so the
+            // caller re-fetches a fresh BPD from the bank instead of crashing every sync.
+            await DeleteBPD(bankCountry, bankCode);
+            return null;
+        }
     }
 
     public Task<string?> GetBPD(int bankCountry, int bankCode)
