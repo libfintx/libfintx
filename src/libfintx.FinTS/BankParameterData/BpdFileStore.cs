@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using libfintx.FinTS.Data.Segment;
 using libfintx.FinTS.Segments;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace libfintx.FinTS.BankParameterData;
 
@@ -17,6 +19,7 @@ namespace libfintx.FinTS.BankParameterData;
 public class BpdFileStore : IBpdStore
 {
     private readonly string _path;
+    private readonly ILogger<BpdFileStore> _logger;
 
     /// <summary>
     /// Creates a new bank parameter file store.
@@ -24,7 +27,11 @@ public class BpdFileStore : IBpdStore
     /// <param name="path">
     /// The directory where to store the bpd files.
     /// </param>
-    public BpdFileStore(string path)
+    /// <param name="loggerFactory">
+    /// A logger factory used to report cache anomalies (e.g. a discarded malformed BPD file).
+    /// When not given, no output is logged.
+    /// </param>
+    public BpdFileStore(string path, ILoggerFactory? loggerFactory = null)
     {
         if (!Directory.Exists(path))
         {
@@ -32,6 +39,8 @@ public class BpdFileStore : IBpdStore
         }
 
         _path = path;
+        _logger = loggerFactory?.CreateLogger<BpdFileStore>()
+                  ?? NullLoggerFactory.Instance.CreateLogger<BpdFileStore>();
     }
 
     private string BuildFilePath(int bankCountry, int bankCode)
@@ -69,10 +78,13 @@ public class BpdFileStore : IBpdStore
 
             return (SegmentParserFactory.ParseSegment(segmentRaw) as HIBPA)?.BpdVersion;
         }
-        catch (ArgumentException)
+        catch (ArgumentException ex)
         {
             // Cached BPD file is malformed (e.g. truncated, partial PAIN payload). Drop it so the
             // caller re-fetches a fresh BPD from the bank instead of crashing every sync.
+            // Logged so a recurring delete/re-fetch loop (bank keeps returning unparseable BPD)
+            // is visible instead of silently retried.
+            _logger.LogWarning("Discarding malformed cached BPD for bank {BankCode}; re-fetching from bank. {Message}", bankCode, ex.Message);
             await DeleteBPD(bankCountry, bankCode);
             return null;
         }
