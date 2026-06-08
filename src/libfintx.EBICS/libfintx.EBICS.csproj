@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net8.0;net10.0</TargetFrameworks>
     <RootNamespace>libfintx.EBICS</RootNamespace>
     <Description>C# based client library for EBICS H004 and EBICS H005.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="Iconic.Zlib.Netstandard" Version="1.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
   </ItemGroup>
 

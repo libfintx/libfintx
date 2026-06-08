@@ -136,6 +136,13 @@ namespace libfintx.FinTS
         /// <returns></returns>
         internal static IEnumerable<string> SplitSegments(string message)
         {
+            if (message == null)
+                throw new ArgumentNullException(nameof(message));
+
+            message = message.TrimStart('\'', '\r', '\n', ' ');
+            if (message.Length == 0)
+                yield break;
+
             StringBuilder currentSegment = new StringBuilder();
             message = ProcessSegmentBegin(message, currentSegment);
 
@@ -188,6 +195,7 @@ namespace libfintx.FinTS
                             currentSegment = new StringBuilder();
 
                             message = message.Substring(match.Index + match.Value.Length);
+                            message = message.TrimStart('\'', '\r', '\n', ' ');
                             if (message.Length > 0)
                                 message = ProcessSegmentBegin(message, currentSegment);
 

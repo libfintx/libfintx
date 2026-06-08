@@ -41,8 +41,14 @@ namespace libfintx.FinTS.BankParameterData
 
         public List<Segment> SegmentList { get; set; } = new();
 
-        public static BPD Parse(string rawBpd, ILogger? logger = null)
+        public static BPD? Parse(string? rawBpd, ILogger? logger = null)
         {
+            // No cached/delivered BPD: nothing to parse. Returning null lets callers (e.g. the
+            // FinTsClient.BPD getter) treat "no BPD available" as null instead of crashing in
+            // SplitSegments(null).
+            if (string.IsNullOrEmpty(rawBpd))
+                return null;
+
             var bpd = new BPD();
             bpd.Raw = rawBpd;
             bpd.SegmentList = new List<Segment>();
