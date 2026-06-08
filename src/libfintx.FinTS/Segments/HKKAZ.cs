@@ -445,11 +445,6 @@ namespace libfintx.FinTS
                 score += 300;
             }
 
-            if (blzMatches)
-            {
-                score += 100;
-            }
-
             if (!string.IsNullOrWhiteSpace(connection.SubAccount)
                 && !string.IsNullOrWhiteSpace(account.SubAccountFeature)
                 && string.Equals(account.SubAccountFeature.Trim(), connection.SubAccount.Trim(), StringComparison.Ordinal))

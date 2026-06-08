@@ -36,6 +36,18 @@ namespace libfintx.FinTS.Message
 {
     public abstract class FinTSMessage
     {
+        /// <summary>
+        /// The placeholder written to log output in place of a secret value.
+        /// </summary>
+        private const string Mask = "XXXXXX";
+
+        /// <summary>
+        /// Like string.Replace but a no-op when <paramref name="secret"/> is null or empty.
+        /// Used to redact UserID / PIN in log output; those values are empty during the initial
+        /// synchronization, and string.Replace("", ...) throws ArgumentException.
+        /// </summary>
+        private static string MaskSecret(string source, string secret)
+            => string.IsNullOrEmpty(secret) ? source : source.Replace(secret, Mask);
 
         /// <summary>
         /// Create FinTS message
@@ -173,7 +185,7 @@ namespace libfintx.FinTS.Message
                 encHead = sb.ToString();
                 //encHead = "HNVSK:" + Enc.SECFUNC_ENC_PLAIN + ":2+" + Enc.SECFUNC_ENC_PLAIN + "+1+1::" + SystemID + "+1:" + date + ":" + time + "+2:2:13:@8@00000000:5:1+" + SEG_COUNTRY.Germany + ":" + BLZ + ":" + UserID + ":V:0:0+0'";
 
-                client.Logger.LogInformation(encHead.Replace(UserID, "XXXXXX"));
+                client.Logger.LogInformation(MaskSecret(encHead, UserID));
 
                 sigHead = string.Empty;
 
@@ -234,7 +246,7 @@ namespace libfintx.FinTS.Message
                     sigHead = sb.ToString();
                     // sigHead = "HNSHK:2:3+" + Sig.SECFUNC_SIG_PT_2STEP_MIN + "+" + secRef + "+1+1+1::" + SystemID + "+1+1:" + date + ":" + time + "+1:" + Sig.SIGMODE_RETAIL_MAC + ":1 +6:10:16+" + SEG_COUNTRY.Germany + ":" + BLZ + ":" + UserID + ":S:0:0'";
 
-                    client.Logger.LogInformation(sigHead.Replace(UserID, "XXXXXX"));
+                    client.Logger.LogInformation(MaskSecret(sigHead, UserID));
                 }
 
                 else
@@ -294,7 +306,7 @@ namespace libfintx.FinTS.Message
                     sigHead = sb.ToString();
                     // sigHead = "HNSHK:2:3+" + HIRMS_TAN + "+" + secRef + "+1+1+1::" + SystemID + "+1+1:" + date + ":" + time + "+1:" + Sig.SIGMODE_RETAIL_MAC + ":1+6:10:16+" + SEG_COUNTRY.Germany + ":" + BLZ + ":" + UserID + ":S:0:0'";
 
-                    client.Logger.LogInformation(sigHead.Replace(UserID, "XXXXXX"));
+                    client.Logger.LogInformation(MaskSecret(sigHead, UserID));
                 }
 
                 if (String.IsNullOrEmpty(TAN_))
@@ -324,7 +336,7 @@ namespace libfintx.FinTS.Message
                     sb.Append(secRef);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
-                    sb.Append("XXXXXX");
+                    sb.Append(Mask);
                     sb.Append(sEG.Terminator);
 
                     client.Logger.LogInformation(sb.ToString());
@@ -358,8 +370,8 @@ namespace libfintx.FinTS.Message
                     sb.Append(secRef);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
-                    sb.Append("XXXXXX");
-                    sb.Append("XXXXXX");
+                    sb.Append(Mask);
+                    sb.Append(Mask);
                     sb.Append(sEG.Terminator);
 
                     client.Logger.LogInformation(sb.ToString());
@@ -483,7 +495,7 @@ namespace libfintx.FinTS.Message
                     // encHead = "HNVSK:" + Enc.SECFUNC_ENC_PLAIN + ":3+PIN:2+" + Enc.SECFUNC_ENC_PLAIN + "+1+1::" + SystemID + "+1:" + date + ":" + time + "+2:2:13:@8@00000000:5:1+" + SEG_COUNTRY.Germany + ":" + BLZ + ":" + UserID + ":V:0:0+0'";
                 }
                     
-                client.Logger.LogInformation(encHead.Replace(UserID, "XXXXXX"));
+                client.Logger.LogInformation(MaskSecret(encHead, UserID));
 
                 if (HIRMS_TAN == null)
                 {
@@ -546,7 +558,7 @@ namespace libfintx.FinTS.Message
                     sigHead = sb.ToString();
                     //sigHead = "HNSHK:2:4+PIN:1+" + Sig.SECFUNC_SIG_PT_1STEP + "+" + secRef + "+1+1+1::" + SystemID + "+1+1:" + date + ":" + time + "+1:" + Sig.SIGMODE_RETAIL_MAC + ":1+6:10:16+" + SEG_COUNTRY.Germany + ":" + BLZ + ":" + UserID + ":S:0:0'";
 
-                    client.Logger.LogInformation(sigHead.Replace(UserID, "XXXXXX"));
+                    client.Logger.LogInformation(MaskSecret(sigHead, UserID));
                 }
                 else
                 {
@@ -611,7 +623,7 @@ namespace libfintx.FinTS.Message
                     sigHead = sb.ToString();
                     // sigHead = "HNSHK:2:4+PIN:" + SECFUNC + "+" + HIRMS_TAN + "+" + secRef + "+1+1+1::" + SystemID + "+1+1:" + date + ":" + time + "+1:" + Sig.SIGMODE_RETAIL_MAC + ":1+6:10:16+" + SEG_COUNTRY.Germany + ":" + BLZ + ":" + UserID + ":S:0:0'";
 
-                    client.Logger.LogInformation(sigHead.Replace(UserID, "XXXXXX"));
+                    client.Logger.LogInformation(MaskSecret(sigHead, UserID));
                 }
 
                 if (String.IsNullOrEmpty(TAN_))
@@ -641,7 +653,7 @@ namespace libfintx.FinTS.Message
                     sb.Append(secRef);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
-                    sb.Append("XXXXXX");
+                    sb.Append(Mask);
                     sb.Append(sEG.Terminator);
 
                     client.Logger.LogInformation(sb.ToString());
@@ -675,8 +687,8 @@ namespace libfintx.FinTS.Message
                     sb.Append(secRef);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
-                    sb.Append("XXXXXX");
-                    sb.Append("XXXXXX");
+                    sb.Append(Mask);
+                    sb.Append(Mask);
                     sb.Append(sEG.Terminator);
 
                     client.Logger.LogInformation(sb.ToString());
@@ -696,11 +708,11 @@ namespace libfintx.FinTS.Message
             {
                 if (HIRMS_TAN == null)
                 {
-                    client.Logger.LogInformation(payload.Replace(UserID, "XXXXXX").Replace(PIN, "XXXXXX"));
+                    client.Logger.LogInformation(MaskSecret(MaskSecret(payload, UserID), PIN));
                 }
                 else if (!string.IsNullOrEmpty(TAN_))
                 {
-                    client.Logger.LogInformation(payload.Replace(UserID, "XXXXXX").Replace(PIN, "XXXXXX").Replace(TAN_, "XXXXXX"));
+                    client.Logger.LogInformation(MaskSecret(MaskSecret(MaskSecret(payload, UserID), PIN), TAN_));
                 }
             }
 

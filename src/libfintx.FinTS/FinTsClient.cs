@@ -99,12 +99,13 @@ namespace libfintx.FinTS
         {
             ConnectionDetails = connection;
             Anonymous = anonymous;
-            BdpStore = bpdDataStore
-                       ?? new BpdFileStore(Path.Combine(FinTsGlobals.ProgramBaseDir, "BPD"));
-            activeAccount = null;
 
             _loggerFactory = loggerFactory ?? LoggerFactory.Create(builder => { builder.AddProvider(FileLoggerProvider.CreateLibfintxLogger()); });
             Logger = _loggerFactory.CreateLogger<FinTsClient>();
+
+            BdpStore = bpdDataStore
+                       ?? new BpdFileStore(Path.Combine(FinTsGlobals.ProgramBaseDir, "BPD"), _loggerFactory);
+            activeAccount = null;
 
             // When deprecating the default file logger maybe in next MAJOR VERSION UPGRADE, use this:
             //_logger = loggerFactory?.CreateLogger<FinTsClient>()
