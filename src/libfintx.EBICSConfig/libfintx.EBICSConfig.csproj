@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net8.0;net10.0</TargetFrameworks>
     <RootNamespace>libfintx.EBICSConfig</RootNamespace>
     <Description>C# based client library for EBICS H004 and EBICS H005.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -11,7 +11,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
   </ItemGroup>
 

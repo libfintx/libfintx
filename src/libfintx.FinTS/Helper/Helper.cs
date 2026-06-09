@@ -1,10 +1,10 @@
-﻿/*
- *
+﻿/*	
+ * 	
  *  This file is part of libfintx.
- *
+ *  
  *  Copyright (C) 2016 - 2023 Torsten Klinger
  * 	E-Mail: torsten.klinger@googlemail.com
- *
+ *  
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
  *  License as published by the Free Software Foundation; either
@@ -18,7 +18,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with this program; if not, write to the Free Software Foundation,
  *  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
+ * 	
  */
 
 using System;
@@ -302,12 +302,6 @@ namespace libfintx.FinTS
         public static bool IsTANRequired(string gvName)
         {
             throw new NotSupportedException();
-        }
-
-        public static string CreateAccountInfo(FinTsClient client)
-        {
-            var conn = client.ConnectionDetails;
-            return conn.Iban + ":" + conn.Bic + (client.SepaAccountNationalAllowed ? ":" + conn.Account + ":" + conn.SubAccount + ":280:" + conn.Blz : string.Empty);
         }
     }
 }

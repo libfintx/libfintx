@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net8.0;net10.0</TargetFrameworks>
     <RootNamespace>libfintx.Xsd</RootNamespace>
     <Description>C# based client library for EBICS H004 and EBICS H005.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.5" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

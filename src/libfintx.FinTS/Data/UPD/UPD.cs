@@ -57,107 +57,120 @@ namespace libfintx.FinTS
             AccountList = new List<AccountInformation>();
             try
             {
-                var segments = Helper.SplitSegments(message);
+                var segments = Helper.SplitSegments((message ?? string.Empty).TrimStart('\'', '\r', '\n', ' '));
 
                 foreach (string segment in segments)
                 {
                     if (!segment.StartsWith("HIUPD"))
+                    {
                         continue;
+                    }
 
-                    string Accountnumber = null;
-                    string SubAccountFeature = null;
-                    string Accountbankcode = null;
-                    string Accountiban = null;
-                    string Accountuserid = null;
-                    string Accounttype = null;
-                    string Accountcurrency = null;
-                    string Accountowner = null;
-                    List<AccountPermission> Accountpermissions = new List<AccountPermission>();
-
-                    // HIUPD:165:6:4+0123456789::280:10050000+DE22100500000123456789+5985932562+10+EUR+Meier+Peter+Sparkassenbuch Gold
-                    var match = Regex.Match(segment, @"HIUPD.*?\+(.*?)\+(.*?)\+(.*?)\+(.*?)\+(.*?)\+(.*?)\+(.*?)\+(.*?)\+");
-                    if (match.Success)
+                    try
                     {
-                        var accountInfo = match.Groups[1].Value;
-                        var matchInfo = Regex.Match(accountInfo, @"(\d+):(.*?):280:(\d+)");
-                        if (matchInfo.Success)
+                        string Accountnumber = null;
+                        string SubAccountFeature = null;
+                        string Accountbankcode = null;
+                        string Accountiban = null;
+                        string Accountuserid = null;
+                        string Accounttype = null;
+                        string Accountcurrency = null;
+                        string Accountowner = null;
+                        List<AccountPermission> Accountpermissions = new List<AccountPermission>();
+
+                        // HIUPD:165:6:4+0123456789::280:10050000+DE22100500000123456789+5985932562+10+EUR+Meier+Peter+Sparkassenbuch Gold
+                        var match = Regex.Match(segment, @"HIUPD.*?\+(.*?)\+(.*?)\+(.*?)\+(.*?)\+(.*?)\+(.*?)\+(.*?)\+(.*?)\+");
+                        if (match.Success)
                         {
-                            Accountnumber = matchInfo.Groups[1].Value;
-                            SubAccountFeature = matchInfo.Groups[2].Value;
-                            Accountbankcode = matchInfo.Groups[3].Value;
-                        }
-
-                        Accountiban = match.Groups[2].Value;
-                        Accountuserid = match.Groups[3].Value;
-                        Accounttype = match.Groups[4].Value;
-                        Accountcurrency = match.Groups[5].Value;
-                        Accountowner = $"{match.Groups[6]} {match.Groups[7]}";
-                        Accounttype = match.Groups[8].Value;
-
-                        if (Accountnumber?.Length > 2 || Accountiban?.Length > 2)
-                        {
-                            // Account permissions
-                            string pat = @"\+[A-Z]+:1";
-                            var res = Regex.Matches(segment, pat, RegexOptions.Singleline);
-
-                            for (int c = 0; c <= res.Count - 1; c++)
+                            var accountInfo = match.Groups[1].Value;
+                            var matchInfo = Regex.Match(accountInfo, @"(\d+):(.*?):280:(\d+)");
+                            if (matchInfo.Success)
                             {
-                                if (res[c].Value.Length < 10)
+                                Accountnumber = matchInfo.Groups[1].Value;
+                                SubAccountFeature = matchInfo.Groups[2].Value;
+                                Accountbankcode = matchInfo.Groups[3].Value;
+                            }
+
+                            Accountiban = match.Groups[2].Value;
+                            Accountuserid = match.Groups[3].Value;
+                            Accounttype = match.Groups[4].Value;
+                            Accountcurrency = match.Groups[5].Value;
+                            Accountowner = $"{match.Groups[6]} {match.Groups[7]}";
+                            Accounttype = match.Groups[8].Value;
+
+                            if (Accountnumber?.Length > 2 || Accountiban?.Length > 2)
+                            {
+                                // Account permissions
+                                string pat = @"\+[A-Z]+:1";
+                                var res = Regex.Matches(segment, pat, RegexOptions.Singleline);
+
+                                for (int c = 0; c <= res.Count - 1; c++)
                                 {
-                                    Accountpermissions.Add(new AccountPermission
+                                    if (res[c].Value.Length < 10)
                                     {
-                                        Segment = res[c].Value.Replace("+", "").Replace(":1", ""),
-                                        Description = AccountPermission.Permission(res[c].Value.Replace("+", "").Replace(":1", ""))
-                                    });
+                                        Accountpermissions.Add(new AccountPermission
+                                        {
+                                            Segment = res[c].Value.Replace("+", "").Replace(":1", ""),
+                                            Description = AccountPermission.Permission(res[c].Value.Replace("+", "").Replace(":1", ""))
+                                        });
+                                    }
                                 }
                             }
                         }
-                    }
-                    else // Fallback
-                    {
-                        Accountiban = "DE" + Helper.Parse_String(segment, "+DE", "+");
-                        Accountowner = Helper.Parse_String(segment, "EUR+", "+");
-                        Accounttype = Helper.Parse_String(segment.Replace("++EUR+", ""), "++", "++");
-
-                        if (Accountnumber?.Length > 2 || Accountiban?.Length > 2)
+                        else // Fallback
                         {
-                            // Account permissions
-                            string pat = "\\+.*?:1";
-                            MatchCollection res = Regex.Matches(segment, pat, RegexOptions.Singleline);
+                            Accountiban = "DE" + Helper.Parse_String(segment, "+DE", "+");
+                            Accountowner = Helper.Parse_String(segment, "EUR+", "+");
+                            Accounttype = Helper.Parse_String(segment.Replace("++EUR+", ""), "++", "++");
 
-                            for (int c = 0; c <= res.Count - 1; c++)
+                            if (Accountnumber?.Length > 2 || Accountiban?.Length > 2)
                             {
-                                if (res[c].Value.Length < 10)
+                                // Account permissions
+                                string pat = "\\+.*?:1";
+                                MatchCollection res = Regex.Matches(segment, pat, RegexOptions.Singleline);
+
+                                for (int c = 0; c <= res.Count - 1; c++)
                                 {
-                                    Accountpermissions.Add(new AccountPermission
+                                    if (res[c].Value.Length < 10)
                                     {
-                                        Segment = res[c].Value.Replace("+", "").Replace(":1", ""),
-                                        Description = AccountPermission.Permission(res[c].Value.Replace("+", "").Replace(":1", ""))
-                                    });
+                                        Accountpermissions.Add(new AccountPermission
+                                        {
+                                            Segment = res[c].Value.Replace("+", "").Replace(":1", ""),
+                                            Description = AccountPermission.Permission(res[c].Value.Replace("+", "").Replace(":1", ""))
+                                        });
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    if (Accountnumber?.Length > 2 || Accountiban?.Length > 2)
-                        AccountList.Add(new AccountInformation()
+                        if (Accountnumber?.Length > 2 || Accountiban?.Length > 2)
                         {
-                            AccountNumber = Accountnumber,
-                            SubAccountFeature = SubAccountFeature,
-                            AccountBankCode = Accountbankcode,
-                            AccountIban = Accountiban,
-                            AccountUserId = Accountuserid,
-                            AccountType = Accounttype,
-                            AccountCurrency = Accountcurrency,
-                            AccountOwner = Accountowner,
-                            AccountPermissions = Accountpermissions
-                        }); ;
+                            AccountList.Add(new AccountInformation
+                            {
+                                AccountNumber = Accountnumber,
+                                SubAccountFeature = SubAccountFeature,
+                                AccountBankCode = Accountbankcode,
+                                AccountIban = Accountiban,
+                                AccountUserId = Accountuserid,
+                                AccountType = Accounttype,
+                                AccountCurrency = Accountcurrency,
+                                AccountOwner = Accountowner,
+                                AccountPermissions = Accountpermissions
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        logger?.LogWarning("Unable to parse HIUPD segment. Segment ignored. {Message}", ex.Message);
+                    }
                 }
 
                 if (AccountList.Count > 0)
+                {
                     return true;
-                else
-                    return false;
+                }
+
+                return false;
             }
             catch (Exception ex)
             {

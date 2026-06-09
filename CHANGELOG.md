@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 1.3.0 (2024-01-03)
+## Version 1.3.0 (2025-01-03)
 
 - :tada: redesign BPD handling: interface IBpdStore supports now use of different BPD storeand BPD version is now retrieved from cache and send when calling Synchronization
 - :tada: *change* Use Microsoft.Extensions.Logging in FinTS ([#34](https://github.com/libfintx/libfintx/issues/34)

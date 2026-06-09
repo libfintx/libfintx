@@ -34,233 +34,274 @@ public partial class FinTsClient
     /// </summary>
     /// <param name="Message"></param>
     /// <returns></returns>
-    internal IEnumerable<HBCIBankMessage> Parse_Segments(string Message)
+    internal List<HBCIBankMessage> Parse_Segments(string Message)
     {
         Logger.LogInformation("Parsing segments ...");
 
-        List<string> rawSegments = Helper.SplitEncryptedSegments(Message);
-
-        List<Segment> segments = new List<Segment>();
-        foreach (var item in rawSegments)
+        try
         {
-            Segment segment = Parse_Segment(item);
-            if (segment != null)
-                segments.Add(segment);
-        }
+            List<HBCIBankMessage> result = new List<HBCIBankMessage>();
 
-        // BPD
-        string rawBpd = string.Empty;
-        var bpaMatch = Regex.Match(Message, @"(HIBPA.+?)\b(HITAN|HNHBS|HISYN|HIUPA)\b");
-        if (bpaMatch.Success)
-            rawBpd = bpaMatch.Groups[1].Value;
-        if (rawBpd.Length > 0)
-        {
-            if (rawBpd.EndsWith("''"))
-                rawBpd = rawBpd.Substring(0, rawBpd.Length - 1);
+            List<string> rawSegments = Helper.SplitEncryptedSegments(Message);
 
-            this.BdpStore.SaveBPD(280, ConnectionDetails.Blz, rawBpd)
-                .Wait();
-            this.BPD = BankParameterData.BPD.Parse(rawBpd, Logger);
-        }
-
-        // UPD
-        string upd = string.Empty;
-        var upaMatch = Regex.Match(Message, @"(HIUPA.+?)\b(HITAN|HNHBS|HIKIM)\b");
-        if (upaMatch.Success)
-            upd = upaMatch.Groups[1].Value;
-        if (upd.Length > 0)
-        {
-            Logger.LogInformation("Saving UPD ...");
-            Helper.SaveUPD(ConnectionDetails.Blz, ConnectionDetails.UserId, upd);
-            UPD.ParseUpd(upd, Logger);
-        }
-
-        if (UPD.AccountList != null)
-        {
-            //Add BIC to Account information (Not retrieved bz UPD??)
-            foreach (AccountInformation accInfo in UPD.AccountList)
-                accInfo.AccountBic = ConnectionDetails.Bic;
-        }
-
-        foreach (var segment in segments)
-        {
-            if (segment.Name == "HIRMG")
+            List<Segment> segments = new List<Segment>();
+            foreach (var item in rawSegments)
             {
-                // HIRMG:2:2+9050::Die Nachricht enthÃ¤lt Fehler.+9800::Dialog abgebrochen+9010::Initialisierung fehlgeschlagen, Auftrag nicht bearbeitet.
-                // HIRMG:2:2+9800::Dialogabbruch.
-
-                string[] HIRMG_messages = segment.Payload.Split('+');
-                foreach (var HIRMG_message in HIRMG_messages)
-                {
-                    var message = Parse_BankCode_Message(HIRMG_message);
-                    LogBankMessage(message);
-                    if (message != null)
-                        yield return message;
-                }
+                Segment segment = Parse_Segment(item);
+                if (segment != null)
+                    segments.Add(segment);
             }
 
-            if (segment.Name == "HIRMS")
+            // BPD
+            string rawBpd = string.Empty;
+            var bpaMatch = Regex.Match(Message, @"(HIBPA.+?)\b(HITAN|HNHBS|HISYN|HIUPA)\b");
+            if (bpaMatch.Success)
+                rawBpd = bpaMatch.Groups[1].Value;
+            if (rawBpd.Length > 0)
             {
-                // HIRMS:3:2:2+9942::PIN falsch. Zugang gesperrt.'
-                string[] HIRMS_messages = segment.Payload.Split('+');
-                HBCIBankMessage? securityMessage = null;
-                foreach (var HIRMS_message in HIRMS_messages)
-                {
-                    var message = Parse_BankCode_Message(HIRMS_message);
-                    LogBankMessage(message);
-                    if (message.Code == "3920")
-                        securityMessage = message;
+                if (rawBpd.EndsWith("''"))
+                    rawBpd = rawBpd.Substring(0, rawBpd.Length - 1);
 
-                    if (message != null)
-                        yield return message;
+                this.BdpStore.SaveBPD(280, ConnectionDetails.Blz, rawBpd)
+                    .Wait();
+                this.BPD = BankParameterData.BPD.Parse(rawBpd, Logger);
+            }
+
+            // UPD
+            string upd = string.Empty;
+            var upaMatch = Regex.Match(Message, @"(HIUPA.+?)\b(HITAN|HNHBS|HIKIM)\b");
+            if (upaMatch.Success)
+                upd = upaMatch.Groups[1].Value;
+            if (upd.Length > 0)
+            {
+                Logger.LogInformation("Saving UPD ...");
+                Helper.SaveUPD(ConnectionDetails.Blz, ConnectionDetails.UserId, upd);
+                UPD.ParseUpd(upd, Logger);
+            }
+
+            if (UPD.AccountList != null)
+            {
+                //Add BIC to Account information (Not retrieved bz UPD??)
+                foreach (AccountInformation accInfo in UPD.AccountList)
+                    accInfo.AccountBic = ConnectionDetails.Bic;
+            }
+
+            foreach (var segment in segments)
+            {
+                if (segment.Name == "HIRMG")
+                {
+                    // HIRMG:2:2+9050::Die Nachricht enthÃ¤lt Fehler.+9800::Dialog abgebrochen+9010::Initialisierung fehlgeschlagen, Auftrag nicht bearbeitet.
+                    // HIRMG:2:2+9800::Dialogabbruch.
+
+                    string[] HIRMG_messages = segment.Payload.Split('+');
+                    foreach (var HIRMG_message in HIRMG_messages)
+                    {
+                        var message = Parse_BankCode_Message(HIRMG_message);
+                        if (message != null)
+                            result.Add(message);
+                    }
                 }
 
-                if (securityMessage != null)
+                if (segment.Name == "HIRMS")
                 {
-                    string message = securityMessage.Message;
-
-                    string TAN = string.Empty;
-                    string TANf = string.Empty;
-
-                    string[] procedures = Regex.Split(message, @"\D+");
-
-                    foreach (string value in procedures)
+                    // HIRMS:3:2:2+9942::PIN falsch. Zugang gesperrt.'
+                    string[] HIRMS_messages = segment.Payload.Split('+');
+                    foreach (var HIRMS_message in HIRMS_messages)
                     {
-                        if (!string.IsNullOrEmpty(value) && int.TryParse(value, out int i))
-                        {
-                            if (value.StartsWith("9"))
-                            {
-                                if (string.IsNullOrEmpty(TAN))
-                                    TAN = i.ToString();
+                        var message = Parse_BankCode_Message(HIRMS_message);
+                        if (message != null)
+                            result.Add(message);
+                    }
 
-                                if (string.IsNullOrEmpty(TANf))
-                                    TANf = i.ToString();
-                                else
-                                    TANf += $";{i}";
+                    var securityMessage = result.FirstOrDefault(m => m.Code == "3920");
+                    if (securityMessage != null)
+                    {
+                        string message = securityMessage.Message;
+
+                        string TAN = string.Empty;
+                        string TANf = string.Empty;
+
+                        string[] procedures = Regex.Split(message, @"\D+");
+
+                        foreach (string value in procedures)
+                        {
+                            if (!string.IsNullOrEmpty(value) && int.TryParse(value, out int i))
+                            {
+                                if (value.StartsWith("9"))
+                                {
+                                    if (string.IsNullOrEmpty(TAN))
+                                        TAN = i.ToString();
+
+                                    if (string.IsNullOrEmpty(TANf))
+                                        TANf = i.ToString();
+                                    else
+                                        TANf += $";{i}";
+                                }
                             }
                         }
+                        if (string.IsNullOrEmpty(this.HIRMS))
+                        {
+                            this.HIRMS = TAN;
+                        }
+                        else
+                        {
+                            if (!TANf.Contains(this.HIRMS))
+                                throw new Exception($"Invalid HIRMS/Tan-Mode {this.HIRMS} detected. Please choose one of the allowed modes: {TANf}");
+                        }
+                        this.HIRMSf = TANf;
+
+                        // Parsing TAN processes
+                        if (!string.IsNullOrEmpty(this.HIRMS))
+                            Parse_TANProcesses(rawBpd);
+
                     }
-                    if (string.IsNullOrEmpty(this.HIRMS))
+                }
+
+                if (segment.Name == "HNHBK")
+                {
+                    if (segment.DataElements.Count < 3)
+                        throw new InvalidOperationException($"Expected segment '{segment}' to contain at least 3 data elements in payload.");
+
+                    var dialogId = segment.DataElements[2];
+                    this.HNHBK = dialogId;
+                }
+
+                if (segment.Name == "HISYN")
+                {
+                    this.SystemId = segment.Payload;
+                    Logger.LogInformation("Customer System ID: " + this.SystemId);
+                }
+
+                if (segment.Name == "HNHBS")
+                {
+                    if (segment.Payload == null || segment.Payload == "0")
+                        this.HNHBS = 2;
+                    else
+                        this.HNHBS = Convert.ToInt32(segment.Payload) + 1;
+                }
+
+                if (segment.Name == "HISALS")
+                {
+                    if (this.HISALS < segment.Version)
+                        this.HISALS = segment.Version;
+                }
+
+                if (segment.Name == "HITANS")
+                {
+                    var hitans = (HITANS) segment;
+                    if (this.HIRMS == null)
                     {
-                        this.HIRMS = TAN;
+                        // Die höchste HKTAN-Version auswählen, welche in den erlaubten TAN-Verfahren (3920) enthalten ist.
+                        var tanProcessesHirms = this.HIRMSf.Split(';').Select(tp => Convert.ToInt32(tp));
+                        if (hitans.TanProcesses.Select(tp => tp.TanCode).Intersect(tanProcessesHirms).Any())
+                            this.HITANS = segment.Version;
                     }
                     else
                     {
-                        if (!TANf.Contains(this.HIRMS))
-                            throw new Exception($"Invalid HIRMS/Tan-Mode {this.HIRMS} detected. Please choose one of the allowed modes: {TANf}");
+                        if (hitans.TanProcesses.Any(tp => tp.TanCode == Convert.ToInt32(this.HIRMS)))
+                            this.HITANS = segment.Version;
                     }
-                    this.HIRMSf = TANf;
-
-                    // Parsing TAN processes
-                    if (!string.IsNullOrEmpty(this.HIRMS))
-                        Parse_TANProcesses(rawBpd);
-
                 }
-            }
 
-            if (segment.Name == "HNHBK")
-            {
-                if (segment.DataElements.Count < 3)
-                    throw new InvalidOperationException($"Expected segment '{segment}' to contain at least 3 data elements in payload.");
-
-                var dialogId = segment.DataElements[2];
-                this.HNHBK = dialogId;
-            }
-
-            if (segment.Name == "HISYN")
-            {
-                this.SystemId = segment.Payload;
-                Logger.LogInformation("Customer System ID: " + this.SystemId);
-            }
-
-            if (segment.Name == "HNHBS")
-            {
-                if (segment.Payload == null || segment.Payload == "0")
-                    this.HNHBS = 2;
-                else
-                    this.HNHBS = Convert.ToInt32(segment.Payload) + 1;
-            }
-
-            if (segment.Name == "HISALS")
-            {
-                if (this.HISALS < segment.Version)
-                    this.HISALS = segment.Version;
-            }
-
-            if (segment.Name == "HITANS")
-            {
-                var hitans = (HITANS) segment;
-                if (this.HIRMS == null)
+                if (segment.Name == "HITAN")
                 {
-                    // Die höchste HKTAN-Version auswählen, welche in den erlaubten TAN-Verfahren (3920) enthalten ist.
-                    var tanProcessesHirms = this.HIRMSf.Split(';').Select(tp => Convert.ToInt32(tp));
-                    if (hitans.TanProcesses.Select(tp => tp.TanCode).Intersect(tanProcessesHirms).Any())
-                        this.HITANS = segment.Version;
+                    // HITAN:5:7:3+S++8578-06-23-13.22.43.709351
+                    // HITAN:5:7:4+4++8578-06-23-13.22.43.709351+Bitte Auftrag in Ihrer App freigeben.
+                    if (segment.DataElements.Count < 3)
+                        throw new InvalidOperationException($"Invalid HITAN segment '{segment}'. Payload must have at least 3 data elements.");
+                    this.HITAN = segment.DataElements[2];
                 }
-                else
-                {
-                    if (hitans.TanProcesses.Any(tp => tp.TanCode == Convert.ToInt32(this.HIRMS)))
-                        this.HITANS = segment.Version;
-                }
-            }
 
-            if (segment.Name == "HITAN")
-            {
-                // HITAN:5:7:3+S++8578-06-23-13.22.43.709351
-                // HITAN:5:7:4+4++8578-06-23-13.22.43.709351+Bitte Auftrag in Ihrer App freigeben.
-                if (segment.DataElements.Count < 3)
-                    throw new InvalidOperationException($"Invalid HITAN segment '{segment}'. Payload must have at least 3 data elements.");
-                this.HITAN = segment.DataElements[2];
-            }
-
-            if (segment.Name == "HIKAZS")
-            {
-                if (this.HIKAZS == 0)
+                if (segment.Name == "HIKAZS")
                 {
-                    this.HIKAZS = segment.Version;
-                }
-                else
-                {
-                    if (segment.Version > this.HIKAZS)
+                    if (this.HIKAZS == 0)
+                    {
                         this.HIKAZS = segment.Version;
+                    }
+                    else
+                    {
+                        if (segment.Version > this.HIKAZS)
+                            this.HIKAZS = segment.Version;
+                    }
                 }
-            }
 
-            if (segment.Name == "HICAZS")
-            {
-                if (segment.Payload.Contains("camt.052.001.02"))
-                    this.HICAZS_Camt = CamtScheme.Camt052_001_02;
-                else if (segment.Payload.Contains("camt.052.001.08"))
-                    this.HICAZS_Camt = CamtScheme.Camt052_001_08;
-                else // Fallback
-                    this.HICAZS_Camt = CamtScheme.Camt052_001_02;
-            }
-
-            if (segment.Name == "HISPAS")
-            {
-                var hispas = segment as HISPAS;
-                if (this.HISPAS < segment.Version)
+                if (segment.Name == "HICAZS")
                 {
-                    this.HISPAS = segment.Version;
+                    if (segment.Payload.Contains("camt.052.001.02"))
+                        this.HICAZS_Camt = CamtScheme.Camt052_001_02;
+                    else if (segment.Payload.Contains("camt.052.001.08"))
+                        this.HICAZS_Camt = CamtScheme.Camt052_001_08;
+                    else // Fallback
+                        this.HICAZS_Camt = CamtScheme.Camt052_001_02;
+                }
 
-                    if (hispas.Payload.Contains("pain.001.001.03"))
-                        this.HISPAS_Pain = 1;
-                    else if (hispas.Payload.Contains("pain.001.002.03"))
-                        this.HISPAS_Pain = 2;
-                    else if (hispas.Payload.Contains("pain.001.003.03"))
-                        this.HISPAS_Pain = 3;
+                if (segment.Name == "HISPAS")
+                {
+                    var hispas = segment as HISPAS;
+                    if (this.HISPAS < segment.Version)
+                    {
+                        this.HISPAS = segment.Version;
 
-                    if (this.HISPAS_Pain == 0)
-                        this.HISPAS_Pain = 3; // -> Fallback. Most banks accept the newest pain version
+                        if (hispas.Payload.Contains("pain.001.001.03"))
+                            this.HISPAS_Pain = 1;
+                        else if (hispas.Payload.Contains("pain.001.002.03"))
+                            this.HISPAS_Pain = 2;
+                        else if (hispas.Payload.Contains("pain.001.003.03"))
+                            this.HISPAS_Pain = 3;
 
-                    this.HISPAS_AccountNationalAllowed = hispas.IsAccountNationalAllowed;
+                        if (this.HISPAS_Pain == 0)
+                            this.HISPAS_Pain = 3; // -> Fallback. Most banks accept the newest pain version
+
+                        this.HISPAS_AccountNationalAllowed = hispas.IsAccountNationalAllowed;
+                    }
                 }
             }
-        }
 
-        // Fallback if HIKAZS is not delivered by BPD (eg. Postbank)
-        if (this.HIKAZS == 0)
-            this.HIKAZS = 0;
+            // Fallback if HIKAZS is not delivered by BPD (eg. Postbank)
+            if (this.HIKAZS == 0)
+                this.HIKAZS = 0;
+
+            // If HITANS wasn't set from the response (e.g. bank skipped BPD because version is unchanged),
+            // fall back to the cached BPD file so that HKTAN is included in the next INI message.
+            if (this.HITANS == 0)
+            {
+                var cachedBpd = this.BPD;
+                if (cachedBpd?.HITANS?.Count > 0)
+                {
+                    if (!string.IsNullOrEmpty(this.HIRMS) && int.TryParse(this.HIRMS, out int hirmsCode))
+                    {
+                        foreach (var hitansEntry in cachedBpd.HITANS)
+                        {
+                            if (hitansEntry.TanProcesses.Any(tp => tp.TanCode == hirmsCode))
+                            {
+                                this.HITANS = hitansEntry.Version;
+                                break;
+                            }
+                        }
+                    }
+                    else if (!string.IsNullOrEmpty(this.HIRMSf))
+                    {
+                        var tanCodes = this.HIRMSf.Split(';').Where(s => int.TryParse(s, out _)).Select(s => Convert.ToInt32(s)).ToList();
+                        foreach (var hitansEntry in cachedBpd.HITANS)
+                        {
+                            if (hitansEntry.TanProcesses.Select(tp => tp.TanCode).Intersect(tanCodes).Any())
+                            {
+                                this.HITANS = hitansEntry.Version;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogInformation(ex.ToString());
+
+            throw new InvalidOperationException($"Software error: {ex.Message}", ex);
+        }
     }
 
     internal List<Segment> Parse_Message(string message)
@@ -500,7 +541,6 @@ public partial class FinTsClient
                 foreach (var HIRMG_message in messages)
                 {
                     var message = Parse_BankCode_Message(HIRMG_message);
-                    LogBankMessage(message);
                     if (message != null)
                         yield return message;
                 }
