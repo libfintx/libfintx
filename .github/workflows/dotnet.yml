@@ -1,10 +1,10 @@
 name: .NET
 
+# Build + test run on every branch push and every pull request.
+# The publish job below is pinned to main only.
 on:
   push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
 
 env:
   API_KEY: ${{ secrets.NUGET_PUBLISH_API_KEY }}
@@ -68,7 +68,8 @@ jobs:
   publish:
     needs: build
 
-    if: github.event_name != 'pull_request'
+    # Only publish from a push to main, never from other branches or pull requests.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     runs-on: ubuntu-latest
 
