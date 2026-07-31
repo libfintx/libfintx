@@ -73,7 +73,16 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    permissions:
+      id-token: write
+
     steps:
+    - name: NuGet login (OIDC → temp API key)
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: ${{ secrets.NUGET_USER }}
+
     - uses: actions/download-artifact@v4.1.2
       with:
         name: Nuget Packages
@@ -81,4 +90,4 @@ jobs:
 
     - name: Push generated package
       if: env.API_KEY != ''
-      run: dotnet nuget push ~/download/nuget_packages/*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ env.API_KEY }}
+      run: dotnet nuget push ~/download/nuget_packages/*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
