@@ -45,6 +45,7 @@ namespace libfintx.FinTS
             StringBuilder sb = new StringBuilder();
 
             var connectionDetails = client.ConnectionDetails;
+            var bpdVersion = await client.BdpStore.GetBPDVersion(280, connectionDetails.Blz) ?? 0;
             if (!client.Anonymous)
             {
                 // Sync
@@ -77,7 +78,7 @@ namespace libfintx.FinTS
                     sb.Append(DEG.Separator);
                     sb.Append("2");
                     sb.Append(sEG.Delimiter);
-                    sb.Append("0");
+                    sb.Append(bpdVersion);
                     sb.Append(sEG.Delimiter);
                     sb.Append("0");
                     sb.Append(sEG.Delimiter);
@@ -122,7 +123,7 @@ namespace libfintx.FinTS
                     sb.Append(DEG.Separator);
                     sb.Append("3");
                     sb.Append(sEG.Delimiter);
-                    sb.Append("0");
+                    sb.Append(bpdVersion);
                     sb.Append(sEG.Delimiter);
                     sb.Append("0");
                     sb.Append(sEG.Delimiter);
@@ -207,7 +208,7 @@ namespace libfintx.FinTS
                     sb.Append(DEG.Separator);
                     sb.Append("3");
                     sb.Append(sEG.Delimiter);
-                    sb.Append("0");
+                    sb.Append(bpdVersion);
                     sb.Append(sEG.Delimiter);
                     sb.Append("0");
                     sb.Append(sEG.Delimiter);
@@ -287,7 +288,7 @@ namespace libfintx.FinTS
                     sb.Append(DEG.Separator);
                     sb.Append("3");
                     sb.Append(sEG.Delimiter);
-                    sb.Append("0");
+                    sb.Append(bpdVersion);
                     sb.Append(sEG.Delimiter);
                     sb.Append("0");
                     sb.Append(sEG.Delimiter);
