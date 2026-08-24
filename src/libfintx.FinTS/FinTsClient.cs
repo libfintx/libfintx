@@ -53,7 +53,7 @@ namespace libfintx.FinTS
         /// <summary>
         /// The bank parameter data store.
         /// </summary>
-        private IBpdStore BdpStore { get; }
+        internal IBpdStore BdpStore { get; }
 
         /// <summary>
         /// The bank parameter data of the bank given in the connection details.
