@@ -35,13 +35,15 @@ namespace libfintx.FinTS
     public static partial class Helper
     {
         /// <summary>
-        /// Escapes all special Characters (':', '+', ''') with a question mark '?'.
+        /// Escapes all FinTS syntax characters ('?', ':', '+', ''', '@') with a question mark '?'.
+        /// Use for values inserted into non-binary data elements, never inside @len@ binary data.
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
         public static string EscapeHbciString(string str)
         {
-            return str?.Replace(":", "?:").Replace("'", "?'").Replace("+", "?+");
+            // '?' first, otherwise the escape characters added below would be escaped again
+            return str?.Replace("?", "??").Replace(":", "?:").Replace("'", "?'").Replace("+", "?+").Replace("@", "?@");
         }
 
         /// <summary>

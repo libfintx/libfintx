@@ -490,7 +490,8 @@ public partial class FinTsClient
 
         foreach (Match match in Regex.Matches(bankCode, @"\+[AGMS]:[012]:(?<Kartennummer>[^:]*):(?<Kartenfolgenummer>[^:]*):+(?<Bezeichnung>[^+:]+)"))
         {
-            yield return match.Groups["Bezeichnung"].Value.Replace(@"\", "?:");
+            // Return the plain name (FinTS escaping removed); HKTAN escapes it again when sending
+            yield return Regex.Replace(match.Groups["Bezeichnung"].Value.Replace(@"\", "?:"), @"\?(.)", "$1");
         }
     }
 

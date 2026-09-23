@@ -80,6 +80,11 @@ public class ConnectionDetails
     public string Pin { get; set; }
 
     /// <summary>
+    /// Pin with HBCI special characters escaped.
+    /// </summary>
+    public string PinEscaped => Helper.EscapeHbciString(Pin);
+
+    /// <summary>
     /// Name of the Accountholder
     /// </summary>
     public string AccountHolder { get; set; }

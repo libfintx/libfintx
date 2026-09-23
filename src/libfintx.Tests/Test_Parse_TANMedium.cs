@@ -24,7 +24,7 @@ public class Test_Parse_TANMedium
             .ToList();
 
         Assert.Equal(1, result?.Count);
-        Assert.Equal("mT?:MFN1", result[0]);
+        Assert.Equal("mT:MFN1", result[0]);
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class Test_Parse_TANMedium
             .ToList();
 
         Assert.Equal(2, result?.Count);
-        Assert.Equal("mT?:MFN1", result[0]);
-        Assert.Equal("SO?:iPhone", result[1]);
+        Assert.Equal("mT:MFN1", result[0]);
+        Assert.Equal("SO:iPhone", result[1]);
     }
 }
