@@ -195,7 +195,7 @@ namespace libfintx.Sepa
                 "<NbOfTxs>" + NumberofTransactions + "</NbOfTxs>" +
                 "<CtrlSum>" + Amount_ + "</CtrlSum>" +
                 "<InitgPty>" +
-                "<Nm>" + Accountholder + "</Nm>" +
+                "<Nm>" + SepaHelper.Escape(Accountholder) + "</Nm>" +
                 "</InitgPty>" +
                 "</GrpHdr>" +
                 "<PmtInf>" +
@@ -212,7 +212,7 @@ namespace libfintx.Sepa
                 "</PmtTpInf>" +
                 "<ReqdColltnDt>" + SettlementDate.ToString("yyyy-MM-dd") + "</ReqdColltnDt>" +
                 "<Cdtr>" +
-                "<Nm>" + Accountholder + "</Nm>" +
+                "<Nm>" + SepaHelper.Escape(Accountholder) + "</Nm>" +
                 "</Cdtr>" +
                 "<CdtrAcct>" +
                 "<Id>" +
@@ -259,14 +259,14 @@ namespace libfintx.Sepa
                     "</FinInstnId>" +
                     "</DbtrAgt>" +
                     "<Dbtr>" +
-                    "<Nm>" + transaction.Payer + "</Nm>" +
+                    "<Nm>" + SepaHelper.Escape(transaction.Payer) + "</Nm>" +
                     "</Dbtr>" + "<DbtrAcct>" +
                     "<Id>" +
                     "<IBAN>" + transaction.PayerIban + "</IBAN>" +
                     "</Id>" +
                     "</DbtrAcct>" +
                     "<RmtInf>" +
-                    "<Ustrd>" + transaction.Usage + "</Ustrd>" +
+                    "<Ustrd>" + SepaHelper.Escape(transaction.Usage) + "</Ustrd>" +
                     "</RmtInf>" +
                     "</DrctDbtTxInf>" +
                     "</PmtInf>";

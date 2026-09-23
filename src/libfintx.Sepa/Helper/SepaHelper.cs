@@ -12,10 +12,14 @@ namespace libfintx.Sepa.Helper
     {
         public static string Escape(string str)
         {
-            // Zunächst XML-escapen
-            var escaped = SecurityElement.Escape(str);
-            // Dann sicherstellen, dass nur gemäß SEPA gültige Zeichen verwendet werden
-            return ConvertToValidSepaString(escaped);
+            if (str == null)
+                return null;
+
+            // Zunächst sicherstellen, dass nur gemäß SEPA gültige Zeichen verwendet werden,
+            // erst danach XML-escapen. In umgekehrter Reihenfolge würde aus "&amp;" durch das
+            // Entfernen von '&' und ';' der Text "amp" (z.B. "A & B" -> "A amp B").
+            var valid = ConvertToValidSepaString(str);
+            return SecurityElement.Escape(valid);
         }
 
         public static string ConvertToValidSepaString(string str)
