@@ -70,13 +70,14 @@ namespace libfintx.FinTS
         }
 
         /// <summary>
-        /// Encode to Base64
+        /// Encode to Base64. FinTS 3.0 messages use the ISO-8859-1 character set, so
+        /// umlauts (e.g. TAN medium "Alle Geräte") must not be reduced to '?' by ASCII.
         /// </summary>
         /// <param name="toEncode"></param>
         /// <returns></returns>
         public static string EncodeTo64(string toEncode)
         {
-            byte[] toEncodeAsBytes = Encoding.ASCII.GetBytes(toEncode);
+            byte[] toEncodeAsBytes = Encoding.GetEncoding("ISO-8859-1").GetBytes(toEncode);
             string returnValue = Convert.ToBase64String(toEncodeAsBytes);
 
             return returnValue;
