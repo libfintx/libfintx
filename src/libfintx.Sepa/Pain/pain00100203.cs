@@ -163,7 +163,7 @@ namespace libfintx.Sepa
                  /*---3---*/ "<NbOfTxs>" + NumberofTransactions + "</NbOfTxs>" +
                  /*---3---*/ "<CtrlSum>" + Amount_ + "</CtrlSum>" +
                  /*---3---*/ "<InitgPty>" +
-                 /*----4----*/ "<Nm>" + Accountholder + "</Nm>" +
+                 /*----4----*/ "<Nm>" + SepaHelper.Escape(Accountholder) + "</Nm>" +
                  /*---3---*/ "</InitgPty>" +
                  /*--2--*/ "</GrpHdr>" +
                  /*--2--*/"<PmtInf>" +
@@ -177,7 +177,7 @@ namespace libfintx.Sepa
                  /*---3---*/ "</PmtTpInf>" +
                  /*---3---*/ "<ReqdExctnDt>" + ExecutionDay.ToString("yyyy-MM-dd") + "</ReqdExctnDt>" +
                  /*---3---*/ "<Dbtr>" +
-                 /*----4----*/ "<Nm>" + Accountholder + "</Nm>" +
+                 /*----4----*/ "<Nm>" + SepaHelper.Escape(Accountholder) + "</Nm>" +
                  /*---3---*/ "</Dbtr>" +
                  /*---3---*/ "<DbtrAcct>" +
                  /*----4----*/ "<Id>" +
@@ -209,7 +209,7 @@ namespace libfintx.Sepa
                     /*--2--*/ "</FinInstnId>" +
                     /*-1-*/ "</CdtrAgt>" +
                     /*-1-*/ "<Cdtr>" +
-                    /*--2--*/ "<Nm>" + transaction.Receiver + "</Nm>" +
+                    /*--2--*/ "<Nm>" + SepaHelper.Escape(transaction.Receiver) + "</Nm>" +
                     /*-1-*/ "</Cdtr>" +
                     /*-1-*/ "<CdtrAcct>" +
                     /*--2--*/ "<Id>" +
@@ -217,7 +217,7 @@ namespace libfintx.Sepa
                     /*--2--*/ "</Id>" +
                     /*-1-*/ "</CdtrAcct>" +
                     /*-1-*/ "<RmtInf>" +
-                    /*--2--*/ "<Ustrd>" + transaction.Usage + "</Ustrd>" +
+                    /*--2--*/ "<Ustrd>" + SepaHelper.Escape(transaction.Usage) + "</Ustrd>" +
                     /*-1-*/ "</RmtInf>" +
                     /**/ "</CdtTrfTxInf>";
 
