@@ -87,7 +87,7 @@ namespace libfintx.FinTS.Message
             //string UserID = client.ConnectionDetails.UserId;
             // Änderung aufgrund https://github.com/abid76/libfintx/commit/95e8e4768d94a42f91a7aa4c905b88bae0439827
             string UserID = client.ConnectionDetails.UserIdEscaped;
-            string PIN = client.ConnectionDetails.Pin;
+            string PIN = client.ConnectionDetails.PinEscaped;
             int SegmentNum = client.SEGNUM;
 
             if (SystemID == null)
@@ -824,7 +824,7 @@ namespace libfintx.FinTS.Message
             client.Logger.LogInformation("Connect to FinTS Server");
             client.Logger.LogInformation("Url: " + client.ConnectionDetails.Url);
 
-            TraceUserTan(client, Message, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.Pin);
+            TraceUserTan(client, Message, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.PinEscaped);
 
             return await SendAsync(client, Message);
         }
@@ -868,7 +868,7 @@ namespace libfintx.FinTS.Message
                     }
                 }
 
-                TraceUserTan(client, Message, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.Pin);
+                TraceUserTan(client, Message, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.PinEscaped);
 
                 return FinTSMessage;
             }
