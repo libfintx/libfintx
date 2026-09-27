@@ -22,6 +22,7 @@
  */
 
 using System;
+using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 using libfintx.FinTS.Data;
@@ -43,7 +44,7 @@ namespace libfintx.FinTS
         {
             client.Logger.LogInformation("Starting job HKDSE: Collect money");
 
-            client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg4);
+            client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg3);
 
             var connectionDetails = client.ConnectionDetails;
             SEG sEG = new SEG();
@@ -51,7 +52,8 @@ namespace libfintx.FinTS
             sb.Append(connectionDetails.Iban);
             sb.Append(DEG.Separator);
             sb.Append(connectionDetails.Bic);
-            sb.Append("+urn?:iso?:std?:iso?:20022?:tech?:xsd?:pain.008.002.02+@@");
+            // The descriptor comes from the BPD, see DirectDebitSegment.
+            sb.Append("+" + DirectDebitSegment.EscapedDescriptor(DirectDebitSegment.ResolveDescriptor(client, null)) + "+@@");
             string segments = sEG.toSEG(new SEG_DATA
             {
                 Header = "HKDSE",
@@ -67,6 +69,56 @@ namespace libfintx.FinTS
                 MandateDate, CreditorIDNumber);
 
             segments = segments.Replace("@@", "@" + (message.Length - 1) + "@") + message;
+
+            if (client.BPD.IsTANRequired("HKDSE"))
+            {
+                client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg4);
+                segments = HKTAN.Init_HKTAN(client, segments, "HKDSE");
+            }
+
+            var response = await FinTSMessage.Send(client, FinTSMessage.Create(client, client.HNHBS, client.HNHBK,
+                segments, client.HIRMS));
+
+            client.Parse_Message(response);
+
+            return response;
+        }
+
+        /// <summary>
+        /// Collect with a ready-made pain message.
+        /// </summary>
+        /// <remarks>
+        /// The message is sent unchanged; <c>pain00800202.Create</c> is not called.
+        /// </remarks>
+        public static async Task<String> Init_HKDSE(FinTsClient client, string painXml, decimal amount, string descriptor)
+        {
+            client.Logger.LogInformation("Starting job HKDSE: Collect money (pre-built payload)");
+
+            if (string.IsNullOrWhiteSpace(painXml))
+                throw new ArgumentException("A collection needs a payload.", nameof(painXml));
+
+            client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg3);
+
+            var connectionDetails = client.ConnectionDetails;
+            SEG sEG = new SEG();
+            StringBuilder sb = new StringBuilder();
+            sb.Append(connectionDetails.Iban);
+            sb.Append(DEG.Separator);
+            sb.Append(connectionDetails.Bic);
+            sb.Append("+" + DirectDebitSegment.EscapedDescriptor(DirectDebitSegment.ResolveDescriptor(client, descriptor)) + "+@@");
+            string segments = sEG.toSEG(new SEG_DATA
+            {
+                Header = "HKDSE",
+                Num = client.SEGNUM,
+                Version = DirectDebitSegment.SegmentVersion(client, "HIDSES", 1, 1),
+                RefNum = 0,
+                RawData = sb.ToString()
+            });
+
+            segments = DirectDebitSegment.AttachPayload(segments, painXml);
+
+            client.Logger.LogInformation(
+                "HKDSE: one collection over " + amount.ToString("F2", CultureInfo.InvariantCulture) + " EUR.");
 
             if (client.BPD.IsTANRequired("HKDSE"))
             {

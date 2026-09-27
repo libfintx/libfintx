@@ -11,9 +11,59 @@ namespace libfintx.FinTS;
 public partial class FinTsClient
 {
     /// <summary>
+    /// The pain descriptor for SEPA direct debits as announced by the bank in HISPAS.
+    /// </summary>
+    /// <remarks>
+    /// <c>null</c> if the bank announced none; HKDSE and HKDME then use
+    /// <c>pain.008.001.08</c>. The former default <c>pain.008.002.02</c> is accepted by
+    /// German banks only until 14 November 2026.
+    /// </remarks>
+    public string HISPAS_PainDirectDebit { get; set; }
+
+    /// <summary>
     /// Regex pattern for HIRMG/HIRMS messages.
     /// </summary>
     private const string PatternResultMessage = @"(\d{4}):.*?:(.+)";
+
+    /// <summary>
+    /// Picks the pain descriptor for SEPA direct debits out of the HISPAS payload.
+    /// </summary>
+    /// <remarks>
+    /// <c>pain.008.001.08</c> wins, then the highest other <c>.001</c> version. If the bank
+    /// names only <c>pain.008.002.02</c>, that value is returned and a note is logged.
+    /// Returns <c>null</c> if the payload names no direct debit scheme.
+    /// </remarks>
+    internal string SelectDirectDebitDescriptor(string payload)
+    {
+        if (string.IsNullOrEmpty(payload))
+            return null;
+
+        const string current = "pain.008.001.08";
+        const string withdrawn = "pain.008.002.02";
+
+        if (payload.Contains(current))
+            return current;
+
+        var announced = Regex.Matches(payload, @"pain\.008\.001\.\d{2}")
+            .Cast<Match>()
+            .Select(m => m.Value)
+            .OrderByDescending(v => v, StringComparer.Ordinal)
+            .FirstOrDefault();
+
+        if (announced != null)
+            return announced;
+
+        if (payload.Contains(withdrawn))
+        {
+            Logger.LogInformation(
+                $"HISPAS announces only the direct debit scheme {withdrawn}. "
+                + "German banks accept it only until 14 November 2026.");
+
+            return withdrawn;
+        }
+
+        return null;
+    }
 
     private Segment Parse_Segment(string segmentCode)
     {
@@ -251,6 +301,8 @@ public partial class FinTsClient
 
                         if (this.HISPAS_Pain == 0)
                             this.HISPAS_Pain = 3; // -> Fallback. Most banks accept the newest pain version
+
+                        this.HISPAS_PainDirectDebit = SelectDirectDebitDescriptor(hispas.Payload);
 
                         this.HISPAS_AccountNationalAllowed = hispas.IsAccountNationalAllowed;
                     }

@@ -706,14 +706,13 @@ namespace libfintx.FinTS.Message
 
             if (!string.IsNullOrEmpty(payload))
             {
-                if (HIRMS_TAN == null)
-                {
-                    client.Logger.LogInformation(MaskSecret(MaskSecret(payload, UserID), PIN));
-                }
-                else if (!string.IsNullOrEmpty(TAN_))
-                {
-                    client.Logger.LogInformation(MaskSecret(MaskSecret(MaskSecret(payload, UserID), PIN), TAN_));
-                }
+                // Also log messages sent while a TAN is pending but not yet entered (e.g. an
+                // order submitted with decoupled approval); they were skipped before.
+                var logged = MaskSecret(MaskSecret(payload, UserID), PIN);
+                if (!string.IsNullOrEmpty(TAN_))
+                    logged = MaskSecret(logged, TAN_);
+
+                client.Logger.LogInformation(logged);
             }
 
             var msgLen = HEAD_LEN + TRAIL_LEN + ($"{MsgNum}".Length * 2) + DialogID.Length + payload.Length + encHead.Length;
@@ -868,7 +867,8 @@ namespace libfintx.FinTS.Message
                     }
                 }
 
-                TraceUserTan(client, Message, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.Pin);
+                // Trace the bank's response. The request was already traced in Send.
+                TraceUserTan(client, FinTSMessage, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.Pin);
 
                 return FinTSMessage;
             }

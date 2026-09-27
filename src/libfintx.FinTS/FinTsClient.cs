@@ -340,6 +340,81 @@ namespace libfintx.FinTS
         }
 
         /// <summary>
+        /// Collect money with a ready-made pain message.
+        /// </summary>
+        /// <remarks>
+        /// The payload is sent unchanged. Building the message is the business of the caller;
+        /// this library only wraps it into the segment and runs the dialog.
+        /// </remarks>
+        /// <param name="tanDialog">The TAN Dialog</param>
+        /// <param name="painXml">The complete pain message</param>
+        /// <param name="amount">The amount of the single collection</param>
+        /// <param name="descriptor">
+        /// The pain descriptor, e.g. <c>pain.008.001.08</c>. When empty, the descriptor
+        /// announced by the bank in HISPAS is used, and the current version as a last resort.
+        /// </param>
+        public async Task<HBCIDialogResult> Collect(TANDialog tanDialog, string painXml, decimal amount, string descriptor)
+        {
+            var result = await InitializeConnection();
+            if (result.HasError)
+                return result;
+
+            result = await ProcessSCA(result, tanDialog, true);
+            if (!result.IsSuccess)
+                return result;
+
+            TransactionConsole.Output = string.Empty;
+
+            string BankCode = await Transaction.HKDSE(this, painXml, amount, descriptor);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
+            if (result.HasError)
+                return result;
+
+            result = await ProcessSCA(result, tanDialog);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Collective collect money with a ready-made pain message.
+        /// </summary>
+        /// <remarks>
+        /// The payload is sent unchanged. Count and total are passed separately because the
+        /// segment carries them next to the message; they must be counted from the same list
+        /// the message was built from.
+        /// </remarks>
+        /// <param name="tanDialog">The TAN Dialog</param>
+        /// <param name="painXml">The complete pain message</param>
+        /// <param name="numberOfTransactions">The number of collections in the message</param>
+        /// <param name="totalAmount">The sum of all collections in the message</param>
+        /// <param name="descriptor">
+        /// The pain descriptor, e.g. <c>pain.008.001.08</c>. When empty, the descriptor
+        /// announced by the bank in HISPAS is used, and the current version as a last resort.
+        /// </param>
+        public async Task<HBCIDialogResult> CollectiveCollect(TANDialog tanDialog, string painXml, int numberOfTransactions,
+            decimal totalAmount, string descriptor)
+        {
+            var result = await InitializeConnection();
+            if (result.HasError)
+                return result;
+
+            result = await ProcessSCA(result, tanDialog, true);
+            if (!result.IsSuccess)
+                return result;
+
+            TransactionConsole.Output = string.Empty;
+
+            string BankCode = await Transaction.HKDME(this, painXml, numberOfTransactions, totalAmount, descriptor);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
+            if (result.HasError)
+                return result;
+
+            result = await ProcessSCA(result, tanDialog);
+
+            return result;
+        }
+
+        /// <summary>
         /// Load mobile phone prepaid card - General method
         /// </summary>
         /// <param name="tanDialog">The TAN Dialog</param>

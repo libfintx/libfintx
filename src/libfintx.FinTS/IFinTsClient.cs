@@ -45,6 +45,12 @@ namespace libfintx.FinTS
         Task<HBCIDialogResult<AccountBalance>> Balance(TANDialog tanDialog);
         Task<HBCIDialogResult> Collect(TANDialog tanDialog, string payerName, string payerIBAN, string payerBIC, decimal amount, string purpose, DateTime settlementDate, string mandateNumber, DateTime mandateDate, string creditorIdNumber, string hirms);
         Task<HBCIDialogResult> CollectiveCollect(TANDialog tanDialog, DateTime settlementDate, List<Pain00800202CcData> painData, string numberOfTransactions, decimal totalAmount, string hirms);
+
+        /// <summary>Collect with a ready-made pain message.</summary>
+        Task<HBCIDialogResult> Collect(TANDialog tanDialog, string painXml, decimal amount, string descriptor);
+
+        /// <summary>Collective collect with a ready-made pain message.</summary>
+        Task<HBCIDialogResult> CollectiveCollect(TANDialog tanDialog, string painXml, int numberOfTransactions, decimal totalAmount, string descriptor);
         Task<HBCIDialogResult> CollectiveTransfer(TANDialog tanDialog, List<Pain00100203CtData> painData, string numberOfTransactions, decimal totalAmount, string hirms);
         Task<HBCIDialogResult> CollectiveTransfer_Terminated(TANDialog tanDialog, List<Pain00100203CtData> painData, string numberOfTransactions, decimal totalAmount, DateTime executionDay, string hirms);
         Task<HBCIDialogResult> DeleteBankersOrder(TANDialog tanDialog, string orderId, string receiverName, string receiverIBAN, string receiverBIC, decimal amount, string purpose, DateTime firstTimeExecutionDay, HKCDE.TimeUnit timeUnit, string rota, int executionDay, DateTime? lastExecutionDay, string hirms);

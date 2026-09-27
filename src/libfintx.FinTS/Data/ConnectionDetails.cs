@@ -124,6 +124,26 @@ public class ConnectionDetails
     /// </summary>
     public string CustomerSystemId { get; set; }
 
+    /// <summary>
+    /// The customer id (dt. Kunden-ID) of the HKIDN segment, when the bank issues it
+    /// separately from the login name.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="UserId"/> is the login name (Benutzerkennung) and goes into the signature
+    /// head; <see cref="CustomerId"/> goes into HKIDN. Most banks use the same value for both,
+    /// which is why other banking programs show the customer id as an optional second field.
+    /// Leave it empty to send <see cref="UserId"/> in both places, as before.
+    /// </remarks>
+    public string CustomerId { get; set; }
+
+    /// <summary>
+    /// The customer id for the HKIDN segment - <see cref="CustomerId"/> when given, else
+    /// <see cref="UserId"/>. The signature head (HNSHK/HNVSK) keeps using
+    /// <see cref="UserIdEscaped"/>.
+    /// </summary>
+    public string CustomerIdEscaped =>
+        Helper.EscapeHbciString(string.IsNullOrWhiteSpace(CustomerId) ? UserId : CustomerId);
+
     // Security
     public SecurityProtocolType SecurityProtocol { get; set; } = SecurityProtocolType.Tls12;
 }

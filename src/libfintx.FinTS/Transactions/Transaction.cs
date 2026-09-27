@@ -116,6 +116,18 @@ namespace libfintx.FinTS
             return await Init_HKDME(client, SettlementDate, PainData, NumberofTransactions, TotalAmount);
         }
 
+        /// <summary>Collect with a ready-made pain message.</summary>
+        public static async Task<String> HKDSE(FinTsClient client, string painXml, decimal amount, string descriptor)
+        {
+            return await Init_HKDSE(client, painXml, amount, descriptor);
+        }
+
+        /// <summary>Collective collect with a ready-made pain message.</summary>
+        public static async Task<String> HKDME(FinTsClient client, string painXml, int numberOfTransactions, decimal totalAmount, string descriptor)
+        {
+            return await Init_HKDME(client, painXml, numberOfTransactions, totalAmount, descriptor);
+        }
+
         public static async Task<String> HKPPD(FinTsClient client, int MobileServiceProvider, string PhoneNumber, int Amount)
         {
             return await Init_HKPPD(client, MobileServiceProvider, PhoneNumber, Amount);
