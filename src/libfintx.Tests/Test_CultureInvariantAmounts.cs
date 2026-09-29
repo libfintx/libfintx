@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using libfintx.FinTS.Statement;
 using libfintx.Sepa;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace libfintx.Tests;
@@ -117,6 +119,54 @@ public class Test_CultureInvariantAmounts
         mixed.NumberFormat.CurrencyDecimalSeparator = ",";
         mixed.NumberFormat.CurrencyGroupSeparator = ".";
         WithCulture(mixed, AssertStatement);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void MT940_Malformed_Closing_Balance_Is_Logged_And_Skipped(bool withLogger)
+    {
+        // The trailing '-' is on the :62F: line itself (no NUL after it), so the amount is "9999,99-",
+        // which the decimal-comma parser rejects with a FormatException.
+        const string mt940 = @"
+:20:STARTUMSE
+:25:10070124/123456789
+:28C:00000/001
+:60F:C200101EUR1234,56
+:61:200102D100,00NMSCNONREF
+:86:116?20SVWZ+Debit
+:61:200102RC12,50NMSCNONREF
+:86:116?20SVWZ+Reversed credit
+:62F:C200102EUR9999,99-
+";
+        var loggerFactory = withLogger ? new CapturingLoggerFactory() : null;
+
+        var stmt = libfintx.Swift.MT940.Deserialize(mt940, loggerFactory: loggerFactory).Single();
+
+        Assert.Equal(1234.56m, stmt.StartBalance);
+        Assert.Equal(new[] { -100.00m, -12.50m }, stmt.SwiftTransactions.Select(t => t.Amount));
+        // Start balance plus the transactions, as set before the malformed :62F:.
+        Assert.Equal(1122.06m, stmt.EndBalance);
+        Assert.Equal(new DateTime(2020, 1, 2), stmt.EndDate);
+        if (loggerFactory != null)
+            Assert.Contains(loggerFactory.Warnings, w => w.Contains("Invalid closing balance"));
+    }
+
+    private sealed class CapturingLoggerFactory : ILoggerFactory, ILogger
+    {
+        public List<string> Warnings { get; } = new();
+
+        public ILogger CreateLogger(string categoryName) => this;
+        public void AddProvider(ILoggerProvider provider) { }
+        public void Dispose() { }
+        public IDisposable BeginScope<TState>(TState state) => null;
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            if (logLevel == LogLevel.Warning)
+                Warnings.Add(formatter(state, exception));
+        }
     }
 
     [Fact]

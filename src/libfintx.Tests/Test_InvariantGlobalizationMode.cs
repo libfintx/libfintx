@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using libfintx.FinTS.Statement;
 using Xunit;
 
@@ -40,13 +41,22 @@ public class Test_InvariantGlobalizationMode
         psi.Environment[ChildMarker] = "1";
 
         using var process = Process.Start(psi);
-        var stderr = process.StandardError.ReadToEndAsync();
-        var stdout = process.StandardOutput.ReadToEnd();
-        Assert.True(process.WaitForExit(300_000), "Child test host timed out");
+        // Read both streams asynchronously so the timeout below can actually fire.
+        var stdoutTask = process.StandardOutput.ReadToEndAsync();
+        var stderrTask = process.StandardError.ReadToEndAsync();
+        if (!process.WaitForExit(300_000))
+        {
+            process.Kill(entireProcessTree: true);
+            process.WaitForExit();
+            Assert.True(false, $"Child test host timed out after 300 s:\n{stdoutTask.Result}\n{stderrTask.Result}");
+        }
+        var stdout = stdoutTask.Result;
+        var stderr = stderrTask.Result;
 
-        Assert.True(process.ExitCode == 0, $"Child test host failed (exit {process.ExitCode}):\n{stdout}\n{stderr.Result}");
-        // Guard against the filter silently matching nothing.
-        Assert.Contains("Passed:     1", stdout);
+        Assert.True(process.ExitCode == 0, $"Child test host failed (exit {process.ExitCode}):\n{stdout}\n{stderr}");
+        // Guard against the filter silently matching nothing: exactly one test must have run and passed.
+        Assert.True(Regex.IsMatch(stdout, @"Passed:\s+1\b") && Regex.IsMatch(stdout, @"Total:\s+1\b"),
+            $"Expected exactly one child test to run and pass:\n{stdout}\n{stderr}");
     }
 
     [Fact]
