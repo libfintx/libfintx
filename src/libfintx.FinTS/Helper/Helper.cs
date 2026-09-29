@@ -75,14 +75,15 @@ namespace libfintx.FinTS
         }
 
         /// <summary>
-        /// Decode from Base64
+        /// Decode from Base64. FinTS 3.0 messages use the ISO-8859-1 character set, so
+        /// umlauts must not be reduced to '?' by ASCII, same as in <see cref="EncodeTo64"/>.
         /// </summary>
         /// <param name="encodedData"></param>
         /// <returns></returns>
         public static string DecodeFrom64(string encodedData)
         {
             byte[] encodedDataAsBytes = Convert.FromBase64String(encodedData);
-            string returnValue = Encoding.ASCII.GetString(encodedDataAsBytes);
+            string returnValue = Encoding.GetEncoding("ISO-8859-1").GetString(encodedDataAsBytes);
 
             return returnValue;
         }

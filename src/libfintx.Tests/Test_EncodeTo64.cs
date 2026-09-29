@@ -11,6 +11,7 @@ public class Test_EncodeTo64
     {
         var encoded = Helper.EncodeTo64("Alle Geräte");
 
+        Assert.Equal("Alle Geräte", Helper.DecodeFrom64(encoded));
         Assert.Equal("Alle Geräte", Helper.DecodeFrom64EncodingDefault(encoded));
     }
 
