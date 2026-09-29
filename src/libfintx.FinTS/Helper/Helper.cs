@@ -36,15 +36,22 @@ namespace libfintx.FinTS
     {
         /// <summary>
         /// Escapes all FinTS syntax characters ('?', ':', '+', ''', '@') with a question mark '?'.
+        /// HBCI, FinTS and EDIFACT share the UN/EDIFACT syntax rules (ISO 9735); '@' is the FinTS binary data marker.
         /// Use for values inserted into non-binary data elements, never inside @len@ binary data.
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
-        public static string EscapeHbciString(string str)
+        public static string EscapeEdifactString(string str)
         {
             // '?' first, otherwise the escape characters added below would be escaped again
             return str?.Replace("?", "??").Replace(":", "?:").Replace("'", "?'").Replace("+", "?+").Replace("@", "?@");
         }
+
+        /// <summary>
+        /// Obsolete, please use <see cref="EscapeEdifactString"/> instead.
+        /// </summary>
+        [Obsolete($"Please use {nameof(EscapeEdifactString)} instead")]
+        public static string EscapeHbciString(string str) => EscapeEdifactString(str);
 
         /// <summary>
         /// Combine byte arrays

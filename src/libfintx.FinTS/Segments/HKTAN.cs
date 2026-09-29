@@ -85,7 +85,7 @@ namespace libfintx.FinTS
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
-                    sb.Append(Helper.EscapeHbciString(client.HITAB));
+                    sb.Append(Helper.EscapeEdifactString(client.HITAB));
                     sb.Append(sEG.Terminator);
                     segments = segments + sEG.toSEG(new SEG_DATA
                     {
@@ -109,7 +109,7 @@ namespace libfintx.FinTS
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
-                    sb.Append(Helper.EscapeHbciString(client.HITAB));
+                    sb.Append(Helper.EscapeEdifactString(client.HITAB));
                     sb.Append(sEG.Terminator);
                     segments = segments + sEG.toSEG(new SEG_DATA
                     {
@@ -136,7 +136,7 @@ namespace libfintx.FinTS
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
-                    sb.Append(Helper.EscapeHbciString(client.HITAB));
+                    sb.Append(Helper.EscapeEdifactString(client.HITAB));
                     sb.Append(sEG.Terminator);
                     segments = segments + sEG.toSEG(new SEG_DATA
                     {
@@ -162,7 +162,7 @@ namespace libfintx.FinTS
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
-                    sb.Append(Helper.EscapeHbciString(client.HITAB));
+                    sb.Append(Helper.EscapeEdifactString(client.HITAB));
                     sb.Append(sEG.Terminator);
                     segments = segments + sEG.toSEG(new SEG_DATA
                     {
@@ -190,7 +190,7 @@ namespace libfintx.FinTS
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
-                    sb.Append(Helper.EscapeHbciString(client.HITAB));
+                    sb.Append(Helper.EscapeEdifactString(client.HITAB));
                     sb.Append(sEG.Terminator);
                     segments = segments + sEG.toSEG(new SEG_DATA
                     {

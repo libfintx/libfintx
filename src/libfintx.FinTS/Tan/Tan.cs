@@ -223,7 +223,7 @@ namespace libfintx.FinTS
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
-                    sb.Append(Helper.EscapeHbciString(client.HITAB));
+                    sb.Append(Helper.EscapeEdifactString(client.HITAB));
                     sb.Append(sEG.Terminator);
                     segments = sb.ToString();
                     // segments = "HKTAN:" + SEG_NUM.Seg3 + ":" + client.HITANS + "+2++" + client.HITAN + "++N++++" + client.HITAB + "'";
@@ -249,7 +249,7 @@ namespace libfintx.FinTS
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
-                    sb.Append(Helper.EscapeHbciString(client.HITAB));
+                    sb.Append(Helper.EscapeEdifactString(client.HITAB));
                     sb.Append(sEG.Terminator);
                     segments = sb.ToString();
                     // segments = "HKTAN:" + SEG_NUM.Seg3 + ":" + client.HITANS + "+2++" + client.HITAN + "++N++++" + client.HITAB + "'";
@@ -275,7 +275,7 @@ namespace libfintx.FinTS
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
-                    sb.Append(Helper.EscapeHbciString(client.HITAB));
+                    sb.Append(Helper.EscapeEdifactString(client.HITAB));
                     sb.Append(sEG.Terminator);
                     segments = sb.ToString();
                     // segments = "HKTAN:" + SEG_NUM.Seg3 + ":" + client.HITANS + "+2++" + client.HITAN + "++N++++" + client.HITAB + "'";
@@ -303,7 +303,7 @@ namespace libfintx.FinTS
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
-                    sb.Append(Helper.EscapeHbciString(client.HITAB));
+                    sb.Append(Helper.EscapeEdifactString(client.HITAB));
                     sb.Append(sEG.Terminator);
                     segments = sb.ToString();
                     // segments = "HKTAN:" + SEG_NUM.Seg3 + ":" + client.HITANS + "+2++++" + client.HITAN + "++N++++" + client.HITAB + "'";
@@ -330,7 +330,7 @@ namespace libfintx.FinTS
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
-                    sb.Append(Helper.EscapeHbciString(client.HITAB));
+                    sb.Append(Helper.EscapeEdifactString(client.HITAB));
                     sb.Append(sEG.Terminator);
                     segments = sb.ToString();
                     // segments = "HKTAN:" + SEG_NUM.Seg3 + ":" + client.HITANS + "+2++++" + client.HITAN + "+N++++" + client.HITAB + "'";
@@ -358,7 +358,7 @@ namespace libfintx.FinTS
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
-                    sb.Append(Helper.EscapeHbciString(client.HITAB));
+                    sb.Append(Helper.EscapeEdifactString(client.HITAB));
                     sb.Append(sEG.Terminator);
                     segments = sb.ToString();
                     // segments = "HKTAN:" + SEG_NUM.Seg3 + ":" + client.HITANS + "+S++++" + client.HITAN + "+N++++" + client.HITAB + "'";
@@ -383,7 +383,7 @@ namespace libfintx.FinTS
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
-                    sb.Append(Helper.EscapeHbciString(client.HITAB));
+                    sb.Append(Helper.EscapeEdifactString(client.HITAB));
                     sb.Append(sEG.Terminator);
                     segments = sb.ToString();
                     // segments = "HKTAN:" + SEG_NUM.Seg3 + ":" + client.HITANS + "+2++" + client.HITAN + "++N++++" + client.HITAB + "'";
