@@ -4,7 +4,7 @@ using Xunit;
 
 namespace libfintx.Tests;
 
-public class Test_EscapeHbciString
+public class Test_EscapeEdifactString
 {
     [Theory]
     [InlineData("Handy", "Handy")]
@@ -14,13 +14,13 @@ public class Test_EscapeHbciString
     [InlineData("?:", "???:")]
     public void Escapes_Syntax_Characters(string value, string expected)
     {
-        Assert.Equal(expected, Helper.EscapeHbciString(value));
+        Assert.Equal(expected, Helper.EscapeEdifactString(value));
     }
 
     [Fact]
     public void Null_Stays_Null()
     {
-        Assert.Null(Helper.EscapeHbciString(null));
+        Assert.Null(Helper.EscapeEdifactString(null));
     }
 
     [Theory]

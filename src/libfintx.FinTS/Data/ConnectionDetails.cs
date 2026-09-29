@@ -72,7 +72,7 @@ public class ConnectionDetails
     /// <summary>
     /// UserId with HBCI special characters escaped.
     /// </summary>
-    public string UserIdEscaped => Helper.EscapeHbciString(UserId);
+    public string UserIdEscaped => Helper.EscapeEdifactString(UserId);
 
     /// <summary>
     /// Logon-Pin for the bank account
@@ -82,7 +82,7 @@ public class ConnectionDetails
     /// <summary>
     /// Pin with HBCI special characters escaped.
     /// </summary>
-    public string PinEscaped => Helper.EscapeHbciString(Pin);
+    public string PinEscaped => Helper.EscapeEdifactString(Pin);
 
     /// <summary>
     /// Name of the Accountholder
