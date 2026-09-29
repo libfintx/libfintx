@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Security;
 using libfintx.Globals;
 using libfintx.Sepa.Helper;
@@ -62,7 +63,7 @@ namespace libfintx.Sepa
             DateTime datetime = DateTime.Now;
             var datetime_ = string.Format("{0:s}", datetime);
 
-            var Amount_ = Amount.ToString().Replace(",", ".");
+            var Amount_ = Amount.ToString(CultureInfo.InvariantCulture);
 
             var Accountholder_ = SepaHelper.Escape(Accountholder);
             var Payer_ = SepaHelper.Escape(Payer);
@@ -184,7 +185,7 @@ namespace libfintx.Sepa
             DateTime datetime = DateTime.Now;
             var datetime_ = string.Format("{0:s}", datetime);
 
-            var Amount_ = TotalAmount.ToString().Replace(",", ".");
+            var Amount_ = TotalAmount.ToString(CultureInfo.InvariantCulture);
 
             string Message = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                 "<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pain.008.002.02\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"urn:iso:std:iso:20022:tech:xsd:pain.008.002.02 pain.008.002.02.xsd\">" +
@@ -229,7 +230,7 @@ namespace libfintx.Sepa
 
             foreach (var transaction in PainData)
             {
-                var Amount__ = transaction.Amount.ToString().Replace(",", ".");
+                var Amount__ = transaction.Amount.ToString(CultureInfo.InvariantCulture);
 
                 string Message_ = "<PmtId>" +
                     "<EndToEndId>NOTPROVIDED</EndToEndId>" +

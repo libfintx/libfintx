@@ -26,6 +26,18 @@ public class MT940Parser
     private readonly ILogger<MT940Parser> _logger;
 
     /// <summary>
+    /// SWIFT amounts always use a decimal comma and no thousands separator, independent of the current culture.
+    /// </summary>
+    private static readonly NumberFormatInfo AmountFormat = NumberFormatInfo.ReadOnly(new NumberFormatInfo { NumberDecimalSeparator = ",", NumberGroupSeparator = "" });
+
+    private const NumberStyles AmountStyles = NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite | NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint;
+
+    private static decimal ParseAmount(string value)
+    {
+        return decimal.Parse(value, AmountStyles, AmountFormat);
+    }
+
+    /// <summary>
     /// Initializes the parser class.
     /// </summary>
     /// <param name="pending">
@@ -114,8 +126,7 @@ public class MT940Parser
             CurrentSwiftStatement.Currency = swiftData.Substring(6, 3);
             try
             {
-                decimal balance = DebitCreditIndicator * Convert.ToDecimal(swiftData.Substring(9).Replace(",",
-                    Thread.CurrentThread.CurrentCulture.NumberFormat.CurrencyDecimalSeparator));
+                decimal balance = DebitCreditIndicator * ParseAmount(swiftData.Substring(9));
 
                 // Use first start balance. If missing, use intermediate balance.
                 if (swiftTag == "60F" || CurrentSwiftStatement.StartBalance == 0 && swiftTag == "60M")
@@ -235,8 +246,7 @@ public class MT940Parser
 
                 // The amount, finishing with N
                 SWIFTTransaction.Amount =
-                    debitCreditIndicator * Convert.ToDecimal(swiftData.Substring(0, swiftData.IndexOf("N")).Replace(",",
-                        Thread.CurrentThread.CurrentCulture.NumberFormat.CurrencyDecimalSeparator));
+                    debitCreditIndicator * ParseAmount(swiftData.Substring(0, swiftData.IndexOf("N")));
 
                 CurrentSwiftStatement.EndBalance += SWIFTTransaction.Amount;
 
@@ -424,8 +434,7 @@ public class MT940Parser
                 }
 
                 // End balance
-                decimal endBalance = debitCreditIndicator * Convert.ToDecimal(swiftData.Replace(",",
-                    Thread.CurrentThread.CurrentCulture.NumberFormat.CurrencyDecimalSeparator));
+                decimal endBalance = debitCreditIndicator * ParseAmount(swiftData);
                 CurrentSwiftStatement.EndBalance = endBalance;
             }
 
@@ -465,12 +474,12 @@ public class MT940Parser
                 decimal amount = 0;
                 if (debit)
                 {
-                    decimal.TryParse(swiftData.Substring(1), out amount);
+                    decimal.TryParse(swiftData.Substring(1), AmountStyles, AmountFormat, out amount);
                     amount = amount * -1;
                 }
                 else
                 {
-                    decimal.TryParse(swiftData, out amount);
+                    decimal.TryParse(swiftData, AmountStyles, AmountFormat, out amount);
                 }
 
                 CurrentSwiftStatement.SmallestAmount = amount;
@@ -478,7 +487,7 @@ public class MT940Parser
             // Kleinster Betrag der gemeldeten Haben-Umsätze
             else if (Regex.IsMatch(swiftData, @"C\d+,\d*"))
             {
-                decimal.TryParse(swiftData.Substring(1), out decimal amount);
+                decimal.TryParse(swiftData.Substring(1), AmountStyles, AmountFormat, out decimal amount);
 
                 CurrentSwiftStatement.SmallestCreditAmount = amount;
             }
@@ -534,7 +543,7 @@ public class MT940Parser
 
                 currency = match.Groups[2].Value;
 
-                decimal.TryParse(match.Groups[3].Value, NumberStyles.Number | NumberStyles.AllowDecimalPoint, CultureInfo.GetCultureInfo("de-DE"), out amount);
+                decimal.TryParse(match.Groups[3].Value, AmountStyles, AmountFormat, out amount);
             }
 
             if (CurrentSwiftStatement.Currency == null)
