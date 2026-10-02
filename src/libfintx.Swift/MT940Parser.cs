@@ -137,7 +137,7 @@ public class MT940Parser
             }
             catch (FormatException)
             {
-                _logger?.LogWarning($"Invalid balance: {swiftData}");
+                _logger.LogWarning($"Invalid balance: {swiftData}");
             }
 
             if (swiftTag == "60F" || swiftTag == "60M")
@@ -434,15 +434,8 @@ public class MT940Parser
                 }
 
                 // End balance
-                try
-                {
-                    decimal endBalance = debitCreditIndicator * ParseAmount(swiftData);
-                    CurrentSwiftStatement.EndBalance = endBalance;
-                }
-                catch (FormatException)
-                {
-                    _logger?.LogWarning($"Invalid closing balance: {swiftData}");
-                }
+                decimal endBalance = debitCreditIndicator * ParseAmount(swiftData);
+                CurrentSwiftStatement.EndBalance = endBalance;
             }
 
             if (swiftTag == "62F" || swiftTag == "62M")
