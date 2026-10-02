@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using libfintx.FinTS.Camt;
@@ -14,6 +15,16 @@ public partial class FinTsClient
     /// Regex pattern for HIRMG/HIRMS messages.
     /// </summary>
     private const string PatternResultMessage = @"(\d{4}):.*?:(.+)";
+
+    /// <summary>
+    /// FinTS amounts always use a decimal comma and no thousands separator, independent of the current culture.
+    /// </summary>
+    private static readonly NumberFormatInfo AmountFormat = NumberFormatInfo.ReadOnly(new NumberFormatInfo { NumberDecimalSeparator = ",", NumberGroupSeparator = "" });
+
+    private static decimal ParseAmount(string value)
+    {
+        return decimal.Parse(value, NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite | NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, AmountFormat);
+    }
 
     private Segment Parse_Segment(string segmentCode)
     {
@@ -382,24 +393,24 @@ public partial class FinTsClient
             if (hisalBalanceParts[1].IndexOf("e-9", StringComparison.OrdinalIgnoreCase) >= 0)
                 balance.Balance = 0; // Deutsche Bank liefert manchmal "E-9", wenn der Kontostand 0 ist. Siehe Test_Parse_Balance und https://homebanking-hilfe.de/forum/topic.php?t=24155
             else
-                balance.Balance = Convert.ToDecimal($"{(hisalBalanceParts[0] == "D" ? "-" : "")}{hisalBalanceParts[1]}");
+                balance.Balance = ParseAmount($"{(hisalBalanceParts[0] == "D" ? "-" : "")}{hisalBalanceParts[1]}");
 
 
             //from here on optional fields / see page 46 in "FinTS_3.0_Messages_Geschaeftsvorfaelle_2015-08-07_final_version.pdf"
             if (hisalParts.Length > 5 && hisalParts[5].Contains(":"))
             {
                 var hisalMarkedBalanceParts = hisalParts[5].Split(':');
-                balance.MarkedTransactions = Convert.ToDecimal($"{(hisalMarkedBalanceParts[0] == "D" ? "-" : "")}{hisalMarkedBalanceParts[1]}");
+                balance.MarkedTransactions = ParseAmount($"{(hisalMarkedBalanceParts[0] == "D" ? "-" : "")}{hisalMarkedBalanceParts[1]}");
             }
 
             if (hisalParts.Length > 6 && hisalParts[6].Contains(":"))
             {
-                balance.CreditLine = Convert.ToDecimal(hisalParts[6].Split(':')[0].TrimEnd(','));
+                balance.CreditLine = ParseAmount(hisalParts[6].Split(':')[0].TrimEnd(','));
             }
 
             if (hisalParts.Length > 7 && hisalParts[7].Contains(":"))
             {
-                balance.AvailableBalance = Convert.ToDecimal(hisalParts[7].Split(':')[0].TrimEnd(','));
+                balance.AvailableBalance = ParseAmount(hisalParts[7].Split(':')[0].TrimEnd(','));
             }
 
             /* ---------------------------------------------------------------------------------------------------------
