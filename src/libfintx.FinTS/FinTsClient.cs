@@ -189,6 +189,40 @@ namespace libfintx.FinTS
         }
 
         /// <summary>
+        /// Retrieves the SEPA account connections (HKSPA) of all accounts of this user. Some institutes
+        /// report accounts in the UPD without IBAN and expect the client to request it this way.
+        /// The result is a list of its own and does not change the UPD: to complete the accounts from
+        /// <see cref="Accounts"/>, match them on account number and sub-account feature.
+        /// </summary>
+        /// <param name="tanDialog">The TAN Dialog</param>
+        /// <returns>
+        /// The SEPA accounts with IBAN, BIC, account number, sub-account feature and bank code;
+        /// accounts the bank reports as non-SEPA are skipped
+        /// </returns>
+        public async Task<HBCIDialogResult<List<AccountInformation>>> SepaAccounts(TANDialog tanDialog)
+        {
+            var result = await InitializeConnection();
+            if (result.HasError)
+                return result.TypedResult<List<AccountInformation>>();
+
+            result = await ProcessSCA(result, tanDialog, true);
+            if (!result.IsSuccess)
+                return result.TypedResult<List<AccountInformation>>();
+
+            string BankCode = await Transaction.HKSPA(this);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
+            if (result.HasError)
+                return result.TypedResult<List<AccountInformation>>();
+
+            result = await ProcessSCA(result, tanDialog);
+            if (!result.IsSuccess)
+                return result.TypedResult<List<AccountInformation>>();
+
+            BankCode = result.RawData;
+            return result.TypedResult(Parse_SepaAccounts(BankCode));
+        }
+
+        /// <summary>
         /// Account balance
         /// </summary>
         /// <param name="tanDialog">The TAN Dialog</param>

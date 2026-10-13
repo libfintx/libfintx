@@ -351,6 +351,70 @@ public partial class FinTsClient
         return segments;
     }
 
+    /// <summary>
+    /// Parse the SEPA account connections (HISPA). Each data element is a KTZ:
+    /// SEPA account J/N : IBAN : BIC : account number : sub-account feature : country code : bank code.
+    /// Accounts the bank reports as non-SEPA (N) or without IBAN are skipped.
+    /// </summary>
+    /// <param name="message">The bank's answer</param>
+    /// <returns>The SEPA accounts</returns>
+    internal static List<AccountInformation> Parse_SepaAccounts(string message)
+    {
+        // HISPA:5:1:3+J:DE02100700000123456789:DEUTDEBBXXX:123456789::280:10070000+N::::?:01:280:10070000'
+        var accounts = new List<AccountInformation>();
+        foreach (var segment in Helper.SplitEncryptedSegments(message))
+        {
+            if (!segment.StartsWith("HISPA:"))
+                continue;
+
+            var payloadStart = segment.IndexOf('+');
+            if (payloadStart < 0)
+                continue;
+
+            foreach (var dataElement in Helper.SplitDataElements(segment.Substring(payloadStart + 1)))
+            {
+                var ktz = SplitDataElementGroup(dataElement);
+                if (ktz.Count < 2 || ktz[0] != "J" || string.IsNullOrEmpty(ktz[1]))
+                    continue;
+
+                accounts.Add(new AccountInformation
+                {
+                    AccountIban = ktz[1],
+                    AccountBic = ktz.Count > 2 ? ktz[2] : null,
+                    AccountNumber = ktz.Count > 3 ? ktz[3] : null,
+                    SubAccountFeature = ktz.Count > 4 ? ktz[4] : null,
+                    AccountBankCode = ktz.Count > 6 ? ktz[6] : null,
+                });
+            }
+        }
+
+        return accounts;
+    }
+
+    /// <summary>
+    /// Split a data element group at unescaped ':' and remove the FinTS escaping ('?x' becomes 'x').
+    /// </summary>
+    private static List<string> SplitDataElementGroup(string dataElement)
+    {
+        var elements = new List<string>();
+        var current = new System.Text.StringBuilder();
+        for (int i = 0; i < dataElement.Length; i++)
+        {
+            var c = dataElement[i];
+            if (c == '?' && i + 1 < dataElement.Length)
+                current.Append(dataElement[++i]);
+            else if (c == ':')
+            {
+                elements.Add(current.ToString());
+                current.Clear();
+            }
+            else
+                current.Append(c);
+        }
+        elements.Add(current.ToString());
+        return elements;
+    }
+
     internal AccountBalance Parse_Balance(string message)
     {
         var hirms = message.Substring(message.IndexOf("HIRMS") + 5);
