@@ -42,6 +42,23 @@ public class Test_ChipTanFlickerCode
     }
 
     [Fact]
+    public void Renders_Code_From_HITAN()
+    {
+        var hitan = $"HITAN:5:6:4+4++4711-0815+Bitte scannen Sie die Grafik.+@{HhdUc.Length}@{HhdUc}";
+
+        Assert.Equal(new FlickerCode(HhdUc).Render(), Helper.RenderChipTanFlickerCode(hitan, null));
+    }
+
+    [Theory]
+    [InlineData("HITAN:5:6:4+4++4711-0815+Bitte geben Sie die TAN ein.")]
+    [InlineData("HITAN:5:6:4+4++4711-0815+Bitte scannen Sie die Grafik.+@6@0298ZZ")]
+    [InlineData("HITAN:5:6:4+4++4711-0815+CHLGUC0012ABCDEFGHCHLGTEXT Bitte scannen Sie die Grafik.")]
+    public void Malformed_Or_Missing_Code_Renders_Nothing(string hitan)
+    {
+        Assert.Null(Helper.RenderChipTanFlickerCode(hitan, null));
+    }
+
+    [Fact]
     public void Empty_CHLGUC_Section_Is_A_Format_Error()
     {
         Assert.Throws<FormatException>(() => new FlickerCode("CHLGUCCHLGTEXT"));

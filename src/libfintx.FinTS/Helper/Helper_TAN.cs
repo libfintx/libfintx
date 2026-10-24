@@ -75,18 +75,11 @@ namespace libfintx.FinTS
             }
 
             // chipTAN optisch
-            string chipTanCode = processname.Contains("chipTAN optisch") ? ExtractChipTanFlickerCode(HITAN) : null;
+            string chipTanFlicker = processname.Contains("chipTAN optisch") ? RenderChipTanFlickerCode(HITAN, client.Logger) : null;
 
-            if (processname.Contains("chipTAN optisch") && chipTanCode is null)
+            if (chipTanFlicker is not null)
             {
-                // Without a flicker code the user can still enter a TAN from the challenge text (chipTAN manuell)
-                client.Logger.LogWarning("HITAN carries no flicker code for chipTAN optisch, showing the challenge text only.");
-            }
-
-            if (chipTanCode is not null)
-            {
-                FlickerCode flickerCode = new FlickerCode(chipTanCode);
-                flickerCodeRenderer = new FlickerRenderer(flickerCode.Render(), tanDialog.PictureBox);
+                flickerCodeRenderer = new FlickerRenderer(chipTanFlicker, tanDialog.PictureBox);
                 if (!tanDialog.RenderFlickerCodeAsGif)
                 {
                     RUN_flickerCodeRenderer();
@@ -179,6 +172,31 @@ namespace libfintx.FinTS
             }
 
             return await tanDialog.WaitForTanAsync();
+        }
+
+        /// <summary>
+        /// Renders the chipTAN flicker code of a HITAN segment for the <see cref="FlickerRenderer"/>.
+        /// Returns null when the segment carries no usable code; the user can then still enter a TAN
+        /// from the challenge text (chipTAN manuell), so a missing or malformed code never ends the dialog.
+        /// </summary>
+        internal static string RenderChipTanFlickerCode(string hitan, ILogger logger)
+        {
+            var code = ExtractChipTanFlickerCode(hitan);
+            if (code is null)
+            {
+                logger?.LogWarning("HITAN carries no flicker code for chipTAN optisch, showing the challenge text only.");
+                return null;
+            }
+
+            try
+            {
+                return new FlickerCode(code).Render();
+            }
+            catch (Exception ex)
+            {
+                logger?.LogWarning(ex, "The chipTAN flicker code could not be read, showing the challenge text only.");
+                return null;
+            }
         }
 
         /// <summary>
