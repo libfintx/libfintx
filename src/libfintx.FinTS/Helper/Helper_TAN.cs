@@ -75,14 +75,11 @@ namespace libfintx.FinTS
             }
 
             // chipTAN optisch
-            if (processname.Contains("chipTAN optisch"))
+            string chipTanFlicker = processname.Contains("chipTAN optisch") ? RenderChipTanFlickerCode(HITAN, client.Logger) : null;
+
+            if (chipTanFlicker is not null)
             {
-                string FlickerCode = string.Empty;
-
-                FlickerCode = "CHLGUC" + Helper.Parse_String(HITAN, "CHLGUC", "CHLGTEXT") + "CHLGTEXT";
-
-                FlickerCode flickerCode = new FlickerCode(FlickerCode);
-                flickerCodeRenderer = new FlickerRenderer(flickerCode.Render(), tanDialog.PictureBox);
+                flickerCodeRenderer = new FlickerRenderer(chipTanFlicker, tanDialog.PictureBox);
                 if (!tanDialog.RenderFlickerCodeAsGif)
                 {
                     RUN_flickerCodeRenderer();
@@ -175,6 +172,58 @@ namespace libfintx.FinTS
             }
 
             return await tanDialog.WaitForTanAsync();
+        }
+
+        /// <summary>
+        /// Renders the chipTAN flicker code of a HITAN segment for the <see cref="FlickerRenderer"/>.
+        /// Returns null when the segment carries no usable code; the user can then still enter a TAN
+        /// from the challenge text (chipTAN manuell), so a missing or malformed code never ends the dialog.
+        /// </summary>
+        internal static string RenderChipTanFlickerCode(string hitan, ILogger logger)
+        {
+            var code = ExtractChipTanFlickerCode(hitan);
+            if (code is null)
+            {
+                logger?.LogWarning("HITAN carries no flicker code for chipTAN optisch, showing the challenge text only.");
+                return null;
+            }
+
+            try
+            {
+                return new FlickerCode(code).Render();
+            }
+            catch (Exception ex)
+            {
+                logger?.LogWarning(ex, "The chipTAN flicker code could not be read, showing the challenge text only.");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Extracts the chipTAN flicker code from a HITAN segment. Banks send it either inside the challenge
+        /// text between CHLGUC and CHLGTEXT, or in the binary data element "Challenge HHD_UC" (@length@data).
+        /// Returns null when the segment carries neither.
+        /// </summary>
+        internal static string ExtractChipTanFlickerCode(string hitan)
+        {
+            if (string.IsNullOrEmpty(hitan))
+                return null;
+
+            // CHLGUC is followed by a four-digit length, then the code
+            var text = Parse_String(hitan, "CHLGUC", "CHLGTEXT");
+            if (text.Replace(" ", "").Length > 4)
+                return "CHLGUC" + text + "CHLGTEXT";
+
+            var match = Regex.Match(hitan, @"\+@(\d+)@");
+            if (!match.Success)
+                return null;
+
+            int length = int.Parse(match.Groups[1].Value);
+            int start = match.Index + match.Length;
+            if (length == 0 || start + length > hitan.Length)
+                return null;
+
+            return hitan.Substring(start, length);
         }
     }
 }
