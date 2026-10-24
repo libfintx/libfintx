@@ -415,21 +415,18 @@ namespace libfintx.FinTS
 
                 const int Delay = 2000; // Der minimale Zeitraum zwischen zwei Statusabfragen steht in HITANS, wir nehmen einfach 2 Sek
                 await Task.Delay(Delay);
-                result = await TAN(null);
-                while (!result.IsSuccess && !result.HasError && result.IsWaitingForApproval) // Freigabe wurde noch nicht erteilt
+                if (!tanDialog.IsCancelWaitForApproval)
+                    result = await TAN(null);
+                // Freigabe wurde noch nicht erteilt; IsCancelWaitForApproval beendet die Statusabfrage
+                while (!tanDialog.IsCancelWaitForApproval && !result.IsSuccess && !result.HasError && result.IsWaitingForApproval)
                 {
                     await Task.Delay(Delay);
-                    if (tanDialog.IsCancelWaitForApproval)
-                    {
-                        // Nichts tun
-                    }
-                    else
-                    {
+                    if (!tanDialog.IsCancelWaitForApproval)
                         result = await TAN(null);
-                    }
                 }
 
-                await tanDialog.OnTransactionEndAsync(result.IsSuccess); // Dem Benutzer signalisieren, dass die Transaktion beendet ist
+                // Dem Benutzer signalisieren, dass die Transaktion beendet ist
+                await tanDialog.OnTransactionEndAsync(!tanDialog.IsCancelWaitForApproval && result.IsSuccess);
             }
 
             if (result.IsSuccess && ini)
