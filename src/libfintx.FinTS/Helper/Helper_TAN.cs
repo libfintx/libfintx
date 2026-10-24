@@ -75,13 +75,17 @@ namespace libfintx.FinTS
             }
 
             // chipTAN optisch
-            if (processname.Contains("chipTAN optisch"))
+            string chipTanCode = processname.Contains("chipTAN optisch") ? ExtractChipTanFlickerCode(HITAN) : null;
+
+            if (processname.Contains("chipTAN optisch") && chipTanCode is null)
             {
-                string FlickerCode = string.Empty;
+                // Without a flicker code the user can still enter a TAN from the challenge text (chipTAN manuell)
+                client.Logger.LogWarning("HITAN carries no flicker code for chipTAN optisch, showing the challenge text only.");
+            }
 
-                FlickerCode = "CHLGUC" + Helper.Parse_String(HITAN, "CHLGUC", "CHLGTEXT") + "CHLGTEXT";
-
-                FlickerCode flickerCode = new FlickerCode(FlickerCode);
+            if (chipTanCode is not null)
+            {
+                FlickerCode flickerCode = new FlickerCode(chipTanCode);
                 flickerCodeRenderer = new FlickerRenderer(flickerCode.Render(), tanDialog.PictureBox);
                 if (!tanDialog.RenderFlickerCodeAsGif)
                 {
@@ -175,6 +179,33 @@ namespace libfintx.FinTS
             }
 
             return await tanDialog.WaitForTanAsync();
+        }
+
+        /// <summary>
+        /// Extracts the chipTAN flicker code from a HITAN segment. Banks send it either inside the challenge
+        /// text between CHLGUC and CHLGTEXT, or in the binary data element "Challenge HHD_UC" (@length@data).
+        /// Returns null when the segment carries neither.
+        /// </summary>
+        internal static string ExtractChipTanFlickerCode(string hitan)
+        {
+            if (string.IsNullOrEmpty(hitan))
+                return null;
+
+            // CHLGUC is followed by a four-digit length, then the code
+            var text = Parse_String(hitan, "CHLGUC", "CHLGTEXT");
+            if (text.Replace(" ", "").Length > 4)
+                return "CHLGUC" + text + "CHLGTEXT";
+
+            var match = Regex.Match(hitan, @"\+@(\d+)@");
+            if (!match.Success)
+                return null;
+
+            int length = int.Parse(match.Groups[1].Value);
+            int start = match.Index + match.Length;
+            if (length == 0 || start + length > hitan.Length)
+                return null;
+
+            return hitan.Substring(start, length);
         }
     }
 }

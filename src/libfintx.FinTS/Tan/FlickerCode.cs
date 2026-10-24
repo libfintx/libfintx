@@ -205,6 +205,13 @@ namespace libfintx.FinTS
 
             code = code.Substring(0, t2Start);
             code = code.Substring(t1Start);
+
+            // "CHLGUC" plus a four-digit length precede the code
+            if (code.Length <= 10)
+            {
+                throw new FormatException("The challenge contains no flicker code between CHLGUC and CHLGTEXT.");
+            }
+
             code = code.Substring(10);
 
             // Attach 0
