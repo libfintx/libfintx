@@ -23,11 +23,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using libfintx.FinTS.Data;
+using libfintx.FinTS.Message;
 using libfintx.Sepa;
+using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS
 {
@@ -49,27 +52,7 @@ namespace libfintx.FinTS
         public async Task<HBCIDialogResult> Transfer(TANDialog tanDialog, string receiverName, string receiverIBAN, string receiverBIC,
             decimal amount, string purpose, string hirms)
         {
-            var result = await InitializeConnection();
-            if (result.HasError)
-                return result;
-
-            result = await ProcessSCA(result, tanDialog, true);
-            if (!result.IsSuccess)
-                return result;
-
-            TransactionConsole.Output = string.Empty;
-
-            if (!string.IsNullOrEmpty(hirms))
-                HIRMS = hirms;
-
-            string BankCode = await Transaction.HKCCS(this, receiverName, receiverIBAN, receiverBIC, amount, purpose);
-            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
-            if (result.HasError)
-                return result;
-
-            result = await ProcessSCA(result, tanDialog);
-
-            return result;
+            return await SubmitPaymentOrder(tanDialog, hirms, "HKCCS", (number, kti) => (HKCCS.Create(this, number, kti, receiverName, receiverIBAN, receiverBIC, amount, purpose), number));
         }
 
         /// <summary>
@@ -89,27 +72,7 @@ namespace libfintx.FinTS
         public async Task<HBCIDialogResult> Transfer_Terminated(TANDialog tanDialog, string receiverName, string receiverIBAN, string receiverBIC,
             decimal amount, string purpose, DateTime executionDay, string hirms)
         {
-            var result = await InitializeConnection();
-            if (result.HasError)
-                return result;
-
-            result = await ProcessSCA(result, tanDialog, true);
-            if (!result.IsSuccess)
-                return result;
-
-            TransactionConsole.Output = string.Empty;
-
-            if (!string.IsNullOrEmpty(hirms))
-                HIRMS = hirms;
-
-            string BankCode = await Transaction.HKCSE(this, receiverName, receiverIBAN, receiverBIC, amount, purpose, executionDay);
-            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
-            if (result.HasError)
-                return result;
-
-            result = await ProcessSCA(result, tanDialog);
-
-            return result;
+            return await SubmitPaymentOrder(tanDialog, hirms, "HKCSE", (number, kti) => (HKCSE.Create(this, number, kti, receiverName, receiverIBAN, receiverBIC, amount, purpose, executionDay), number));
         }
 
 
@@ -127,27 +90,7 @@ namespace libfintx.FinTS
         public async Task<HBCIDialogResult> CollectiveTransfer(TANDialog tanDialog, List<Pain00100203CtData> painData,
             string numberOfTransactions, decimal totalAmount, string hirms)
         {
-            var result = await InitializeConnection();
-            if (result.HasError)
-                return result;
-
-            result = await ProcessSCA(result, tanDialog, true);
-            if (!result.IsSuccess)
-                return result;
-
-            TransactionConsole.Output = string.Empty;
-
-            if (!string.IsNullOrEmpty(hirms))
-                HIRMS = hirms;
-
-            string BankCode = await Transaction.HKCCM(this, painData, numberOfTransactions, totalAmount);
-            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
-            if (result.HasError)
-                return result;
-
-            result = await ProcessSCA(result, tanDialog);
-
-            return result;
+            return await SubmitPaymentOrder(tanDialog, hirms, "HKCCM", (number, kti) => (HKCCM.Create(this, number, kti, painData, numberOfTransactions, totalAmount), number));
         }
 
         /// <summary>
@@ -165,27 +108,7 @@ namespace libfintx.FinTS
         public async Task<HBCIDialogResult> CollectiveTransfer_Terminated(TANDialog tanDialog, List<Pain00100203CtData> painData,
             string numberOfTransactions, decimal totalAmount, DateTime executionDay, string hirms)
         {
-            var result = await InitializeConnection();
-            if (result.HasError)
-                return result;
-
-            result = await ProcessSCA(result, tanDialog, true);
-            if (!result.IsSuccess)
-                return result;
-
-            TransactionConsole.Output = string.Empty;
-
-            if (!string.IsNullOrEmpty(hirms))
-                HIRMS = hirms;
-
-            string BankCode = await Transaction.HKCME(this, painData, numberOfTransactions, totalAmount, executionDay);
-            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
-            if (result.HasError)
-                return result;
-
-            result = await ProcessSCA(result, tanDialog);
-
-            return result;
+            return await SubmitPaymentOrder(tanDialog, hirms, "HKCME", (number, kti) => (HKCME.Create(this, number, kti, painData, numberOfTransactions, totalAmount, executionDay), number));
         }
 
         /// <summary>
@@ -311,6 +234,89 @@ namespace libfintx.FinTS
             result = await ProcessSCA(result, tanDialog);
 
             return result;
+        }
+
+        /// <summary>
+        /// Sends a payment order with HKTAN and completes the strong customer authentication. The account of the
+        /// client is the one the bank reports in HISPA (see <see cref="GetPaymentOrderAccount"/>).
+        /// </summary>
+        /// <param name="buildOrder">Builds the order segments from the first segment number and the KTI of the account;
+        /// returns them with the number of the last segment.</param>
+        private async Task<HBCIDialogResult> SubmitPaymentOrder(TANDialog tanDialog, string hirms, string segmentId,
+            Func<int, string, (string Segments, int LastSegmentNumber)> buildOrder)
+        {
+            var result = await InitializeConnection();
+            if (result.HasError)
+                return result;
+
+            result = await ProcessSCA(result, tanDialog, true);
+            if (!result.IsSuccess)
+                return result;
+
+            TransactionConsole.Output = string.Empty;
+
+            if (!string.IsNullOrEmpty(hirms))
+                HIRMS = hirms;
+
+            var kti = await GetPaymentOrderAccount(tanDialog);
+
+            string BankCode = await SendPaymentOrder(buildOrder(Convert.ToInt16(SEG_NUM.Seg3), kti), segmentId);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
+            if (result.HasError)
+                return result;
+
+            result = await ProcessSCA(result, tanDialog);
+
+            return result;
+        }
+
+        /// <summary>
+        /// KTI of the own account for a payment order, exactly as the bank reports it in HISPA (HKSPA, as python-fints
+        /// does before every order); some banks reject IBAN and BIC alone with 9210 "Keine gültige Kontoverbindung".
+        /// IBAN and BIC of the connection details when the bank does not offer HKSPA or does not report the account.
+        /// </summary>
+        private async Task<string> GetPaymentOrderAccount(TANDialog tanDialog)
+        {
+            var fallback = ConnectionDetails.Iban + DEG.Separator + ConnectionDetails.Bic;
+            if (HISPAS == 0)
+                return fallback;
+
+            string BankCode = await Transaction.HKSPA(this);
+            var result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
+            if (!result.HasError)
+                result = await ProcessSCA(result, tanDialog);
+            if (result.HasError)
+            {
+                Logger.LogInformation("SEPA account connection (HKSPA) not received, using IBAN and BIC of the connection details.");
+                return fallback;
+            }
+
+            var iban = ConnectionDetails.Iban?.Replace(" ", string.Empty);
+            var account = Parse_SepaAccounts(result.RawData)
+                .FirstOrDefault(a => string.Equals(a.AccountIban, iban, StringComparison.OrdinalIgnoreCase));
+            return account == null ? fallback : KTI.Of(account);
+        }
+
+        /// <summary>
+        /// Sends order segments (the first one numbered 3) with HKTAN (process 4) when the bank requires a TAN for
+        /// <paramref name="segmentId"/>.
+        /// </summary>
+        private async Task<string> SendPaymentOrder((string Segments, int LastSegmentNumber) order, string segmentId)
+        {
+            var segments = order.Segments;
+            SEGNUM = order.LastSegmentNumber;
+            if (BPD.IsTANRequired(segmentId))
+            {
+                SEGNUM = order.LastSegmentNumber + 1;
+                segments = HKTAN.Init_HKTAN(this, segments, segmentId);
+            }
+
+            string message = FinTSMessage.Create(this, HNHBS, HNHBK, segments, HIRMS);
+            string response = await FinTSMessage.Send(this, message);
+
+            Parse_Message(response);
+
+            return response;
         }
     }
 }
