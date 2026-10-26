@@ -68,6 +68,15 @@ namespace libfintx.FinTS
         public string Challenge { get; internal set; }
 
         /// <summary>
+        /// Called with the result of the verification of payee before a credit transfer is released; return true to
+        /// execute it. Without it an order is only executed when the bank requires no confirmation.
+        /// </summary>
+        public Func<VerificationOfPayeeResult, Task<bool>> ConfirmVerificationOfPayeeAsync { get; set; }
+
+        /// <summary>Result of the last verification of payee in this dialog.</summary>
+        public VerificationOfPayeeResult VerificationOfPayee { get; internal set; }
+
+        /// <summary>
         /// Bei Verwendung des Decoupled-Verfahren (HKTAN#7) setzen.
         /// </summary>
         public bool IsDecoupled { get; set; }

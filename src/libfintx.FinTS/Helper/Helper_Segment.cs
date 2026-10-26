@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using libfintx.FinTS.Data;
 
 namespace libfintx.FinTS
 {
@@ -75,6 +76,88 @@ namespace libfintx.FinTS
                 return new DelimiterMatch(Delimiter.DataElement, result.Index, result.Value);
 
             return null;
+        }
+
+        /// <summary>
+        /// Splits a data element group at unescaped ':' and removes the escaping ("?x" becomes "x").
+        /// </summary>
+        internal static List<string> SplitDataElementGroup(string group)
+        {
+            var elements = new List<string>();
+            var current = new StringBuilder();
+            for (int i = 0; i < group.Length; i++)
+            {
+                if (group[i] == '?' && i + 1 < group.Length)
+                    current.Append(group[++i]);
+                else if (group[i] == ':')
+                {
+                    elements.Add(current.ToString());
+                    current.Clear();
+                }
+                else
+                    current.Append(group[i]);
+            }
+            elements.Add(current.ToString());
+            return elements;
+        }
+
+        /// <summary>
+        /// Splits a segment (header included, terminator optional) into data elements and their group elements.
+        /// Escaping is removed; binary data ("@length@data") is taken unchanged and marked as binary.
+        /// </summary>
+        internal static List<List<DataElementValue>> SplitSegmentValues(string segment)
+        {
+            var elements = new List<List<DataElementValue>>();
+            var group = new List<DataElementValue>();
+            var current = new StringBuilder();
+            bool binary = false;
+
+            void Value()
+            {
+                group.Add(new DataElementValue(current.ToString(), binary));
+                current.Clear();
+                binary = false;
+            }
+
+            for (int i = 0; i < segment.Length; i++)
+            {
+                var c = segment[i];
+                if (c == '?' && i + 1 < segment.Length)
+                {
+                    current.Append(segment[++i]);
+                }
+                else if (c == '@' && current.Length == 0)
+                {
+                    var end = segment.IndexOf('@', i + 1);
+                    if (end < 0 || !int.TryParse(segment.Substring(i + 1, end - i - 1), out var length) || end + 1 + length > segment.Length)
+                        throw new ArgumentException($"Invalid binary data in segment: {Truncate(segment)}");
+
+                    current.Append(segment, end + 1, length);
+                    binary = true;
+                    i = end + length;
+                }
+                else if (c == ':')
+                {
+                    Value();
+                }
+                else if (c == '+')
+                {
+                    Value();
+                    elements.Add(group);
+                    group = new List<DataElementValue>();
+                }
+                else if (c == '\'')
+                {
+                    break;
+                }
+                else
+                {
+                    current.Append(c);
+                }
+            }
+            Value();
+            elements.Add(group);
+            return elements;
         }
 
         internal static List<string> SplitDataElements(string code)

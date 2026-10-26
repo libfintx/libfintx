@@ -48,33 +48,12 @@ namespace libfintx.FinTS.Data.Segment
 
             // Version 3: 1 single account retrieval, 2 national account allowed, 3 structured remittance information,
             // 4 entering the number of entries, 5 reserved remittance information positions, 6.. supported formats
-            var elements = SplitDataElementGroup(paramSepaAccount.TrimEnd('\''));
+            var elements = Helper.SplitDataElementGroup(paramSepaAccount.TrimEnd('\''));
             result.PainFormats = elements.Where(e => e.Contains("pain.")).ToList();
             if (segment.Version >= 3 && elements.Count > 4 && int.TryParse(elements[4], out var reserved))
                 result.ReservedPurposeLength = reserved;
 
             return result;
-        }
-
-        /// <summary>Splits at unescaped ':' and removes the escaping.</summary>
-        private static List<string> SplitDataElementGroup(string group)
-        {
-            var elements = new List<string>();
-            var current = new StringBuilder();
-            for (int i = 0; i < group.Length; i++)
-            {
-                if (group[i] == '?' && i + 1 < group.Length)
-                    current.Append(group[++i]);
-                else if (group[i] == ':')
-                {
-                    elements.Add(current.ToString());
-                    current.Clear();
-                }
-                else
-                    current.Append(group[i]);
-            }
-            elements.Add(current.ToString());
-            return elements;
         }
     }
 }
