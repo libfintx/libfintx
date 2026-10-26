@@ -54,9 +54,17 @@ public class Test_OrderStatus
         onlyCheck.IgnoredSegmentReferences.Add(3);
         Assert.Equal(OrderStatus.Unclear, onlyCheck.GetOrderStatus());
 
-        var checkFailed = Result("HIRMS:3:2:3+9210::Fehler im Prüfauftrag'");
-        checkFailed.IgnoredSegmentReferences.Add(3);
-        Assert.Equal(OrderStatus.NotExecuted, checkFailed.GetOrderStatus());
+        // HKVPA 9210 "Auftrag existiert nicht bzw. wurde bereits ausgeführt" (VOP 1.02, p. 15): not "not executed"
+        var executionOrderFailed = Result("HIRMG:2:2+9050::Teilweise fehlerhaft.'HIRMS:3:2:3+9210::Auftrag existiert nicht bzw. wurde bereits ausgeführt'");
+        executionOrderFailed.IgnoredSegmentReferences.Add(3);
+        Assert.Equal(OrderStatus.Unclear, executionOrderFailed.GetOrderStatus());
+        var withNewChallenge = Result("HIRMS:3:2:3+9210::Auftrag existiert nicht bzw. wurde bereits ausgeführt'HIRMS:4:2:4+0030::Sicherheitsfreigabe erforderlich'");
+        withNewChallenge.IgnoredSegmentReferences.Add(3);
+        Assert.Equal(OrderStatus.Unclear, withNewChallenge.GetOrderStatus());
+
+        var orderFailed = Result("HIRMS:3:2:3+9210::Fehler im Prüfauftrag'HIRMS:4:2:4+9210::Keine gültige Kontoverbindung'");
+        orderFailed.IgnoredSegmentReferences.Add(3);
+        Assert.Equal(OrderStatus.NotExecuted, orderFailed.GetOrderStatus());
     }
 
     [Fact]

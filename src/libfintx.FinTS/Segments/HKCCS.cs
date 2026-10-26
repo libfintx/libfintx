@@ -67,10 +67,10 @@ namespace libfintx.FinTS
         /// the pain message id; the end to end id of the transfer is "messageId-1".
         /// </summary>
         internal static string Create(FinTsClient client, int segmentNumber, string kti, string receiverName,
-            string receiverIBAN, string receiverBIC, decimal amount, string usage, string messageId = null)
+            string receiverIBAN, string receiverBIC, decimal amount, string usage, string messageId = null, string debtorBic = null)
         {
             var pain = Helper.CreatePainCreditTransfer(client, receiverName, receiverIBAN, receiverBIC, amount, usage,
-                new DateTime(1999, 1, 1), messageId: messageId);
+                new DateTime(1999, 1, 1), messageId: messageId, debtorBic: debtorBic);
             return Helper.PaymentOrderSegment("HKCCS", 1, segmentNumber, kti, null, pain);
         }
     }

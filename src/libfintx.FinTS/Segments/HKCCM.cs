@@ -67,10 +67,10 @@ namespace libfintx.FinTS
         /// descriptor and pain message in the format announced in HISPAS.
         /// </summary>
         internal static string Create(FinTsClient client, int segmentNumber, string kti, List<Pain00100203CtData> painData,
-            string numberOfTransactions, decimal totalAmount, string messageId = null)
+            string numberOfTransactions, decimal totalAmount, string messageId = null, string debtorBic = null)
         {
             var pain = Helper.CreatePainCollectiveCreditTransfer(client, painData, numberOfTransactions, totalAmount,
-                new DateTime(1999, 1, 1), messageId: messageId);
+                new DateTime(1999, 1, 1), messageId: messageId, debtorBic: debtorBic);
             return Helper.PaymentOrderSegment("HKCCM", 1, segmentNumber, kti,
                 new[] { Converter.ToFinTsAmount(totalAmount) + DEG.Separator + "EUR", string.Empty }, pain);
         }
