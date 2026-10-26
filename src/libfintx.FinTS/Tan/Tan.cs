@@ -148,7 +148,7 @@ namespace libfintx.FinTS
                     sb.Append(sEG.Delimiter);
                     sb.Append(client.HITAN);
                     sb.Append(sEG.Delimiter);
-                    sb.Append(sEG.Delimiter);
+                    // Element 7 "Weitere TAN folgt" follows the order reference (element 6) directly
                     sb.Append(DEG.DeAdd);
                     sb.Append(sEG.Terminator);
                     segments = sb.ToString();
@@ -165,7 +165,8 @@ namespace libfintx.FinTS
                     sb.Append(DEG.Separator);
                     sb.Append(client.HITANS);
                     sb.Append(sEG.Delimiter);
-                    sb.Append("S");
+                    // Process 2 submits a TAN; process S is the status request of a decoupled approval
+                    sb.Append(TAN != null ? "2" : "S");
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
@@ -326,11 +327,7 @@ namespace libfintx.FinTS
                     sb.Append(client.HITAN);
                     sb.Append(sEG.Delimiter);
                     sb.Append(DEG.DeAdd);
-                    sb.Append(sEG.Delimiter);
-                    sb.Append(sEG.Delimiter);
-                    sb.Append(sEG.Delimiter);
-                    sb.Append(sEG.Delimiter);
-                    sb.Append(Helper.EscapeEdifactString(client.HITAB));
+                    // The TAN medium (element 12) is optional for process 2 and S and is not sent
                     sb.Append(sEG.Terminator);
                     segments = sb.ToString();
                     // segments = "HKTAN:" + SEG_NUM.Seg3 + ":" + client.HITANS + "+2++++" + client.HITAN + "+N++++" + client.HITAB + "'";
@@ -346,7 +343,8 @@ namespace libfintx.FinTS
                     sb.Append(DEG.Separator);
                     sb.Append(client.HITANS);
                     sb.Append(sEG.Delimiter);
-                    sb.Append("S");
+                    // Process 2 submits a TAN; process S is the status request of a decoupled approval
+                    sb.Append(TAN != null ? "2" : "S");
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
                     sb.Append(sEG.Delimiter);
@@ -354,11 +352,7 @@ namespace libfintx.FinTS
                     sb.Append(client.HITAN);
                     sb.Append(sEG.Delimiter);
                     sb.Append(DEG.DeAdd);
-                    sb.Append(sEG.Delimiter);
-                    sb.Append(sEG.Delimiter);
-                    sb.Append(sEG.Delimiter);
-                    sb.Append(sEG.Delimiter);
-                    sb.Append(Helper.EscapeEdifactString(client.HITAB));
+                    // The TAN medium (element 12) is optional for process 2 and S and is not sent
                     sb.Append(sEG.Terminator);
                     segments = sb.ToString();
                     // segments = "HKTAN:" + SEG_NUM.Seg3 + ":" + client.HITANS + "+S++++" + client.HITAN + "+N++++" + client.HITAB + "'";
