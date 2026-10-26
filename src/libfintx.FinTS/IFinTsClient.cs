@@ -40,6 +40,8 @@ namespace libfintx.FinTS
         string HITAB { get; set; }
         int HITANS { get; set; }
         string SystemId { get; }
+        string NewUserId { get; }
+        IReadOnlyList<int> AllowedTanProcedures { get; }
 
         Task<HBCIDialogResult<List<AccountInformation>>> Accounts(TANDialog tanDialog);
         Task<HBCIDialogResult<AccountBalance>> Balance(TANDialog tanDialog);
@@ -66,5 +68,10 @@ namespace libfintx.FinTS
         Task<HBCIDialogResult<List<CamtStatement>>> Transactions_camt(TANDialog tanDialog, CamtVersion camtVers, DateTime? startDate = null, DateTime? endDate = null, bool saveCamtFile = false);
         Task<HBCIDialogResult> Transfer(TANDialog tanDialog, string receiverName, string receiverIBAN, string receiverBIC, decimal amount, string purpose, string hirms);
         Task<HBCIDialogResult> Transfer_Terminated(TANDialog tanDialog, string receiverName, string receiverIBAN, string receiverBIC, decimal amount, string purpose, DateTime executionDay, string hirms);
+        bool InstantPaymentAvailable(bool collective = false);
+        TimeSpan? InstantPaymentStatusWait(bool collective = false);
+        Task<HBCIDialogResult<InstantPaymentResult>> InstantTransfer(TANDialog tanDialog, string receiverName, string receiverIBAN, string receiverBIC, decimal amount, string purpose, string hirms, bool allowConversion = false);
+        Task<HBCIDialogResult<InstantPaymentResult>> CollectiveInstantTransfer(TANDialog tanDialog, List<Pain00100203CtData> painData, string numberOfTransactions, decimal totalAmount, string hirms, bool allowConversion = false);
+        Task<HBCIDialogResult<InstantPaymentResult>> GetInstantPaymentStatus(TANDialog tanDialog, string orderId, bool collective = false);
     }
 }

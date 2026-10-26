@@ -250,6 +250,122 @@ namespace libfintx.FinTS
         }
 
         /// <summary>
+        /// The bank offers instant payments (HIIPZS, or HIIPMS for collective orders).
+        /// </summary>
+        public bool InstantPaymentAvailable(bool collective = false) => InstantPaymentParameters.Read(BPD, collective) != null;
+
+        /// <summary>
+        /// Minimum wait before the status of an instant payment may be requested (HIIPSS in seconds, HIISSS in minutes);
+        /// <c>null</c> when the bank offers no status request.
+        /// </summary>
+        public TimeSpan? InstantPaymentStatusWait(bool collective = false)
+        {
+            var parameters = InstantPaymentParameters.Read(BPD, collective);
+            return parameters?.StatusVersion > 0 ? TimeSpan.FromSeconds(parameters.MinimumWaitSeconds) : (TimeSpan?) null;
+        }
+
+        /// <summary>
+        /// SEPA instant payment (HKIPZ): in seconds with the payee and not recallable. With the verification of payee when
+        /// the bank requires it. The bank accepts with 3045 and reports the final state later: request it with
+        /// <see cref="GetInstantPaymentStatus"/> after <see cref="InstantPaymentStatusWait"/>.
+        /// </summary>
+        /// <param name="allowConversion">The bank may execute it as standard credit transfer when the instant payment is not
+        /// possible; sent only when the bank offers this (HIIPZS version 2).</param>
+        public async Task<HBCIDialogResult<InstantPaymentResult>> InstantTransfer(TANDialog tanDialog, string receiverName,
+            string receiverIBAN, string receiverBIC, decimal amount, string purpose, string hirms, bool allowConversion = false)
+        {
+            var parameters = RequireInstantPayment(false);
+            var version = Math.Min(parameters.Version, 2);
+            bool? conversion = parameters.ConversionAllowed ? allowConversion : (bool?) null;
+            string orderAnswer = null;
+
+            var result = await SubmitPaymentOrder(tanDialog, hirms, "HKIPZ", new[] { (receiverName, receiverIBAN) },
+                (number, kti, messageId) => (HKIPZ.Create(this, number, version, kti, receiverName, receiverIBAN, receiverBIC, amount, purpose, conversion, messageId), number),
+                instantPayment: true, orderAnswer: answer => orderAnswer = answer);
+
+            return result.TypedResult(InstantPaymentAnswer(result, orderAnswer, "HIIPZ"));
+        }
+
+        /// <summary>SEPA instant payment collective order (HKIPM), see <see cref="InstantTransfer"/>.</summary>
+        public async Task<HBCIDialogResult<InstantPaymentResult>> CollectiveInstantTransfer(TANDialog tanDialog,
+            List<Pain00100203CtData> painData, string numberOfTransactions, decimal totalAmount, string hirms, bool allowConversion = false)
+        {
+            // A collective order with one transaction goes as single order when the bank does not allow it (HIVPPS)
+            if (painData?.Count == 1 && BPD?.HIVPPS?.CollectiveWithOneTransactionAllowed == false)
+                return await InstantTransfer(tanDialog, painData[0].Receiver, painData[0].ReceiverIban, painData[0].ReceiverBic, painData[0].Amount, painData[0].Usage, hirms, allowConversion);
+
+            var parameters = RequireInstantPayment(true);
+            if (parameters.MaxTransactions > 0 && painData.Count > parameters.MaxTransactions)
+                throw new ArgumentException($"The bank accepts at most {parameters.MaxTransactions} transactions in HKIPM ({painData.Count} given).");
+            CheckMaximumTransactions("HKIPM", "HIIPMS", painData.Count);
+
+            var version = Math.Min(parameters.Version, 2);
+            bool? conversion = parameters.ConversionAllowed ? allowConversion : (bool?) null;
+            string orderAnswer = null;
+
+            var result = await SubmitPaymentOrder(tanDialog, hirms, "HKIPM", painData.Select(p => (p.Receiver, p.ReceiverIban)).ToList(),
+                (number, kti, messageId) => (HKIPM.Create(this, number, version, kti, painData, numberOfTransactions, totalAmount, conversion, messageId), number),
+                instantPayment: true, orderAnswer: answer => orderAnswer = answer);
+
+            return result.TypedResult(InstantPaymentAnswer(result, orderAnswer, "HIIPM"));
+        }
+
+        /// <summary>
+        /// Status of an instant payment (HKIPS, collective orders HKISS), not earlier than <see cref="InstantPaymentStatusWait"/>
+        /// after the order. Return values describe the request; only the status field tells about the payment.
+        /// </summary>
+        /// <param name="orderId">Order id from <see cref="InstantPaymentResult.OrderId"/>.</param>
+        public async Task<HBCIDialogResult<InstantPaymentResult>> GetInstantPaymentStatus(TANDialog tanDialog, string orderId, bool collective = false)
+        {
+            var parameters = RequireInstantPayment(collective);
+            if (parameters.StatusVersion == 0)
+                throw new InvalidOperationException($"The bank offers no status request for instant payments ({(collective ? "HIISSS" : "HIIPSS")}).");
+
+            var result = await InitializeConnection();
+            if (result.HasError)
+                return result.TypedResult<InstantPaymentResult>();
+
+            result = await ProcessSCA(result, tanDialog, true);
+            if (!result.IsSuccess)
+                return result.TypedResult<InstantPaymentResult>();
+
+            var kti = await GetPaymentOrderAccount(tanDialog);
+            var segmentId = collective ? "HKISS" : "HKIPS";
+            string BankCode = await SendPaymentOrder((HKIPS.Create(collective, Convert.ToInt16(SEG_NUM.Seg3), parameters.StatusVersion, kti,
+                parameters.StatusReportFormats, orderId), Convert.ToInt16(SEG_NUM.Seg3)), segmentId);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
+            if (!result.HasError)
+                result = await ProcessSCA(result, tanDialog);
+
+            var (id, statusCode) = InstantPayment.ParseAnswer(result.RawData, collective ? "HIISS" : "HIIPS");
+            var codes = result.Messages.Select(m => m.Code).ToList();
+            return result.TypedResult(new InstantPaymentResult(id ?? orderId, InstantPayment.Status(statusCode, codes, statusRequest: true), statusCode));
+        }
+
+        private InstantPaymentParameters RequireInstantPayment(bool collective)
+        {
+            var parameters = InstantPaymentParameters.Read(BPD, collective)
+                ?? throw new InvalidOperationException($"The bank offers no instant payments ({(collective ? "HIIPMS" : "HIIPZS")}).");
+            if (parameters.Formats.Count > 0 && !parameters.Formats.Any(f => f.Contains("pain.001.001.09")))
+                throw new InvalidOperationException("The bank does not accept instant payments as pain.001.001.09 (" + string.Join(", ", parameters.Formats) + ").");
+            return parameters;
+        }
+
+        /// <summary>Order id and state from HIIPZ/HIIPM of the final answer or of the answer to the order.</summary>
+        private static InstantPaymentResult InstantPaymentAnswer(HBCIDialogResult result, string orderAnswer, string segmentId)
+        {
+            var (id, statusCode) = InstantPayment.ParseAnswer(result.RawData, segmentId);
+            if (id == null)
+                (id, statusCode) = InstantPayment.ParseAnswer(orderAnswer, segmentId);
+
+            // only return values about the order: 0010 in HIRMG means "message received"
+            var codes = result.Messages
+                .Where(m => (m.SegmentReference != null && !result.IgnoredSegmentReferences.Contains(m.SegmentReference.Value)) || m.IsError)
+                .Select(m => m.Code).ToList();
+            return new InstantPaymentResult(id, InstantPayment.Status(statusCode, codes), statusCode);
+        }
+
+        /// <summary>
         /// Sends a payment order with HKTAN and completes the strong customer authentication. The account of the
         /// client is the one the bank reports in HISPA (see <see cref="GetPaymentOrderAccount"/>). When the bank lists
         /// the order in HIVPPS, the verification of payee comes first (see <see cref="SubmitWithVerificationOfPayee"/>).
@@ -259,7 +375,7 @@ namespace libfintx.FinTS
         /// the pain message id; returns them with the number of the last segment.</param>
         private async Task<HBCIDialogResult> SubmitPaymentOrder(TANDialog tanDialog, string hirms, string segmentId,
             IReadOnlyList<(string Name, string Iban)> payees, Func<int, string, string, (string Segments, int LastSegmentNumber)> buildOrder,
-            bool instantPayment = false)
+            bool instantPayment = false, Action<string> orderAnswer = null)
         {
             var result = await InitializeConnection();
             if (result.HasError)
@@ -282,10 +398,11 @@ namespace libfintx.FinTS
             if (vop != null && vop.PaymentOrders.Contains(segmentId))
             {
                 var withEndToEndIds = payees.Select((p, i) => (p.Name, p.Iban, pain00100109.EndToEndId(messageId, i))).ToList();
-                return await SubmitWithVerificationOfPayee(tanDialog, segmentId, vop, withEndToEndIds, buildOrder(first + 1, kti, messageId), instantPayment);
+                return await SubmitWithVerificationOfPayee(tanDialog, segmentId, vop, withEndToEndIds, buildOrder(first + 1, kti, messageId), instantPayment, orderAnswer);
             }
 
             string BankCode = await SendPaymentOrder(buildOrder(first, kti, messageId), segmentId);
+            orderAnswer?.Invoke(BankCode);
             result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
             if (result.HasError)
                 return result;
@@ -305,10 +422,11 @@ namespace libfintx.FinTS
         /// <param name="order">The order segments numbered from 4 (HKVPP is 3); the same bytes are sent again after 3945.</param>
         private async Task<HBCIDialogResult> SubmitWithVerificationOfPayee(TANDialog tanDialog, string segmentId, HIVPPS vop,
             IReadOnlyList<(string Name, string Iban, string EndToEndId)> payees, (string Segments, int LastSegmentNumber) order,
-            bool instantPayment)
+            bool instantPayment, Action<string> orderAnswer = null)
         {
             int first = Convert.ToInt16(SEG_NUM.Seg3);
             string BankCode = await SendPaymentOrder((HKVPP.Create(first, vop) + order.Segments, order.LastSegmentNumber), segmentId);
+            orderAnswer?.Invoke(BankCode);
             var result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
             result.IgnoredSegmentReferences.Add(first);
             if (result.HasError)
@@ -383,6 +501,7 @@ namespace libfintx.FinTS
                 }
 
                 BankCode = await SendPaymentOrder((HKVPA.Create(first, answer.VopId.Text) + order.Segments, order.LastSegmentNumber), segmentId);
+                orderAnswer?.Invoke(BankCode);
                 result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
                 result.IgnoredSegmentReferences.Add(first);
                 if (result.HasError)
