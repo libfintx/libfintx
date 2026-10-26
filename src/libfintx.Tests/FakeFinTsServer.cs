@@ -12,17 +12,22 @@ namespace libfintx.Tests;
 
 /// <summary>
 /// Local FinTS endpoint for tests: records every request (decoded to plain FinTS text) and answers
-/// each one with the same plain response.
+/// each one with the same plain response, or with the given responses in order (the last one repeats).
 /// </summary>
 internal sealed class FakeFinTsServer : IDisposable
 {
     private readonly TcpListener _listener = new(IPAddress.Loopback, 0);
     private readonly CancellationTokenSource _stop = new();
-    private readonly string _response;
+    private readonly Queue<string> _responses;
 
     public FakeFinTsServer(string response = "HNHBK:1:3+000000000100+300+DIALOG1+1'HIRMG:2:2+0010::Nachricht entgegengenommen.'HNHBS:3:1+1'")
+        : this(new[] { response })
     {
-        _response = response;
+    }
+
+    public FakeFinTsServer(IEnumerable<string> responses)
+    {
+        _responses = new Queue<string>(responses);
         _listener.Start();
         Url = $"http://127.0.0.1:{((IPEndPoint) _listener.LocalEndpoint).Port}/";
         _ = ServeAsync();
@@ -57,7 +62,10 @@ internal sealed class FakeFinTsServer : IDisposable
                 lock (Requests)
                     Requests.Add(Encoding.GetEncoding("ISO-8859-1").GetString(Convert.FromBase64String(request)));
 
-                var body = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(_response));
+                string response;
+                lock (_responses)
+                    response = _responses.Count > 1 ? _responses.Dequeue() : _responses.Peek();
+                var body = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(response));
                 var http = "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\n"
                            + $"Content-Length: {body.Length}\r\nConnection: close\r\n\r\n{body}";
                 var bytes = Encoding.ASCII.GetBytes(http);
