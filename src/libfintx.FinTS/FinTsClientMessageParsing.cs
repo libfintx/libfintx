@@ -107,7 +107,7 @@ public partial class FinTsClient
                     string[] HIRMG_messages = segment.Payload.Split('+');
                     foreach (var HIRMG_message in HIRMG_messages)
                     {
-                        var message = Parse_BankCode_Message(HIRMG_message);
+                        var message = Parse_BankCode_Message(HIRMG_message, null);
                         if (message != null)
                             result.Add(message);
                     }
@@ -119,7 +119,7 @@ public partial class FinTsClient
                     string[] HIRMS_messages = segment.Payload.Split('+');
                     foreach (var HIRMS_message in HIRMS_messages)
                     {
-                        var message = Parse_BankCode_Message(HIRMS_message);
+                        var message = Parse_BankCode_Message(HIRMS_message, segment.Ref);
                         if (message != null)
                             result.Add(message);
                     }
@@ -271,6 +271,12 @@ public partial class FinTsClient
                     }
                 }
             }
+
+            // 3072: the bank announces a new user id (Rückmeldungscodes: "Neue Benutzerkennung")
+            var newUserId = result.Where(m => m.Code == "3072").Select(m => m.Parameters.FirstOrDefault()?.Trim())
+                .FirstOrDefault(id => !string.IsNullOrEmpty(id));
+            if (newUserId != null && !string.Equals(newUserId, ConnectionDetails.UserId?.Trim(), StringComparison.Ordinal))
+                NewUserId = newUserId;
 
             // Fallback if HIKAZS is not delivered by BPD (eg. Postbank)
             if (this.HIKAZS == 0)

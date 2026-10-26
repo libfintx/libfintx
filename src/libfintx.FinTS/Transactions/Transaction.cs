@@ -167,6 +167,11 @@ namespace libfintx.FinTS
             return await Send_TAN(client, TAN);
         }
 
+        internal static async Task<String> TAN(FinTsClient client, string TAN, Func<int, (string Segments, int LastSegmentNumber)> extraSegments)
+        {
+            return await Send_TAN(client, TAN, extraSegments);
+        }
+
         public static async Task<String> TAN4(FinTsClient client, string TAN, string MediumName)
         {
             return await Send_TAN4(client, TAN, MediumName);

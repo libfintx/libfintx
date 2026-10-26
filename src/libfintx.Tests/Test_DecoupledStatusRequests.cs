@@ -97,7 +97,7 @@ public class Test_DecoupledStatusRequests
             var watch = Stopwatch.StartNew();
             var processSca = (Task<HBCIDialogResult>) typeof(FinTsClient)
                 .GetMethod("ProcessSCA", BindingFlags.Instance | BindingFlags.NonPublic)
-                .Invoke(client, new object[] { pending, dialog, false });
+                .Invoke(client, new object[] { pending, dialog, false, null });
             _ = Task.Delay(TimeSpan.FromSeconds(7)).ContinueWith(_ => dialog.IsCancelWaitForApproval = true);
 
             await processSca;

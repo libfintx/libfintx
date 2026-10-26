@@ -62,6 +62,12 @@ namespace libfintx.FinTS
         public MatrixCode MatrixCode { get; internal set; }
 
         /// <summary>
+        /// Text the bank shows the user for this TAN or approval (HITAN "Challenge"), or the return value 0030/3955
+        /// when it sends none.
+        /// </summary>
+        public string Challenge { get; internal set; }
+
+        /// <summary>
         /// Bei Verwendung des Decoupled-Verfahren (HKTAN#7) setzen.
         /// </summary>
         public bool IsDecoupled { get; set; }
