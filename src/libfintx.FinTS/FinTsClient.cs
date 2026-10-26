@@ -458,7 +458,7 @@ namespace libfintx.FinTS
             if (result.IsTanRequired && !result.IsApprovalRequired)
             {
                 string tan = await Helper.WaitForTanAsync(this, result, tanDialog);
-                if (tan == null)
+                if (string.IsNullOrEmpty(tan))
                 {
                     // Wenn der User keine TAN eingegeben hat, können wir nichts tun
                 }
@@ -486,7 +486,8 @@ namespace libfintx.FinTS
                     return answer;
                 }
 
-                if (decoupled?.DecoupledAutomatedStatusRequestsAllowed == false)
+                tanDialog.ManualApprovalConfirmation = decoupled?.DecoupledAutomatedStatusRequestsAllowed == false;
+                if (tanDialog.ManualApprovalConfirmation)
                 {
                     // Without automated status requests (HITANS#7 element 26 = N, PIN/TAN 2020-07-10, p. 117) the client
                     // asks only after the user confirms the approval: the TAN dialog returns null to cancel.

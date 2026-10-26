@@ -67,10 +67,10 @@ namespace libfintx.FinTS
         /// without separator before.
         /// </summary>
         internal static string Create(FinTsClient client, int segmentNumber, string kti, List<Pain00100203CtData> painData,
-            string numberOfTransactions, decimal totalAmount, DateTime executionDay, string messageId = null)
+            string numberOfTransactions, decimal totalAmount, DateTime executionDay, string messageId = null, string debtorBic = null)
         {
             var pain = Helper.CreatePainCollectiveCreditTransfer(client, painData, numberOfTransactions, totalAmount,
-                executionDay, messageId: messageId);
+                executionDay, messageId: messageId, debtorBic: debtorBic);
             return Helper.PaymentOrderSegment("HKCME", 1, segmentNumber, kti,
                 new[] { Converter.ToFinTsAmount(totalAmount) + DEG.Separator + "EUR", string.Empty }, pain);
         }

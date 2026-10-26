@@ -18,6 +18,9 @@ namespace libfintx.FinTS
         /// <param name="tanDialog"></param>
         public static async Task<string> WaitForTanAsync(FinTsClient client, HBCIDialogResult dialogResult, TANDialog tanDialog)
         {
+            // a dialog may need several TANs: never show the image of an earlier challenge
+            tanDialog.MatrixCode = null;
+
             var BankCode_ = "HIRMS" + Parse_String(dialogResult.RawData, "'HIRMS", "'");
             string[] values = BankCode_.Split('+');
             foreach (var item in values)

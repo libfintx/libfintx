@@ -104,6 +104,16 @@ public class Test_TanProcess
         Assert.Equal("Bitte TAN eingeben", dialog.Challenge);
     }
 
+    [Fact]
+    public async Task Test_EmptyTanSendsNothing()
+    {
+        using var server = new FakeFinTsServer();
+
+        await ProcessSca(CreateClient(server, 6, "902"), TanRequired(), new TANDialog(_ => Task.FromResult(string.Empty)), Hkvpa);
+
+        Assert.Empty(server.Requests);
+    }
+
     private const string ManualConfirmationBpd = "HIBPA:5:3:3+12+280:12345678+Testbank+0+1+300+500'"
         + "HITANS:13:7:4+1+1+0+N:N:0:903:2:Push:Decoupled::Push:::Push:999:N:1:N:0:2:N:J:00:0:N:8:60:0:0:N:N'";
 
@@ -115,6 +125,7 @@ public class Test_TanProcess
 
         await ProcessSca(CreateClient(server, 7, "903", ManualConfirmationBpd), ApprovalRequired(), dialog, Hkvpa);
 
+        Assert.True(dialog.ManualApprovalConfirmation);
         var segments = Segments(server.Requests.Single());
         Assert.Equal("HKVPA:3:1", segments["HKVPA"][0]);
         Assert.Equal("S", segments["HKTAN"][1]);
@@ -160,6 +171,10 @@ public class Test_TanProcess
         await Helper.WaitForTanAsync(client, result, dialog);
 
         Assert.Equal("image/png", dialog.MatrixCode?.ImageMimeType);
+
+        // a second TAN in the same dialog without image must not show the old one
+        await Helper.WaitForTanAsync(client, TanRequired(), dialog);
+        Assert.Null(dialog.MatrixCode);
     }
 
     [Fact]

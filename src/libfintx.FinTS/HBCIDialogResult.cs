@@ -82,7 +82,9 @@ namespace libfintx.FinTS
         /// <param name="instantPayment">For instant payments the bank accepts with 3045/3047/3270 instead of 0010/0020.</param>
         public OrderStatus GetOrderStatus(bool instantPayment = false)
         {
-            var relevant = messages.Where(m => !(m.SegmentReference is int s && IgnoredSegmentReferences.Contains(s) && !m.IsError)).ToList();
+            var relevant = messages.Where(m => !(m.SegmentReference is int s && IgnoredSegmentReferences.Contains(s))).ToList();
+            // an error about HKVPA alone may mean "order does not exist or was already executed" (VOP 1.02, p. 15)
+            var ignoredError = messages.Any(m => m.IsError && m.SegmentReference is int r && IgnoredSegmentReferences.Contains(r));
             var order = new HashSet<string>(relevant.Where(m => m.SegmentReference != null).Select(m => m.Code));
             var dialog = new HashSet<string>(relevant.Where(m => m.SegmentReference == null).Select(m => m.Code));
             bool Has(params string[] codes) => codes.Any(order.Contains);
@@ -96,6 +98,8 @@ namespace libfintx.FinTS
                 return OrderStatus.Unclear;
             if (error || Has("3042"))
                 return OrderStatus.NotExecuted;
+            if (ignoredError)
+                return OrderStatus.Unclear;
             if (Has("3955", "3956") || dialog.Contains("3955") || dialog.Contains("3956"))
                 return OrderStatus.Unclear;
             if (Has("0030", "3945"))

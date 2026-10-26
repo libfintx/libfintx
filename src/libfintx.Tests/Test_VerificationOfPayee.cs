@@ -127,6 +127,45 @@ public class Test_VerificationOfPayee
     }
 
     [Fact]
+    public void Test_UnreadableReportIsNoMatch()
+    {
+        var payees = new[] { ("A", Payee, "M-1") };
+        var broken = Encoding.UTF8.GetBytes("<?xml version=\"1.0\"?><Document><CstmrPmtStsRpt><TxInfAndSts>");
+
+        var result = VerificationOfPayee.Evaluate(new VerificationOfPayeeAnswer(), payees, new[] { broken }, false, true, false);
+
+        Assert.Equal(VerificationOfPayeeMatch.Unknown, Assert.Single(result.Items).Result);
+    }
+
+    [Fact]
+    public void Test_UnassignedReportEntryIsNoMatch()
+    {
+        // the report names a transaction that matches no payee: the others are not known to match
+        var report = Encoding.UTF8.GetBytes(@"<?xml version=""1.0"" encoding=""UTF-8""?><Document xmlns=""urn:iso:std:iso:20022:tech:xsd:pain.002.001.10""><CstmrPmtStsRpt><OrgnlPmtInfAndSts>"
+            + "<TxInfAndSts><OrgnlEndToEndId>X-9</OrgnlEndToEndId><TxSts>RVNM</TxSts></TxInfAndSts></OrgnlPmtInfAndSts></CstmrPmtStsRpt></Document>");
+
+        var result = VerificationOfPayee.Evaluate(new VerificationOfPayeeAnswer(), new[] { ("A", Payee, "M-1"), ("B", Payee2, "M-2") },
+            new[] { report }, false, true, false);
+
+        Assert.All(result.Items, i => Assert.Equal(VerificationOfPayeeMatch.Unknown, i.Result));
+    }
+
+    [Fact]
+    public void Test_NotProvidedEndToEndIdsAreAssignedByIban()
+    {
+        // pain formats before .09 send NOTPROVIDED: the transactions must not overwrite each other
+        var report = Encoding.UTF8.GetBytes(@"<?xml version=""1.0"" encoding=""UTF-8""?><Document xmlns=""urn:iso:std:iso:20022:tech:xsd:pain.002.001.10""><CstmrPmtStsRpt><OrgnlPmtInfAndSts>"
+            + "<TxInfAndSts><OrgnlEndToEndId>NOTPROVIDED</OrgnlEndToEndId><TxSts>RVNM</TxSts><OrgnlTxRef><CdtrAcct><Id><IBAN>" + Payee + "</IBAN></Id></CdtrAcct></OrgnlTxRef></TxInfAndSts>"
+            + "<TxInfAndSts><OrgnlEndToEndId>NOTPROVIDED</OrgnlEndToEndId><TxSts>RVNA</TxSts><OrgnlTxRef><CdtrAcct><Id><IBAN>" + Payee2 + "</IBAN></Id></CdtrAcct></OrgnlTxRef></TxInfAndSts>"
+            + "</OrgnlPmtInfAndSts></CstmrPmtStsRpt></Document>");
+
+        var result = VerificationOfPayee.Evaluate(new VerificationOfPayeeAnswer(), new[] { ("A", Payee, "NOTPROVIDED"), ("B", Payee2, "NOTPROVIDED") },
+            new[] { report }, false, true, false);
+
+        Assert.Equal(new[] { VerificationOfPayeeMatch.NoMatch, VerificationOfPayeeMatch.NotApplicable }, result.Items.Select(i => i.Result));
+    }
+
+    [Fact]
     public void Test_WithoutResultTheReturnValueCounts()
     {
         var payees = new[] { ("A", Payee, "M-1") };
@@ -278,6 +317,32 @@ public class Test_VerificationOfPayee
         Assert.Contains(server.Requests, r => r.Contains("HKVPP:3:1+" + Psr + "+@2@P1++AUF1'") && !r.Contains("HKCCS"));
         Assert.Contains("HKVPA:3:1+@4@V-06'", server.Requests.Last());
         Assert.Equal(OrderStatus.Accepted, result.GetOrderStatus());
+    }
+
+    [Fact]
+    public async Task Test_MissingAnswerAfterTheTanIsUncertain()
+    {
+        // the TAN went out, the bank does not answer: the payment may be executed, so never "not executed"
+        using var server = new FakeFinTsServer(request =>
+            request.Contains("HKVPP:3:1") && request.Contains("HKCCS:4:1")
+                ? Message("HIRMS:3:2:3+0020::Namensabgleich ausgeführt'" + TanRequired + "HIVPP:6:1:3+@4@V-08+++++" + Payee + "::::RCVC'")
+            : request.Contains("HKVPA:3:1") ? null
+            : FakeFinTsServer.DefaultResponse);
+
+        await Assert.ThrowsAsync<PaymentOrderUncertainException>(() => Transfer(CreateClient(server), Dialog(true).Dialog));
+    }
+
+    [Fact]
+    public async Task Test_ErrorWhileFetchingResultsKeepsStartedApprovalUnclear()
+    {
+        // a decoupled approval was already started (3955); an error while fetching further results must not say "not executed"
+        using var server = Bank("HIRMS:3:2:3+3040::Es liegen weitere Informationen vor.:AUF1'HIRMS:4:2:5+3955::Sicherheitsfreigabe erfolgt über anderen Kanal'"
+            + "HITAN:5:7:5+4++REF-1+Bitte in der App freigeben'HIVPP:6:1:3+++@2@P1+++++1'",
+            polling: "HIRMG:2:2+9050::Teilweise fehlerhaft.'HIRMS:3:2:3+9010::Verarbeitung nicht möglich'");
+
+        var result = await Transfer(CreateClient(server), Dialog(true).Dialog);
+
+        Assert.Equal(OrderStatus.Unclear, result.GetOrderStatus());
     }
 
     [Fact]

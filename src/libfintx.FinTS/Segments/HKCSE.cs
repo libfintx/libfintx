@@ -65,10 +65,11 @@ namespace libfintx.FinTS
         /// HKCSE segment (terminierte SEPA-Überweisung) with the pain message in the format announced in HISPAS.
         /// </summary>
         internal static string Create(FinTsClient client, int segmentNumber, string kti, string receiverName,
-            string receiverIBAN, string receiverBIC, decimal amount, string usage, DateTime executionDay, string messageId = null)
+            string receiverIBAN, string receiverBIC, decimal amount, string usage, DateTime executionDay, string messageId = null,
+            string debtorBic = null)
         {
             var pain = Helper.CreatePainCreditTransfer(client, receiverName, receiverIBAN, receiverBIC, amount, usage,
-                executionDay, messageId: messageId);
+                executionDay, messageId: messageId, debtorBic: debtorBic);
             return Helper.PaymentOrderSegment("HKCSE", 1, segmentNumber, kti, null, pain);
         }
     }

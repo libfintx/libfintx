@@ -613,22 +613,8 @@ public partial class FinTsClient
         if (message == null)
             return null;
 
-        var parts = new List<string>();
-        var current = new System.Text.StringBuilder();
-        for (int i = 0; i < bankCodeMessage.Length; i++)
-        {
-            var c = bankCodeMessage[i];
-            if (c == '?' && i + 1 < bankCodeMessage.Length)
-                current.Append(bankCodeMessage[++i]);
-            else if (c == ':')
-            {
-                parts.Add(current.ToString());
-                current.Clear();
-            }
-            else if (c != '\'')
-                current.Append(c);
-        }
-        parts.Add(current.ToString());
+        var value = bankCodeMessage.EndsWith("'") && !bankCodeMessage.EndsWith("?'") ? bankCodeMessage.Substring(0, bankCodeMessage.Length - 1) : bankCodeMessage;
+        var parts = Helper.SplitDataElementGroup(value);
 
         return new HBCIBankMessage(message.Code, message.Message, segmentReference, parts.Skip(3).ToList());
     }

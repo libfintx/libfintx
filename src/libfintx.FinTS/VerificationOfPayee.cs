@@ -189,8 +189,9 @@ namespace libfintx.FinTS
         /// information on group and payment level: each AddtlInf there starts with the status it refers to (chapter
         /// 2.2.6.4/2.2.6.5).
         /// </summary>
-        public static (List<ReportItem> Items, Dictionary<string, string> Information) ReadReports(IEnumerable<byte[]> parts)
+        public static (List<ReportItem> Items, Dictionary<string, string> Information, bool Readable) ReadReports(IEnumerable<byte[]> parts)
         {
+            var documents = 0;
             var result = new Dictionary<string, ReportItem>();
             var information = new Dictionary<string, List<string>>();
             var buffer = new List<byte>();
@@ -208,6 +209,7 @@ namespace libfintx.FinTS
                     continue; // part of a report, put together with the next one
                 }
                 buffer.Clear();
+                documents++;
 
                 foreach (var level in document.Descendants().Where(x => x.Name.LocalName == "OrgnlGrpInfAndSts" || x.Name.LocalName == "OrgnlPmtInfAndSts"))
                 {
@@ -261,7 +263,10 @@ namespace libfintx.FinTS
                         text = string.Join(" ", infos.Select(i => i.Trim()));
                     }
 
-                    result[endToEndId ?? iban ?? "#" + number] = new ReportItem
+                    // NOTPROVIDED (pain formats before .09) is no key: all transactions would overwrite each other
+                    var key = !string.IsNullOrEmpty(endToEndId) && !endToEndId.Equals("NOTPROVIDED", StringComparison.OrdinalIgnoreCase)
+                        ? endToEndId : iban ?? "#" + number;
+                    result[key] = new ReportItem
                     {
                         EndToEndId = endToEndId,
                         Iban = iban,
@@ -274,7 +279,8 @@ namespace libfintx.FinTS
                 }
             }
 
-            return (result.Values.ToList(), information.ToDictionary(i => i.Key, i => string.Join(" ", i.Value)));
+            // readable only when every part became a complete document
+            return (result.Values.ToList(), information.ToDictionary(i => i.Key, i => string.Join(" ", i.Value)), documents > 0 && buffer.Count == 0);
         }
 
         private static XElement Child(XElement element, string name) => element.Elements().FirstOrDefault(x => x.Name.LocalName == name);
@@ -298,16 +304,34 @@ namespace libfintx.FinTS
             }
             else if (reports.Count > 0)
             {
-                var (report, information) = ReadReports(reports);
+                var (report, information, readable) = ReadReports(reports);
+                if (!readable)
+                {
+                    // never show "match" for a report that could not be read
+                    items.AddRange(payees.Select(p => new VerificationOfPayeeItem(p.Name, p.Iban, VerificationOfPayeeMatch.Unknown, null, null,
+                        "The payment status report could not be read.")));
+                    return new VerificationOfPayeeResult(items, answer.Explanation, explanationStructured, confirmationRequired);
+                }
+
+                ReportItem Find(string iban, string endToEndId) =>
+                    report.FirstOrDefault(x => x.EndToEndId != null && x.EndToEndId == endToEndId
+                        && !endToEndId.Equals("NOTPROVIDED", StringComparison.OrdinalIgnoreCase))
+                    ?? report.FirstOrDefault(x => string.Equals(x.Iban, iban, StringComparison.OrdinalIgnoreCase));
+                var assigned = payees.Select(p => Find((p.Iban ?? string.Empty).Replace(" ", string.Empty), p.EndToEndId)).Where(r => r != null).ToList();
+                // a reported transaction that matches no payee: then a payee without entry is not known to match
+                var unassigned = report.Any(x => !assigned.Contains(x));
+
                 foreach (var p in payees)
                 {
                     var iban = (p.Iban ?? string.Empty).Replace(" ", string.Empty);
-                    var r = report.FirstOrDefault(x => x.EndToEndId != null && x.EndToEndId == p.EndToEndId)
-                        ?? report.FirstOrDefault(x => string.Equals(x.Iban, iban, StringComparison.OrdinalIgnoreCase));
+                    var r = Find(iban, p.EndToEndId);
                     if (r == null)
                     {
-                        items.Add(new VerificationOfPayeeItem(p.Name, p.Iban, VerificationOfPayeeMatch.Match, null, null,
-                            information.TryGetValue("RCVC", out var matched) ? matched : null));
+                        items.Add(unassigned
+                            ? new VerificationOfPayeeItem(p.Name, p.Iban, VerificationOfPayeeMatch.Unknown, null, null,
+                                "The payment status report could not be assigned to the transfers.")
+                            : new VerificationOfPayeeItem(p.Name, p.Iban, VerificationOfPayeeMatch.Match, null, null,
+                                information.TryGetValue("RCVC", out var matched) ? matched : null));
                         continue;
                     }
 

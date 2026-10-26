@@ -51,7 +51,7 @@ public class Test_PaymentOrders
         Assert.Equal("DEUTDEFFXXX", xml.SelectSingleNode("//p:DbtrAgt/p:FinInstnId/p:BICFI", ns).InnerText);
         Assert.Null(xml.SelectSingleNode("//p:CdtrAgt", ns));                       // IBAN only
         Assert.Null(xml.SelectSingleNode("//p:LclInstrm", ns));                     // not instant
-        Assert.Equal("Erika Mueller", xml.SelectSingleNode("//p:Dbtr/p:Nm", ns).InnerText);
+        Assert.Equal("Erika Müller", xml.SelectSingleNode("//p:Dbtr/p:Nm", ns).InnerText); // umlauts are allowed (Anlage 3, p. 82)
         Assert.Equal("Max Muster's Laden", xml.SelectSingleNode("//p:Cdtr/p:Nm", ns).InnerText);
         Assert.Equal(120, xml.SelectSingleNode("//p:Ustrd", ns).InnerText.Length); // 140 less reserved positions
     }
@@ -74,6 +74,17 @@ public class Test_PaymentOrders
         Assert.Equal("3.25", xml.SelectSingleNode("//p:GrpHdr/p:CtrlSum", ns).InnerText);
         Assert.Equal("NOTPROVIDED", xml.SelectSingleNode("//p:DbtrAgt/p:FinInstnId/p:Othr/p:Id", ns).InnerText);
         Assert.Equal(new[] { "M-1", "M-2" }, xml.SelectNodes("//p:EndToEndId", ns).Cast<XmlNode>().Select(n => n.InnerText));
+    }
+
+    [Theory]
+    [InlineData("José & Söhne – €5 “Test” x_y@z", "Jose & Söhne - EUR5 'Test' x-y.z")]
+    [InlineData("Müller* 50% 3$ (A/B) +:?,.'", "Müller* 50% 3$ (A/B) +:?,.'")]
+    [InlineData("Zeile 1\nZeile 2", "Zeile 1 Zeile 2")]
+    public void Test_DkCharacterSet(string text, string expected)
+    {
+        // DFÜ-Abkommen Anlage 3 V3.9, pp. 82-84: converting is allowed, dropping characters is not
+        var pain = pain00100109.Create("A", OwnIban, null, text, "DE02100700000123456789", null, 1m, "x", new DateTime(1999, 1, 1));
+        Assert.Equal(expected, Xml(pain).SelectSingleNode("//p:Cdtr/p:Nm", Ns(Xml(pain))).InnerText);
     }
 
     [Fact]
@@ -122,13 +133,16 @@ public class Test_PaymentOrders
         : request.Contains(orderId + ":") ? "HNHBK:1:3+000000000100+300+DIALOG1+3'" + Accepted + "HNHBS:4:1+3'"
         : FakeFinTsServer.DefaultResponse);
 
-    /// <summary>"@length@data" of the order segment: the length must match the data.</summary>
+    /// <summary>
+    /// "@length@data" of the order segment: the length must match the bytes (one ISO-8859-1 character per byte of the
+    /// UTF-8 pain message).
+    /// </summary>
     private static string Pain(string segment)
     {
         var match = Regex.Match(segment, @"\+@(\d+)@(.*)'$", RegexOptions.Singleline);
         Assert.True(match.Success);
         Assert.Equal(int.Parse(match.Groups[1].Value), match.Groups[2].Value.Length);
-        return match.Groups[2].Value;
+        return System.Text.Encoding.UTF8.GetString(System.Text.Encoding.GetEncoding("ISO-8859-1").GetBytes(match.Groups[2].Value));
     }
 
     [Fact]
@@ -143,6 +157,45 @@ public class Test_PaymentOrders
         // KTI as reported in HISPA, not only IBAN and BIC (some banks answer 9210 "Keine gültige Kontoverbindung")
         Assert.StartsWith("HKCCS:3:1+" + OwnIban + ":DEUTDEFFXXX:0099164406:01:280:10070000+urn?:iso?:std?:iso?:20022?:tech?:xsd?:pain.001.001.09+@", segment);
         Assert.Contains("<Cdtr><Nm>Max Muster</Nm></Cdtr>", Pain(segment));
+    }
+
+    [Fact]
+    public async Task Test_Transfer_UmlautsAndBicFromHispa()
+    {
+        using var server = Bank("HKCCS");
+        var client = CreateClient(server, 3);
+        client.ConnectionDetails.Bic = "OTHERBICXXX";
+
+        await client.Transfer(null, "Jürgen Müller & Söhne", "DE02100700000123456789", null, 1m, "Miete März", null);
+
+        var pain = Pain(server.Segment("HKCCS"));          // length in bytes, checked inside
+        Assert.Contains("<Cdtr><Nm>Jürgen Müller &amp; Söhne</Nm></Cdtr>", pain);
+        // debtor agent must match the BIC of the KTI (Geschäftsvorfälle, "IBAN und BIC müssen ... entsprechen")
+        Assert.Contains("<DbtrAgt><FinInstnId><BICFI>DEUTDEFFXXX</BICFI></FinInstnId></DbtrAgt>", pain);
+    }
+
+    [Fact]
+    public async Task Test_Transfer_EscapedAccountFromHispa()
+    {
+        using var server = new FakeFinTsServer(request =>
+            request.Contains("HKSPA:") ? "HNHBK:1:3+000000000100+300+DIALOG1+2'HIRMG:2:2+0010::ok'HISPA:4:1:3+J:" + OwnIban + ":DEUTDEFFXXX:0099?:164406:01:280:10070000'HNHBS:5:1+2'"
+            : FakeFinTsServer.DefaultResponse);
+
+        await CreateClient(server, 3).Transfer(null, "Max Muster", "DE02100700000123456789", null, 1m, "x", null);
+
+        Assert.StartsWith("HKCCS:3:1+" + OwnIban + ":DEUTDEFFXXX:0099?:164406:01:280:10070000+", server.Segment("HKCCS"));
+    }
+
+    [Fact]
+    public async Task Test_Transfer_WithoutBicNothingIsSent()
+    {
+        using var server = Bank("HKCCS");
+        var client = CreateClient(server, 0);
+        client.ConnectionDetails.Bic = null;
+
+        await Assert.ThrowsAsync<ArgumentException>(() => client.Transfer(null, "Max Muster", "DE02100700000123456789", null, 1m, "x", null));
+
+        Assert.DoesNotContain(server.Requests, r => r.Contains("HKCCS"));
     }
 
     [Fact]

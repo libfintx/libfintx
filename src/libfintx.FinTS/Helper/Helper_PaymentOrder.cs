@@ -37,13 +37,13 @@ namespace libfintx.FinTS
         /// </summary>
         internal static (string Descriptor, string Message) CreatePainCreditTransfer(FinTsClient client, string receiverName,
             string receiverIBAN, string receiverBIC, decimal amount, string usage, DateTime executionDay,
-            bool instantPayment = false, string messageId = null)
+            bool instantPayment = false, string messageId = null, string debtorBic = null)
         {
             var c = client.ConnectionDetails;
             switch (instantPayment ? 4 : client.HISPAS_Pain)
             {
                 case 4:
-                    return (pain00100109.Descriptor, pain00100109.Create(c.AccountHolder, c.Iban, c.Bic, receiverName, receiverIBAN,
+                    return (pain00100109.Descriptor, pain00100109.Create(c.AccountHolder, c.Iban, debtorBic ?? c.Bic, receiverName, receiverIBAN,
                         receiverBIC, amount, usage, executionDay, instantPayment, messageId, 140 - client.HISPAS_ReservedPurposeLength));
                 case 1:
                     return ("urn:iso:std:iso:20022:tech:xsd:pain.001.001.03", pain00100103.Create(c.AccountHolder, c.Iban, c.Bic,
@@ -60,13 +60,13 @@ namespace libfintx.FinTS
         /// <summary>pain message for a collective credit transfer, see <see cref="CreatePainCreditTransfer"/>.</summary>
         internal static (string Descriptor, string Message) CreatePainCollectiveCreditTransfer(FinTsClient client,
             List<Pain00100203CtData> painData, string numberOfTransactions, decimal totalAmount, DateTime executionDay,
-            bool instantPayment = false, string messageId = null)
+            bool instantPayment = false, string messageId = null, string debtorBic = null)
         {
             var c = client.ConnectionDetails;
             switch (instantPayment ? 4 : client.HISPAS_Pain)
             {
                 case 4:
-                    return (pain00100109.Descriptor, pain00100109.Create(c.AccountHolder, c.Iban, c.Bic, painData, executionDay,
+                    return (pain00100109.Descriptor, pain00100109.Create(c.AccountHolder, c.Iban, debtorBic ?? c.Bic, painData, executionDay,
                         instantPayment, messageId, 140 - client.HISPAS_ReservedPurposeLength));
                 case 1:
                     return ("urn:iso:std:iso:20022:tech:xsd:pain.001.001.03", pain00100103.Create(c.AccountHolder, c.Iban, c.Bic,
@@ -82,13 +82,15 @@ namespace libfintx.FinTS
 
         /// <summary>
         /// Order segment "ID:number:version+KTI+[elements]+descriptor+@length@pain'[+trailing elements]". The pain
-        /// generators end with the segment terminator, which is not part of the binary data.
+        /// generators end with the segment terminator, which is not part of the binary data. The pain message is UTF-8:
+        /// the length counts bytes, and the bytes go into the ISO-8859-1 message one character each.
         /// </summary>
         internal static string PaymentOrderSegment(string segmentId, int version, int segmentNumber, string kti,
             IEnumerable<string> elementsBeforeDescriptor, (string Descriptor, string Message) pain,
             IEnumerable<string> elementsAfterPain = null)
         {
-            var message = pain.Message.EndsWith("'") ? pain.Message.Substring(0, pain.Message.Length - 1) : pain.Message;
+            var xml = pain.Message.EndsWith("'") ? pain.Message.Substring(0, pain.Message.Length - 1) : pain.Message;
+            var message = System.Text.Encoding.GetEncoding("ISO-8859-1").GetString(System.Text.Encoding.UTF8.GetBytes(xml));
             var elements = new List<string> { segmentId + DEG.Separator + segmentNumber + DEG.Separator + version, kti };
             elements.AddRange(elementsBeforeDescriptor ?? Enumerable.Empty<string>());
             elements.Add(EscapeEdifactString(pain.Descriptor));
