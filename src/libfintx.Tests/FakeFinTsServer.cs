@@ -12,22 +12,25 @@ namespace libfintx.Tests;
 
 /// <summary>
 /// Local FinTS endpoint for tests: records every request (decoded to plain FinTS text) and answers
-/// each one with the same plain response, or with the given responses in order (the last one repeats).
+/// each one with the same plain response, or with the response a function returns for the request.
 /// </summary>
 internal sealed class FakeFinTsServer : IDisposable
 {
     private readonly TcpListener _listener = new(IPAddress.Loopback, 0);
     private readonly CancellationTokenSource _stop = new();
-    private readonly Queue<string> _responses;
+    public const string DefaultResponse = "HNHBK:1:3+000000000100+300+DIALOG1+1'HIRMG:2:2+0010::Nachricht entgegengenommen.'HNHBS:3:1+1'";
 
-    public FakeFinTsServer(string response = "HNHBK:1:3+000000000100+300+DIALOG1+1'HIRMG:2:2+0010::Nachricht entgegengenommen.'HNHBS:3:1+1'")
-        : this(new[] { response })
+    private readonly Func<string, string> _respond;
+
+    public FakeFinTsServer(string response = DefaultResponse)
+        : this(_ => response)
     {
     }
 
-    public FakeFinTsServer(IEnumerable<string> responses)
+    /// <param name="respond">Plain response for a plain request, e.g. depending on the segments it contains.</param>
+    public FakeFinTsServer(Func<string, string> respond)
     {
-        _responses = new Queue<string>(responses);
+        _respond = respond;
         _listener.Start();
         Url = $"http://127.0.0.1:{((IPEndPoint) _listener.LocalEndpoint).Port}/";
         _ = ServeAsync();
@@ -59,12 +62,14 @@ internal sealed class FakeFinTsServer : IDisposable
             {
                 var stream = client.GetStream();
                 var request = await ReadBodyAsync(stream);
-                lock (Requests)
-                    Requests.Add(Encoding.GetEncoding("ISO-8859-1").GetString(Convert.FromBase64String(request)));
-
+                var plain = Encoding.GetEncoding("ISO-8859-1").GetString(Convert.FromBase64String(request));
                 string response;
-                lock (_responses)
-                    response = _responses.Count > 1 ? _responses.Dequeue() : _responses.Peek();
+                lock (Requests)
+                {
+                    Requests.Add(plain);
+                    response = _respond(plain);
+                }
+
                 var body = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(response));
                 var http = "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\n"
                            + $"Content-Length: {body.Length}\r\nConnection: close\r\n\r\n{body}";
