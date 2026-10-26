@@ -585,10 +585,29 @@ public partial class FinTsClient
     /// </summary>
     /// <param name="bankCodeMessage"></param>
     /// <returns></returns>
+    internal static HBCIBankMessage? Parse_BankCode_Message(string bankCodeMessage)
+    {
+        var match = Regex.Match(bankCodeMessage, PatternResultMessage);
+        if (match.Success)
+        {
+            var code = match.Groups[1].Value;
+            var message = match.Groups[2].Value;
+
+            message = message.Replace("?:", ":");
+            message = message.Replace("?'", "'");
+            message = message.Replace("?+", "+");
+
+            return new HBCIBankMessage(code, message);
+        }
+        return null;
+    }
+
     /// <summary>
     /// Parse one return value "code:reference element:text:parameter:..." and keep the segment it refers to.
     /// </summary>
-    internal static HBCIBankMessage? Parse_BankCode_Message(string bankCodeMessage, int? segmentReference)
+    /// <param name="bankCodeMessage">The return value as received.</param>
+    /// <param name="segmentReference">Number of the segment it refers to (HIRMS), <c>null</c> for HIRMG.</param>
+    internal static HBCIBankMessage Parse_BankCode_Message(string bankCodeMessage, int? segmentReference)
     {
         var message = Parse_BankCode_Message(bankCodeMessage);
         if (message == null)
@@ -612,23 +631,6 @@ public partial class FinTsClient
         parts.Add(current.ToString());
 
         return new HBCIBankMessage(message.Code, message.Message, segmentReference, parts.Skip(3).ToList());
-    }
-
-    internal static HBCIBankMessage? Parse_BankCode_Message(string bankCodeMessage)
-    {
-        var match = Regex.Match(bankCodeMessage, PatternResultMessage);
-        if (match.Success)
-        {
-            var code = match.Groups[1].Value;
-            var message = match.Groups[2].Value;
-
-            message = message.Replace("?:", ":");
-            message = message.Replace("?'", "'");
-            message = message.Replace("?+", "+");
-
-            return new HBCIBankMessage(code, message);
-        }
-        return null;
     }
 
     /// <summary>
