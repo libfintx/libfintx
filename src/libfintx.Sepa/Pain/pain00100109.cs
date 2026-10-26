@@ -38,12 +38,12 @@ namespace libfintx.Sepa
     {
         public const string Descriptor = "urn:iso:std:iso:20022:tech:xsd:pain.001.001.09";
 
-        /// <summary>Single credit transfer.</summary>
-        /// <param name="messageId">Message id (max. 30 characters); the end to end id of the transaction is "messageId-1".
-        /// Generated when empty.</param>
-        /// <param name="maxUsageLength">Maximum length of the unstructured remittance information (140 less the positions
-        /// the bank reserves in HISPAS).</param>
-        /// <returns>The XML message followed by the FinTS segment terminator, like the other pain generators.</returns>
+        /// <summary>
+        /// Single credit transfer. <paramref name="messageId"/> (max. 30 characters) gives the end to end id "messageId-1"
+        /// and is generated when empty; <paramref name="maxUsageLength"/> is 140 less the remittance information positions
+        /// the bank reserves in HISPAS. Returns the XML message followed by the FinTS segment terminator, like the other
+        /// pain generators.
+        /// </summary>
         public static string Create(string Accountholder, string AccountholderIBAN, string AccountholderBIC, string Receiver,
             string ReceiverIBAN, string ReceiverBIC, decimal Amount, string Usage, DateTime ExecutionDay,
             bool InstantPayment = false, string messageId = null, int maxUsageLength = 140)

@@ -37,9 +37,9 @@ namespace libfintx.FinTS
         /// TAN (process 2) or the first status request of a decoupled approval (process S) sent together with
         /// <paramref name="extraSegments"/> in one message, e.g. HKVPA (VOP 1.02, figure 3: "HKVPA + HKTAN"). HKTAN
         /// version 6/7: element 6 order reference, element 7 "Weitere TAN folgt" (PIN/TAN 2020-07-10, pp. 59, 65).
+        /// <paramref name="extraSegments"/> builds the segments from the first segment number and returns them with the
+        /// number of the last one.
         /// </summary>
-        /// <param name="extraSegments">Builds the segments from the first segment number; returns them with the number
-        /// of the last one.</param>
         internal static async Task<String> Send_TAN(FinTsClient client, string TAN, Func<int, (string Segments, int LastSegmentNumber)> extraSegments)
         {
             if (client.HITANS < 6)

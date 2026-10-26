@@ -63,9 +63,9 @@ namespace libfintx.FinTS
 
         /// <summary>
         /// HKCCS segment (SEPA-Einzelüberweisung) with the pain message in the format announced in HISPAS.
+        /// <paramref name="kti"/> is the account of the client (Kontoverbindung international), <paramref name="messageId"/>
+        /// the pain message id; the end to end id of the transfer is "messageId-1".
         /// </summary>
-        /// <param name="kti">Account of the client (Kontoverbindung international)</param>
-        /// <param name="messageId">pain message id; the end to end id of the transfer is "messageId-1"</param>
         internal static string Create(FinTsClient client, int segmentNumber, string kti, string receiverName,
             string receiverIBAN, string receiverBIC, decimal amount, string usage, string messageId = null)
         {
