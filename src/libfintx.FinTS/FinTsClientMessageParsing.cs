@@ -253,7 +253,10 @@ public partial class FinTsClient
                     {
                         this.HISPAS = segment.Version;
 
-                        if (hispas.Payload.Contains("pain.001.001.03"))
+                        // pain.001.001.09 first: mandatory for German banks from 2026-11-15
+                        if (hispas.Payload.Contains("pain.001.001.09"))
+                            this.HISPAS_Pain = 4;
+                        else if (hispas.Payload.Contains("pain.001.001.03"))
                             this.HISPAS_Pain = 1;
                         else if (hispas.Payload.Contains("pain.001.002.03"))
                             this.HISPAS_Pain = 2;
@@ -264,6 +267,7 @@ public partial class FinTsClient
                             this.HISPAS_Pain = 3; // -> Fallback. Most banks accept the newest pain version
 
                         this.HISPAS_AccountNationalAllowed = hispas.IsAccountNationalAllowed;
+                        this.HISPAS_ReservedPurposeLength = hispas.ReservedPurposeLength;
                     }
                 }
             }

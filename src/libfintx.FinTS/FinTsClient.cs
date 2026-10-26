@@ -81,6 +81,7 @@ namespace libfintx.FinTS
         internal int HISPAS { get; set; }
         internal int HISPAS_Pain { get; set; }
         internal bool HISPAS_AccountNationalAllowed { get; set; }
+        internal int HISPAS_ReservedPurposeLength { get; set; }
 
         /// <summary>
         /// Initializes a new FinTS client.
