@@ -39,6 +39,9 @@ namespace libfintx.FinTS.BankParameterData
 
         public List<HITANS> HITANS { get; set; } = new();
 
+        /// <summary>Parameters of the verification of payee (highest version); <c>null</c> when the bank has none.</summary>
+        public HIVPPS HIVPPS { get; set; }
+
         public List<Segment> SegmentList { get; set; } = new();
 
         public static BPD? Parse(string? rawBpd, ILogger? logger = null)
@@ -70,6 +73,8 @@ namespace libfintx.FinTS.BankParameterData
                         bpd.HIKAZS.Add((HIKAZS) segment);
                     else if (segment is HITANS)
                         bpd.HITANS.Add((HITANS) segment);
+                    else if (segment is HIVPPS hivpps && (bpd.HIVPPS == null || bpd.HIVPPS.Version < hivpps.Version))
+                        bpd.HIVPPS = hivpps;
 
                     bpd.SegmentList.Add(segment);
                 }
