@@ -27,7 +27,7 @@ using libfintx.FinTS.Data.Segment;
 
 namespace libfintx.FinTS
 {
-    internal class HISPAS : SegmentBase
+    public class HISPAS : SegmentBase
     {
         public bool IsAccountNationalAllowed { get; set; }
 
