@@ -575,6 +575,35 @@ public partial class FinTsClient
     /// </summary>
     /// <param name="bankCodeMessage"></param>
     /// <returns></returns>
+    /// <summary>
+    /// Parse one return value "code:reference element:text:parameter:..." and keep the segment it refers to.
+    /// </summary>
+    internal static HBCIBankMessage? Parse_BankCode_Message(string bankCodeMessage, int? segmentReference)
+    {
+        var message = Parse_BankCode_Message(bankCodeMessage);
+        if (message == null)
+            return null;
+
+        var parts = new List<string>();
+        var current = new System.Text.StringBuilder();
+        for (int i = 0; i < bankCodeMessage.Length; i++)
+        {
+            var c = bankCodeMessage[i];
+            if (c == '?' && i + 1 < bankCodeMessage.Length)
+                current.Append(bankCodeMessage[++i]);
+            else if (c == ':')
+            {
+                parts.Add(current.ToString());
+                current.Clear();
+            }
+            else if (c != '\'')
+                current.Append(c);
+        }
+        parts.Add(current.ToString());
+
+        return new HBCIBankMessage(message.Code, message.Message, segmentReference, parts.Skip(3).ToList());
+    }
+
     internal static HBCIBankMessage? Parse_BankCode_Message(string bankCodeMessage)
     {
         var match = Regex.Match(bankCodeMessage, PatternResultMessage);
@@ -614,9 +643,10 @@ public partial class FinTsClient
             {
                 // HIRMS:4:2:3+9210::*?'Ausführung bis?' muss nach ?'Ausführung ab?' liegen.+9210::*Die BIC wurde angepasst.+0900::Freigabe erfolgreich
                 var messages = segment.DataElements;
+                var segmentReference = segment.Name == "HIRMS" ? segment.Ref : null;
                 foreach (var HIRMG_message in messages)
                 {
-                    var message = Parse_BankCode_Message(HIRMG_message);
+                    var message = Parse_BankCode_Message(HIRMG_message, segmentReference);
                     if (message != null)
                         yield return message;
                 }
