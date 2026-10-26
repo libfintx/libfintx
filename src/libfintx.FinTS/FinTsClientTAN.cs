@@ -55,7 +55,10 @@ namespace libfintx.FinTS
             string bankCode = await Transaction.TAN(this, TAN, extraSegments);
             var result = new HBCIDialogResult(Parse_BankCode(bankCode), bankCode);
             for (int number = Convert.ToInt16(SEG_NUM.Seg3); number < SEGNUM; number++)
+            {
                 result.IgnoredSegmentReferences.Add(number);
+                result.UnclearOnErrorSegmentReferences.Add(number);
+            }
 
             return result;
         }
