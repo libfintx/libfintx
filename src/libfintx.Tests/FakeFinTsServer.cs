@@ -27,7 +27,8 @@ internal sealed class FakeFinTsServer : IDisposable
     {
     }
 
-    /// <param name="respond">Plain response for a plain request, e.g. depending on the segments it contains.</param>
+    /// <param name="respond">Plain response for a plain request, e.g. depending on the segments it contains; <c>null</c>
+    /// closes the connection without answer (e.g. a timeout after the TAN).</param>
     public FakeFinTsServer(Func<string, string> respond)
     {
         _respond = respond;
@@ -69,6 +70,9 @@ internal sealed class FakeFinTsServer : IDisposable
                     Requests.Add(plain);
                     response = _respond(plain);
                 }
+
+                if (response == null)
+                    continue;
 
                 var body = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(response));
                 var http = "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\n"

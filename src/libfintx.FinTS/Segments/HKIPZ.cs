@@ -35,10 +35,11 @@ namespace libfintx.FinTS
         /// only when the bank allows the conversion. The pain message is pain.001.001.09 with local instrument INST.
         /// </summary>
         internal static string Create(FinTsClient client, int segmentNumber, int version, string kti, string receiverName,
-            string receiverIBAN, string receiverBIC, decimal amount, string usage, bool? allowConversion, string messageId = null)
+            string receiverIBAN, string receiverBIC, decimal amount, string usage, bool? allowConversion, string messageId = null,
+            string debtorBic = null)
         {
             var pain = Helper.CreatePainCreditTransfer(client, receiverName, receiverIBAN, receiverBIC, amount, usage,
-                new DateTime(1999, 1, 1), instantPayment: true, messageId: messageId);
+                new DateTime(1999, 1, 1), instantPayment: true, messageId: messageId, debtorBic: debtorBic);
             var after = version >= 2 && allowConversion.HasValue ? new[] { allowConversion.Value ? "J" : "N" } : null;
             return Helper.PaymentOrderSegment("HKIPZ", version, segmentNumber, kti, null, pain, after);
         }
@@ -51,10 +52,10 @@ namespace libfintx.FinTS
     {
         /// <summary>HKIPM v1 [account, total, descriptor, pain], v2 additionally [conversion allowed].</summary>
         internal static string Create(FinTsClient client, int segmentNumber, int version, string kti, List<Pain00100203CtData> painData,
-            string numberOfTransactions, decimal totalAmount, bool? allowConversion, string messageId = null)
+            string numberOfTransactions, decimal totalAmount, bool? allowConversion, string messageId = null, string debtorBic = null)
         {
             var pain = Helper.CreatePainCollectiveCreditTransfer(client, painData, numberOfTransactions, totalAmount,
-                new DateTime(1999, 1, 1), instantPayment: true, messageId: messageId);
+                new DateTime(1999, 1, 1), instantPayment: true, messageId: messageId, debtorBic: debtorBic);
             var after = version >= 2 && allowConversion.HasValue ? new[] { allowConversion.Value ? "J" : "N" } : null;
             return Helper.PaymentOrderSegment("HKIPM", version, segmentNumber, kti,
                 new[] { Converter.ToFinTsAmount(totalAmount) + DEG.Separator + "EUR" }, pain, after);

@@ -47,12 +47,19 @@ namespace libfintx.FinTS
     /// <summary>Result of an instant payment or of its status request.</summary>
     public class InstantPaymentResult
     {
-        public InstantPaymentResult(string orderId, InstantPaymentStatus status, string statusCode)
+        public InstantPaymentResult(string orderId, InstantPaymentStatus status, string statusCode, bool collective = false)
         {
             OrderId = orderId;
             Status = status;
             StatusCode = statusCode;
+            Collective = collective;
         }
+
+        /// <summary>
+        /// Sent as collective order (HKIPM): ask for its status with <c>collective: true</c>. A collective order with one
+        /// transaction goes as single order when the bank does not allow it.
+        /// </summary>
+        public bool Collective { get; }
 
         /// <summary>Order id of the bank (Auftragsidentifikation), needed for the status request.</summary>
         public string OrderId { get; }

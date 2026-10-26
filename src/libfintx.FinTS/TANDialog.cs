@@ -73,6 +73,12 @@ namespace libfintx.FinTS
         /// </summary>
         public Func<VerificationOfPayeeResult, Task<bool>> ConfirmVerificationOfPayeeAsync { get; set; }
 
+        /// <summary>
+        /// Decoupled approval without automated status requests (HITANS#7 element 26 = N): the waitForTanAsync callback
+        /// has to return only after the user confirms the approval (null cancels).
+        /// </summary>
+        public bool ManualApprovalConfirmation { get; internal set; }
+
         /// <summary>Result of the last verification of payee in this dialog.</summary>
         public VerificationOfPayeeResult VerificationOfPayee { get; internal set; }
 

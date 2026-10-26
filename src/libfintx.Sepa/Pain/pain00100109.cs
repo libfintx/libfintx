@@ -130,9 +130,9 @@ namespace libfintx.Sepa
 
         private static string Iban(string value) => (value ?? string.Empty).Replace(" ", string.Empty).ToUpperInvariant();
 
-        // Valid SEPA characters first, then cut, then XML escaping (an entity must not be cut in half)
+        // DK character set first, then cut, then XML escaping (an entity must not be cut in half)
         private static string Text(string value, int length) =>
-            SecurityElement.Escape(Truncate(SepaHelper.ConvertToValidSepaString(value ?? string.Empty).Trim(), length));
+            SecurityElement.Escape(Truncate(SepaHelper.ConvertToDkCharacterSet(value ?? string.Empty).Trim(), length));
 
         private static string Truncate(string value, int length) => value.Length <= length ? value : value.Substring(0, length);
     }

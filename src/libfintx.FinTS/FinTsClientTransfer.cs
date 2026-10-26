@@ -53,7 +53,7 @@ namespace libfintx.FinTS
             decimal amount, string purpose, string hirms)
         {
             return await SubmitPaymentOrder(tanDialog, hirms, "HKCCS", new[] { (receiverName, receiverIBAN) },
-                (number, kti, messageId) => (HKCCS.Create(this, number, kti, receiverName, receiverIBAN, receiverBIC, amount, purpose, messageId), number));
+                (number, account, messageId) => (HKCCS.Create(this, number, account.Kti, receiverName, receiverIBAN, receiverBIC, amount, purpose, messageId, account.Bic), number));
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace libfintx.FinTS
             decimal amount, string purpose, DateTime executionDay, string hirms)
         {
             return await SubmitPaymentOrder(tanDialog, hirms, "HKCSE", new[] { (receiverName, receiverIBAN) },
-                (number, kti, messageId) => (HKCSE.Create(this, number, kti, receiverName, receiverIBAN, receiverBIC, amount, purpose, executionDay, messageId), number));
+                (number, account, messageId) => (HKCSE.Create(this, number, account.Kti, receiverName, receiverIBAN, receiverBIC, amount, purpose, executionDay, messageId, account.Bic), number));
         }
 
 
@@ -98,7 +98,7 @@ namespace libfintx.FinTS
 
             CheckMaximumTransactions("HKCCM", "HICCMS", painData.Count);
             return await SubmitPaymentOrder(tanDialog, hirms, "HKCCM", painData.Select(p => (p.Receiver, p.ReceiverIban)).ToList(),
-                (number, kti, messageId) => (HKCCM.Create(this, number, kti, painData, numberOfTransactions, totalAmount, messageId), number));
+                (number, account, messageId) => (HKCCM.Create(this, number, account.Kti, painData, numberOfTransactions, totalAmount, messageId, account.Bic), number));
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace libfintx.FinTS
 
             CheckMaximumTransactions("HKCME", "HICMES", painData.Count);
             return await SubmitPaymentOrder(tanDialog, hirms, "HKCME", painData.Select(p => (p.Receiver, p.ReceiverIban)).ToList(),
-                (number, kti, messageId) => (HKCME.Create(this, number, kti, painData, numberOfTransactions, totalAmount, executionDay, messageId), number));
+                (number, account, messageId) => (HKCME.Create(this, number, account.Kti, painData, numberOfTransactions, totalAmount, executionDay, messageId, account.Bic), number));
         }
 
         /// <summary>
@@ -280,10 +280,10 @@ namespace libfintx.FinTS
             string orderAnswer = null;
 
             var result = await SubmitPaymentOrder(tanDialog, hirms, "HKIPZ", new[] { (receiverName, receiverIBAN) },
-                (number, kti, messageId) => (HKIPZ.Create(this, number, version, kti, receiverName, receiverIBAN, receiverBIC, amount, purpose, conversion, messageId), number),
+                (number, account, messageId) => (HKIPZ.Create(this, number, version, account.Kti, receiverName, receiverIBAN, receiverBIC, amount, purpose, conversion, messageId, account.Bic), number),
                 instantPayment: true, orderAnswer: answer => orderAnswer = answer);
 
-            return result.TypedResult(InstantPaymentAnswer(result, orderAnswer, "HIIPZ"));
+            return result.TypedResult(InstantPaymentAnswer(result, orderAnswer, "HIIPZ", false));
         }
 
         /// <summary>SEPA instant payment collective order (HKIPM), see <see cref="InstantTransfer"/>.</summary>
@@ -295,8 +295,6 @@ namespace libfintx.FinTS
                 return await InstantTransfer(tanDialog, painData[0].Receiver, painData[0].ReceiverIban, painData[0].ReceiverBic, painData[0].Amount, painData[0].Usage, hirms, allowConversion);
 
             var parameters = RequireInstantPayment(true);
-            if (parameters.MaxTransactions > 0 && painData.Count > parameters.MaxTransactions)
-                throw new ArgumentException($"The bank accepts at most {parameters.MaxTransactions} transactions in HKIPM ({painData.Count} given).");
             CheckMaximumTransactions("HKIPM", "HIIPMS", painData.Count);
 
             var version = Math.Min(parameters.Version, 2);
@@ -304,10 +302,10 @@ namespace libfintx.FinTS
             string orderAnswer = null;
 
             var result = await SubmitPaymentOrder(tanDialog, hirms, "HKIPM", painData.Select(p => (p.Receiver, p.ReceiverIban)).ToList(),
-                (number, kti, messageId) => (HKIPM.Create(this, number, version, kti, painData, numberOfTransactions, totalAmount, conversion, messageId), number),
+                (number, account, messageId) => (HKIPM.Create(this, number, version, account.Kti, painData, numberOfTransactions, totalAmount, conversion, messageId, account.Bic), number),
                 instantPayment: true, orderAnswer: answer => orderAnswer = answer);
 
-            return result.TypedResult(InstantPaymentAnswer(result, orderAnswer, "HIIPM"));
+            return result.TypedResult(InstantPaymentAnswer(result, orderAnswer, "HIIPM", true));
         }
 
         /// <summary>
@@ -329,7 +327,7 @@ namespace libfintx.FinTS
             if (!result.IsSuccess)
                 return result.TypedResult<InstantPaymentResult>();
 
-            var kti = await GetPaymentOrderAccount(tanDialog);
+            var (kti, _) = await GetPaymentOrderAccount(tanDialog);
             var segmentId = collective ? "HKISS" : "HKIPS";
             string BankCode = await SendPaymentOrder((HKIPS.Create(collective, Convert.ToInt16(SEG_NUM.Seg3), parameters.StatusVersion, kti,
                 parameters.StatusReportFormats, orderId), Convert.ToInt16(SEG_NUM.Seg3)), segmentId);
@@ -339,7 +337,7 @@ namespace libfintx.FinTS
 
             var (id, statusCode) = InstantPayment.ParseAnswer(result.RawData, collective ? "HIISS" : "HIIPS");
             var codes = result.Messages.Select(m => m.Code).ToList();
-            return result.TypedResult(new InstantPaymentResult(id ?? orderId, InstantPayment.Status(statusCode, codes, statusRequest: true), statusCode));
+            return result.TypedResult(new InstantPaymentResult(id ?? orderId, InstantPayment.Status(statusCode, codes, statusRequest: true), statusCode, collective));
         }
 
         private InstantPaymentParameters RequireInstantPayment(bool collective)
@@ -352,7 +350,7 @@ namespace libfintx.FinTS
         }
 
         /// <summary>Order id and state from HIIPZ/HIIPM of the final answer or of the answer to the order.</summary>
-        private static InstantPaymentResult InstantPaymentAnswer(HBCIDialogResult result, string orderAnswer, string segmentId)
+        private static InstantPaymentResult InstantPaymentAnswer(HBCIDialogResult result, string orderAnswer, string segmentId, bool collective)
         {
             var (id, statusCode) = InstantPayment.ParseAnswer(result.RawData, segmentId);
             if (id == null)
@@ -362,7 +360,7 @@ namespace libfintx.FinTS
             var codes = result.Messages
                 .Where(m => (m.SegmentReference != null && !result.IgnoredSegmentReferences.Contains(m.SegmentReference.Value)) || m.IsError)
                 .Select(m => m.Code).ToList();
-            return new InstantPaymentResult(id, InstantPayment.Status(statusCode, codes), statusCode);
+            return new InstantPaymentResult(id, InstantPayment.Status(statusCode, codes), statusCode, collective);
         }
 
         /// <summary>
@@ -370,11 +368,12 @@ namespace libfintx.FinTS
         /// client is the one the bank reports in HISPA (see <see cref="GetPaymentOrderAccount"/>). When the bank lists
         /// the order in HIVPPS, the verification of payee comes first (see <see cref="SubmitWithVerificationOfPayee"/>).
         /// <paramref name="payees"/> are name and IBAN of each transfer in pain order; <paramref name="buildOrder"/> builds
-        /// the order segments from the first segment number, the KTI of the account and the pain message id and returns
-        /// them with the number of the last segment.
+        /// the order segments from the first segment number, the account (KTI and BIC) and the pain message id and returns
+        /// them with the number of the last segment. Once the order may have reached the bank, a missing or unreadable
+        /// answer throws <see cref="PaymentOrderUncertainException"/>.
         /// </summary>
         private async Task<HBCIDialogResult> SubmitPaymentOrder(TANDialog tanDialog, string hirms, string segmentId,
-            IReadOnlyList<(string Name, string Iban)> payees, Func<int, string, string, (string Segments, int LastSegmentNumber)> buildOrder,
+            IReadOnlyList<(string Name, string Iban)> payees, Func<int, (string Kti, string Bic), string, (string Segments, int LastSegmentNumber)> buildOrder,
             bool instantPayment = false, Action<string> orderAnswer = null)
         {
             var result = await InitializeConnection();
@@ -390,26 +389,34 @@ namespace libfintx.FinTS
             if (!string.IsNullOrEmpty(hirms))
                 HIRMS = hirms;
 
-            var kti = await GetPaymentOrderAccount(tanDialog);
+            var account = await GetPaymentOrderAccount(tanDialog);
             var messageId = pain00100109.NewMessageId();
             int first = Convert.ToInt16(SEG_NUM.Seg3);
 
-            var vop = BPD?.HIVPPS;
-            if (vop != null && vop.PaymentOrders.Contains(segmentId))
+            // From here on the order may reach the bank: a missing or unreadable answer must not look like "not executed"
+            try
             {
-                var withEndToEndIds = payees.Select((p, i) => (p.Name, p.Iban, pain00100109.EndToEndId(messageId, i))).ToList();
-                return await SubmitWithVerificationOfPayee(tanDialog, segmentId, vop, withEndToEndIds, buildOrder(first + 1, kti, messageId), instantPayment, orderAnswer);
-            }
+                var vop = BPD?.HIVPPS;
+                if (vop != null && vop.PaymentOrders.Contains(segmentId))
+                {
+                    var withEndToEndIds = payees.Select((p, i) => (p.Name, p.Iban, pain00100109.EndToEndId(messageId, i))).ToList();
+                    return await SubmitWithVerificationOfPayee(tanDialog, segmentId, vop, withEndToEndIds, buildOrder(first + 1, account, messageId), instantPayment, orderAnswer);
+                }
 
-            string BankCode = await SendPaymentOrder(buildOrder(first, kti, messageId), segmentId);
-            orderAnswer?.Invoke(BankCode);
-            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
-            if (result.HasError)
+                string BankCode = await SendPaymentOrder(buildOrder(first, account, messageId), segmentId);
+                orderAnswer?.Invoke(BankCode);
+                result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
+                if (result.HasError)
+                    return result;
+
+                result = await ProcessSCA(result, tanDialog);
+
                 return result;
-
-            result = await ProcessSCA(result, tanDialog);
-
-            return result;
+            }
+            catch (Exception ex) when (!(ex is PaymentOrderUncertainException))
+            {
+                throw new PaymentOrderUncertainException($"The payment order {segmentId} was sent, but the answer of the bank is missing or could not be read. Check the order before submitting it again.", ex);
+            }
         }
 
         /// <summary>
@@ -448,7 +455,7 @@ namespace libfintx.FinTS
                 BankCode = await SendPaymentOrder((HKVPP.Create(first, vop, pollingId, restart), first), null);
                 var next = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
                 if (next.HasError)
-                    return next;
+                    return result.IsApprovalRequired ? result : next; // a decoupled approval already started stays valid (3955)
 
                 codes.UnionWith(next.Messages.Select(m => m.Code));
                 restart = next.Messages.FirstOrDefault(m => m.Code == "3040")?.Parameters.FirstOrDefault();
@@ -541,31 +548,57 @@ namespace libfintx.FinTS
         }
 
         /// <summary>
-        /// KTI of the own account for a payment order, exactly as the bank reports it in HISPA (HKSPA, as python-fints
+        /// KTI and BIC of the own account for a payment order, as the bank reports it in HISPA (HKSPA, as python-fints
         /// does before every order); some banks reject IBAN and BIC alone with 9210 "Keine gültige Kontoverbindung".
-        /// IBAN and BIC of the connection details when the bank does not offer HKSPA or does not report the account.
+        /// Otherwise the account of the user parameters with IBAN and BIC of the connection details. The BIC also goes
+        /// into the pain message (debtor agent must match the KTI).
         /// </summary>
-        private async Task<string> GetPaymentOrderAccount(TANDialog tanDialog)
+        private async Task<(string Kti, string Bic)> GetPaymentOrderAccount(TANDialog tanDialog)
         {
-            var fallback = ConnectionDetails.Iban + DEG.Separator + ConnectionDetails.Bic;
-            if (HISPAS == 0)
-                return fallback;
-
-            string BankCode = await Transaction.HKSPA(this);
-            var result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
-            if (!result.HasError)
-                result = await ProcessSCA(result, tanDialog);
-            if (result.HasError)
+            var iban = ConnectionDetails.Iban?.Replace(" ", string.Empty);
+            if (HISPAS > 0)
             {
-                Logger.LogInformation("SEPA account connection (HKSPA) not received, using IBAN and BIC of the connection details.");
-                return fallback;
+                string BankCode = await Transaction.HKSPA(this);
+                var result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
+                if (!result.HasError)
+                    result = await ProcessSCA(result, tanDialog);
+
+                var account = result.HasError ? null : Parse_SepaAccounts(result.RawData)
+                    .FirstOrDefault(a => string.Equals(a.AccountIban, iban, StringComparison.OrdinalIgnoreCase));
+                if (account != null)
+                    return (Kti(account), account.AccountBic);
+
+                Logger.LogInformation("SEPA account connection (HKSPA) not received, using the account of the user parameters.");
             }
 
-            var iban = ConnectionDetails.Iban?.Replace(" ", string.Empty);
-            var account = Parse_SepaAccounts(result.RawData)
-                .FirstOrDefault(a => string.Equals(a.AccountIban, iban, StringComparison.OrdinalIgnoreCase));
-            return account == null ? fallback : KTI.Of(account);
+            // Account of the user parameters (HIUPD) with account number, sub-account and bank code, national parts only
+            // when HISPAS allows them; a BIC is required with the IBAN (Geschäftsvorfälle, KTI)
+            if (string.IsNullOrWhiteSpace(ConnectionDetails.Bic))
+                throw new ArgumentException("The BIC of the own account is missing (ConnectionDetails.Bic).");
+
+            var upd = UPD.AccountList?.FirstOrDefault(a => string.Equals(a.AccountIban?.Trim(), iban, StringComparison.OrdinalIgnoreCase));
+            if (upd == null || !HISPAS_AccountNationalAllowed && HISPAS > 0)
+                return (Helper.EscapeEdifactString(iban) + DEG.Separator + Helper.EscapeEdifactString(ConnectionDetails.Bic), ConnectionDetails.Bic);
+
+            return (Kti(new AccountInformation
+            {
+                AccountIban = iban,
+                AccountBic = ConnectionDetails.Bic,
+                AccountNumber = upd.AccountNumber,
+                SubAccountFeature = upd.SubAccountFeature,
+                AccountBankCode = upd.AccountBankCode,
+            }), ConnectionDetails.Bic);
         }
+
+        /// <summary><see cref="KTI.Of"/> with the values escaped (HISPA and HIUPD values arrive unescaped).</summary>
+        private static string Kti(AccountInformation account) => KTI.Of(new AccountInformation
+        {
+            AccountIban = Helper.EscapeEdifactString(account.AccountIban),
+            AccountBic = Helper.EscapeEdifactString(account.AccountBic),
+            AccountNumber = Helper.EscapeEdifactString(account.AccountNumber),
+            SubAccountFeature = Helper.EscapeEdifactString(account.SubAccountFeature),
+            AccountBankCode = Helper.EscapeEdifactString(account.AccountBankCode),
+        });
 
         /// <summary>
         /// Sends order segments (the first one numbered 3) with HKTAN (process 4) when the bank requires a TAN for
