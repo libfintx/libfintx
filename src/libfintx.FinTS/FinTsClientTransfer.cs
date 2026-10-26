@@ -267,10 +267,10 @@ namespace libfintx.FinTS
         /// <summary>
         /// SEPA instant payment (HKIPZ): in seconds with the payee and not recallable. With the verification of payee when
         /// the bank requires it. The bank accepts with 3045 and reports the final state later: request it with
-        /// <see cref="GetInstantPaymentStatus"/> after <see cref="InstantPaymentStatusWait"/>.
+        /// <see cref="GetInstantPaymentStatus"/> after <see cref="InstantPaymentStatusWait"/>. With
+        /// <paramref name="allowConversion"/> the bank may execute it as standard credit transfer when the instant payment
+        /// is not possible; this is sent only when the bank offers it (HIIPZS version 2).
         /// </summary>
-        /// <param name="allowConversion">The bank may execute it as standard credit transfer when the instant payment is not
-        /// possible; sent only when the bank offers this (HIIPZS version 2).</param>
         public async Task<HBCIDialogResult<InstantPaymentResult>> InstantTransfer(TANDialog tanDialog, string receiverName,
             string receiverIBAN, string receiverBIC, decimal amount, string purpose, string hirms, bool allowConversion = false)
         {
@@ -312,9 +312,9 @@ namespace libfintx.FinTS
 
         /// <summary>
         /// Status of an instant payment (HKIPS, collective orders HKISS), not earlier than <see cref="InstantPaymentStatusWait"/>
-        /// after the order. Return values describe the request; only the status field tells about the payment.
+        /// after the order, with <paramref name="orderId"/> from <see cref="InstantPaymentResult.OrderId"/>. Return values
+        /// describe the request; only the status field tells about the payment.
         /// </summary>
-        /// <param name="orderId">Order id from <see cref="InstantPaymentResult.OrderId"/>.</param>
         public async Task<HBCIDialogResult<InstantPaymentResult>> GetInstantPaymentStatus(TANDialog tanDialog, string orderId, bool collective = false)
         {
             var parameters = RequireInstantPayment(collective);
@@ -369,10 +369,10 @@ namespace libfintx.FinTS
         /// Sends a payment order with HKTAN and completes the strong customer authentication. The account of the
         /// client is the one the bank reports in HISPA (see <see cref="GetPaymentOrderAccount"/>). When the bank lists
         /// the order in HIVPPS, the verification of payee comes first (see <see cref="SubmitWithVerificationOfPayee"/>).
+        /// <paramref name="payees"/> are name and IBAN of each transfer in pain order; <paramref name="buildOrder"/> builds
+        /// the order segments from the first segment number, the KTI of the account and the pain message id and returns
+        /// them with the number of the last segment.
         /// </summary>
-        /// <param name="payees">Name and IBAN of each transfer, in pain order.</param>
-        /// <param name="buildOrder">Builds the order segments from the first segment number, the KTI of the account and
-        /// the pain message id; returns them with the number of the last segment.</param>
         private async Task<HBCIDialogResult> SubmitPaymentOrder(TANDialog tanDialog, string hirms, string segmentId,
             IReadOnlyList<(string Name, string Iban)> payees, Func<int, string, string, (string Segments, int LastSegmentNumber)> buildOrder,
             bool instantPayment = false, Action<string> orderAnswer = null)
@@ -417,9 +417,9 @@ namespace libfintx.FinTS
         /// signature): check HKVPP + order + HKTAN, answer HIVPP. Controlled only by return values: 3945 = TAN
         /// invalidated, after the user's consent HKVPA (VOP id) + the same order + a new HKTAN; 3091 = no confirmation
         /// needed, answer the challenge; otherwise HKVPA together with the TAN (figure 3). 3040 = fetch further results.
-        /// The user sees the result through <see cref="TANDialog.ConfirmVerificationOfPayeeAsync"/>.
+        /// The user sees the result through <see cref="TANDialog.ConfirmVerificationOfPayeeAsync"/>. <paramref name="order"/>
+        /// holds the order segments numbered from 4 (HKVPP is 3); the same bytes are sent again after 3945.
         /// </summary>
-        /// <param name="order">The order segments numbered from 4 (HKVPP is 3); the same bytes are sent again after 3945.</param>
         private async Task<HBCIDialogResult> SubmitWithVerificationOfPayee(TANDialog tanDialog, string segmentId, HIVPPS vop,
             IReadOnlyList<(string Name, string Iban, string EndToEndId)> payees, (string Segments, int LastSegmentNumber) order,
             bool instantPayment, Action<string> orderAnswer = null)

@@ -282,10 +282,10 @@ namespace libfintx.FinTS
         /// <summary>
         /// Assigns the check result to the submitted transfers. Transactions not listed in the payment status report are a
         /// match: the result is given "only if it is not a match" (Anlage 3, chapter 2.2.6). Information on file level
-        /// goes to the items with the status it refers to.
+        /// goes to the items with the status it refers to. <paramref name="payees"/> are the submitted transfers in pain
+        /// order (name, IBAN, end to end id); with <paramref name="noDeviationReported"/> (0025) all match when the bank
+        /// sends no result.
         /// </summary>
-        /// <param name="payees">Submitted transfers in pain order: name, IBAN, end to end id.</param>
-        /// <param name="noDeviationReported">The bank reported 0025 ("no deviation"), so without a result all match.</param>
         public static VerificationOfPayeeResult Evaluate(VerificationOfPayeeAnswer answer, IReadOnlyList<(string Name, string Iban, string EndToEndId)> payees,
             IReadOnlyList<byte[]> reports, bool explanationStructured, bool confirmationRequired, bool noDeviationReported)
         {
