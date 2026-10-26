@@ -187,6 +187,25 @@ public class Test_PaymentOrders
     }
 
     [Fact]
+    public async Task Test_Transfer_MissingAnswerAfterTheTanIsUncertain()
+    {
+        // without verification of payee: the TAN went out, the bank does not answer
+        using var server = new FakeFinTsServer(request =>
+            request.Contains("HKCCS:3:1") ? "HNHBK:1:3+000000000100+300+DIALOG1+3'HIRMS:3:2:4+0030::Sicherheitsfreigabe erforderlich'HITAN:4:6:4+4++REF-1+Bitte TAN eingeben'HNHBS:5:1+3'"
+            : request.Contains("HKTAN:3:6+2") ? null
+            : FakeFinTsServer.DefaultResponse);
+        var client = CreateClient(server, 0);
+        client.BPD = BPD.Parse("HIBPA:4:3:5+1+280:10070000+Fake Bank+0+1+300+9999'"
+            + "HIPINS:78:1:4+1+1+0+5:20:6:Benutzerkennung:Kunden-ID:HKCCS:J'"
+            + "HITANS:6:6:4+1+1+0+N:N:0:902:2:TAN1:::TAN-Verfahren:7:1:Freigabe:999:N:1:N:0:2:N:J:00:0:N:8'");
+        client.HITANS = 6;
+        client.HIRMS = "902";
+
+        await Assert.ThrowsAsync<PaymentOrderUncertainException>(() =>
+            client.Transfer(new TANDialog(_ => Task.FromResult("123456")), "Max Muster", "DE02100700000123456789", null, 1m, "x", null));
+    }
+
+    [Fact]
     public async Task Test_Transfer_WithoutBicNothingIsSent()
     {
         using var server = Bank("HKCCS");

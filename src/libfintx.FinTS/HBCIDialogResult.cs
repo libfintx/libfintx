@@ -74,6 +74,13 @@ namespace libfintx.FinTS
         internal HashSet<int> IgnoredSegmentReferences { get; } = new HashSet<int>();
 
         /// <summary>
+        /// Ignored segments whose errors make the outcome unclear rather than "not executed": HKVPA answers 9210 "Auftrag
+        /// existiert nicht bzw. wurde bereits ausgeführt" (VOP 1.02, p. 15). Errors about HKVPP (e.g. 9250 "submit later")
+        /// still mean "not executed".
+        /// </summary>
+        internal HashSet<int> UnclearOnErrorSegmentReferences { get; } = new HashSet<int>();
+
+        /// <summary>
         /// Outcome of the payment order answered by this result, taken only from the segment related return values
         /// (HIRMS); "0010" in HIRMG only means "message received". Contradictory answers (success and error at once,
         /// 9050 "partly erroneous") are <see cref="OrderStatus.Unclear"/>, never <see cref="OrderStatus.NotExecuted"/>:
@@ -82,9 +89,10 @@ namespace libfintx.FinTS
         /// <param name="instantPayment">For instant payments the bank accepts with 3045/3047/3270 instead of 0010/0020.</param>
         public OrderStatus GetOrderStatus(bool instantPayment = false)
         {
-            var relevant = messages.Where(m => !(m.SegmentReference is int s && IgnoredSegmentReferences.Contains(s))).ToList();
+            var relevant = messages.Where(m => !(m.SegmentReference is int s && IgnoredSegmentReferences.Contains(s)
+                && (!m.IsError || UnclearOnErrorSegmentReferences.Contains(s)))).ToList();
             // an error about HKVPA alone may mean "order does not exist or was already executed" (VOP 1.02, p. 15)
-            var ignoredError = messages.Any(m => m.IsError && m.SegmentReference is int r && IgnoredSegmentReferences.Contains(r));
+            var ignoredError = messages.Any(m => m.IsError && m.SegmentReference is int r && UnclearOnErrorSegmentReferences.Contains(r));
             var order = new HashSet<string>(relevant.Where(m => m.SegmentReference != null).Select(m => m.Code));
             var dialog = new HashSet<string>(relevant.Where(m => m.SegmentReference == null).Select(m => m.Code));
             bool Has(params string[] codes) => codes.Any(order.Contains);
@@ -118,6 +126,7 @@ namespace libfintx.FinTS
         {
             var result = new HBCIDialogResult<T>(Messages, RawData);
             result.IgnoredSegmentReferences.UnionWith(IgnoredSegmentReferences);
+            result.UnclearOnErrorSegmentReferences.UnionWith(UnclearOnErrorSegmentReferences);
             return result;
         }
 
@@ -125,6 +134,7 @@ namespace libfintx.FinTS
         {
             var result = new HBCIDialogResult<T>(Messages, RawData, data);
             result.IgnoredSegmentReferences.UnionWith(IgnoredSegmentReferences);
+            result.UnclearOnErrorSegmentReferences.UnionWith(UnclearOnErrorSegmentReferences);
             return result;
         }
 

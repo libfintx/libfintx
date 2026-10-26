@@ -393,17 +393,20 @@ namespace libfintx.FinTS
             var messageId = pain00100109.NewMessageId();
             int first = Convert.ToInt16(SEG_NUM.Seg3);
 
+            var vop = BPD?.HIVPPS;
+            var withVerificationOfPayee = vop != null && vop.PaymentOrders.Contains(segmentId);
+            var order = buildOrder(withVerificationOfPayee ? first + 1 : first, account, messageId);
+
             // From here on the order may reach the bank: a missing or unreadable answer must not look like "not executed"
             try
             {
-                var vop = BPD?.HIVPPS;
-                if (vop != null && vop.PaymentOrders.Contains(segmentId))
+                if (withVerificationOfPayee)
                 {
                     var withEndToEndIds = payees.Select((p, i) => (p.Name, p.Iban, pain00100109.EndToEndId(messageId, i))).ToList();
-                    return await SubmitWithVerificationOfPayee(tanDialog, segmentId, vop, withEndToEndIds, buildOrder(first + 1, account, messageId), instantPayment, orderAnswer);
+                    return await SubmitWithVerificationOfPayee(tanDialog, segmentId, vop, withEndToEndIds, order, instantPayment, orderAnswer);
                 }
 
-                string BankCode = await SendPaymentOrder(buildOrder(first, account, messageId), segmentId);
+                string BankCode = await SendPaymentOrder(order, segmentId);
                 orderAnswer?.Invoke(BankCode);
                 result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
                 if (result.HasError)
@@ -415,7 +418,7 @@ namespace libfintx.FinTS
             }
             catch (Exception ex) when (!(ex is PaymentOrderUncertainException))
             {
-                throw new PaymentOrderUncertainException($"The payment order {segmentId} was sent, but the answer of the bank is missing or could not be read. Check the order before submitting it again.", ex);
+                throw new PaymentOrderUncertainException($"The payment order {segmentId} may have been sent, but the answer of the bank is missing or could not be read. Check the order before submitting it again.", ex);
             }
         }
 
@@ -511,6 +514,7 @@ namespace libfintx.FinTS
                 orderAnswer?.Invoke(BankCode);
                 result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
                 result.IgnoredSegmentReferences.Add(first);
+                result.UnclearOnErrorSegmentReferences.Add(first);
                 if (result.HasError)
                     return result;
 

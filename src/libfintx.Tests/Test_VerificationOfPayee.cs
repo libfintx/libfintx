@@ -279,6 +279,27 @@ public class Test_VerificationOfPayee
         Assert.DoesNotContain(server.Requests, r => r.Contains("HKVPA"));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Test_ExecutionOrderErrorIsUnclear(bool afterDeviation)
+    {
+        // HKVPA 9210 "Auftrag existiert nicht bzw. wurde bereits ausgeführt" (VOP 1.02, p. 15): resubmitting could pay twice
+        const string failed = "HIRMG:2:2+9050::Teilweise fehlerhaft.'HIRMS:3:2:3+9210::Auftrag existiert nicht bzw. wurde bereits ausgeführt'";
+        var check = afterDeviation
+            ? "HIRMS:4:2:5+3945::Freigabe kann nicht erteilt werden'HIVPP:6:1:3+@4@V-06+++++" + Payee + "::Max Mustermann::RVMC+Bitte prüfen'"
+            : "HIRMS:3:2:3+0020::Namensabgleich ausgeführt'" + TanRequired + "HIVPP:6:1:3+@4@V-06+++++" + Payee + "::::RCVC'";
+        using var server = new FakeFinTsServer(request =>
+            request.Contains("HKVPP:3:1") && request.Contains("HKCCS:4:1") ? Message(check)
+            : request.Contains("HKVPA:3:1") ? Message(failed)
+            : FakeFinTsServer.DefaultResponse);
+
+        var result = await Transfer(CreateClient(server), Dialog(true).Dialog);
+
+        Assert.Contains(server.Requests, r => r.Contains("HKVPA:3:1+@4@V-06'"));
+        Assert.Equal(OrderStatus.Unclear, result.GetOrderStatus());
+    }
+
     [Fact]
     public async Task Test_WithoutExecutionOrderOnlyTheTan()
     {
