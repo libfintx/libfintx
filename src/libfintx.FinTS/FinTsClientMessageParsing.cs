@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using libfintx.FinTS.Camt;
 using libfintx.FinTS.Data.Segment;
+using libfintx.FinTS.UserParameterData;
 using Microsoft.Extensions.Logging;
 
 namespace libfintx.FinTS;
@@ -86,7 +87,8 @@ public partial class FinTsClient
             if (upd.Length > 0)
             {
                 Logger.LogInformation("Saving UPD ...");
-                Helper.SaveUPD(ConnectionDetails.Blz, ConnectionDetails.UserId, upd);
+                this.UpdStore.SaveUPD(280, ConnectionDetails.Blz, ConnectionDetails.UserId, upd)
+                    .Wait();
                 UPD.ParseUpd(upd, Logger);
             }
 
@@ -191,28 +193,7 @@ public partial class FinTsClient
                         this.HNHBS = Convert.ToInt32(segment.Payload) + 1;
                 }
 
-                if (segment.Name == "HISALS")
-                {
-                    if (this.HISALS < segment.Version)
-                        this.HISALS = segment.Version;
-                }
-
-                if (segment.Name == "HITANS")
-                {
-                    var hitans = (HITANS) segment;
-                    if (this.HIRMS == null)
-                    {
-                        // Die höchste HKTAN-Version auswählen, welche in den erlaubten TAN-Verfahren (3920) enthalten ist.
-                        var tanProcessesHirms = this.HIRMSf.Split(';').Select(tp => Convert.ToInt32(tp));
-                        if (hitans.TanProcesses.Select(tp => tp.TanCode).Intersect(tanProcessesHirms).Any())
-                            this.HITANS = segment.Version;
-                    }
-                    else
-                    {
-                        if (hitans.TanProcesses.Any(tp => tp.TanCode == Convert.ToInt32(this.HIRMS)))
-                            this.HITANS = segment.Version;
-                    }
-                }
+                ApplyBankParameter(segment);
 
                 if (segment.Name == "HITAN")
                 {
@@ -221,50 +202,6 @@ public partial class FinTsClient
                     if (segment.DataElements.Count < 3)
                         throw new InvalidOperationException($"Invalid HITAN segment '{segment}'. Payload must have at least 3 data elements.");
                     this.HITAN = segment.DataElements[2];
-                }
-
-                if (segment.Name == "HIKAZS")
-                {
-                    if (this.HIKAZS == 0)
-                    {
-                        this.HIKAZS = segment.Version;
-                    }
-                    else
-                    {
-                        if (segment.Version > this.HIKAZS)
-                            this.HIKAZS = segment.Version;
-                    }
-                }
-
-                if (segment.Name == "HICAZS")
-                {
-                    if (segment.Payload.Contains("camt.052.001.02"))
-                        this.HICAZS_Camt = CamtScheme.Camt052_001_02;
-                    else if (segment.Payload.Contains("camt.052.001.08"))
-                        this.HICAZS_Camt = CamtScheme.Camt052_001_08;
-                    else // Fallback
-                        this.HICAZS_Camt = CamtScheme.Camt052_001_02;
-                }
-
-                if (segment.Name == "HISPAS")
-                {
-                    var hispas = segment as HISPAS;
-                    if (this.HISPAS < segment.Version)
-                    {
-                        this.HISPAS = segment.Version;
-
-                        if (hispas.Payload.Contains("pain.001.001.03"))
-                            this.HISPAS_Pain = 1;
-                        else if (hispas.Payload.Contains("pain.001.002.03"))
-                            this.HISPAS_Pain = 2;
-                        else if (hispas.Payload.Contains("pain.001.003.03"))
-                            this.HISPAS_Pain = 3;
-
-                        if (this.HISPAS_Pain == 0)
-                            this.HISPAS_Pain = 3; // -> Fallback. Most banks accept the newest pain version
-
-                        this.HISPAS_AccountNationalAllowed = hispas.IsAccountNationalAllowed;
-                    }
                 }
             }
 
@@ -313,6 +250,98 @@ public partial class FinTsClient
 
             throw new InvalidOperationException($"Software error: {ex.Message}", ex);
         }
+    }
+
+    /// <summary>
+    /// Takes the segment versions this client uses for its business transactions from a parameter
+    /// segment of the bank parameter data (BPD), whether the bank just sent it or it was stored.
+    /// </summary>
+    private void ApplyBankParameter(Segment segment)
+    {
+        if (segment.Name == "HISALS")
+        {
+            if (this.HISALS < segment.Version)
+                this.HISALS = segment.Version;
+        }
+
+        if (segment.Name == "HITANS")
+        {
+            var hitans = (HITANS) segment;
+            if (this.HIRMS == null)
+            {
+                // Die höchste HKTAN-Version auswählen, welche in den erlaubten TAN-Verfahren (3920) enthalten ist.
+                if (!string.IsNullOrEmpty(this.HIRMSf))
+                {
+                    var tanProcessesHirms = this.HIRMSf.Split(';').Select(tp => Convert.ToInt32(tp));
+                    if (hitans.TanProcesses.Select(tp => tp.TanCode).Intersect(tanProcessesHirms).Any())
+                        this.HITANS = segment.Version;
+                }
+            }
+            else
+            {
+                if (hitans.TanProcesses.Any(tp => tp.TanCode == Convert.ToInt32(this.HIRMS)))
+                    this.HITANS = segment.Version;
+            }
+        }
+
+        if (segment.Name == "HIKAZS")
+        {
+            if (this.HIKAZS == 0)
+            {
+                this.HIKAZS = segment.Version;
+            }
+            else
+            {
+                if (segment.Version > this.HIKAZS)
+                    this.HIKAZS = segment.Version;
+            }
+        }
+
+        if (segment.Name == "HICAZS")
+        {
+            if (segment.Payload.Contains("camt.052.001.02"))
+                this.HICAZS_Camt = CamtScheme.Camt052_001_02;
+            else if (segment.Payload.Contains("camt.052.001.08"))
+                this.HICAZS_Camt = CamtScheme.Camt052_001_08;
+            else // Fallback
+                this.HICAZS_Camt = CamtScheme.Camt052_001_02;
+        }
+
+        if (segment.Name == "HISPAS")
+        {
+            var hispas = segment as HISPAS;
+            if (this.HISPAS < segment.Version)
+            {
+                this.HISPAS = segment.Version;
+
+                if (hispas.Payload.Contains("pain.001.001.03"))
+                    this.HISPAS_Pain = 1;
+                else if (hispas.Payload.Contains("pain.001.002.03"))
+                    this.HISPAS_Pain = 2;
+                else if (hispas.Payload.Contains("pain.001.003.03"))
+                    this.HISPAS_Pain = 3;
+
+                if (this.HISPAS_Pain == 0)
+                    this.HISPAS_Pain = 3; // -> Fallback. Most banks accept the newest pain version
+
+                this.HISPAS_AccountNationalAllowed = hispas.IsAccountNationalAllowed;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Takes the segment versions from the stored bank parameter data. A dialog that starts without
+    /// synchronization gets the BPD from the bank only when the stored version is outdated, yet it
+    /// needs the HKTAN version in its first message and the versions of every later business transaction.
+    /// </summary>
+    internal void ApplyStoredBankParameters()
+    {
+        var bpd = this.BPD;
+        if (bpd == null)
+            return;
+
+        foreach (var segment in bpd.SegmentList)
+            ApplyBankParameter(segment);
     }
 
     internal List<Segment> Parse_Message(string message)
