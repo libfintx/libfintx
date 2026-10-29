@@ -1,6 +1,7 @@
 ﻿using libfintx.FinTS;
 using libfintx.FinTS.BankParameterData;
 using libfintx.FinTS.Data;
+using libfintx.FinTS.UserParameterData;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace libfintx.Tests;
@@ -11,6 +12,7 @@ internal static class TestHelper
     {
         return new FinTsClient(connectionDetails ?? new ConnectionDetails(),
             bpdDataStore: new BdpInMemoryStore(),
-            loggerFactory: NullLoggerFactory.Instance);
+            loggerFactory: NullLoggerFactory.Instance,
+            updDataStore: new UpdInMemoryStore());
     }
 }

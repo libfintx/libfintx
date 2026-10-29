@@ -23,6 +23,7 @@
 
 using libfintx.FinTS.Data;
 using libfintx.FinTS.BankParameterData;
+using libfintx.FinTS.UserParameterData;
 using libfintx.Sepa;
 using System;
 using System.Collections.Generic;
@@ -54,6 +55,11 @@ namespace libfintx.FinTS
         /// The bank parameter data store.
         /// </summary>
         internal IBpdStore BdpStore { get; }
+
+        /// <summary>
+        /// The user parameter data store.
+        /// </summary>
+        internal IUpdStore UpdStore { get; }
 
         /// <summary>
         /// The bank parameter data of the bank given in the connection details.
@@ -95,7 +101,11 @@ namespace libfintx.FinTS
         /// <b>Note </b> that at next major version upgrade, the default file logger will be replaced by
         /// a null logger not logging output anywhere.
         /// </param>
-        public FinTsClient(ConnectionDetails connection, bool anonymous = false, IBpdStore? bpdDataStore = null, ILoggerFactory? loggerFactory = null)
+        /// <param name="updDataStore">
+        /// A data store for the user parameter data (UPD), which lists the accounts with IBANs and account holders.
+        /// If not given, plain text files in the folder <c>FinTsGlobals.ProgramBaseDir</c> will be used.
+        /// </param>
+        public FinTsClient(ConnectionDetails connection, bool anonymous = false, IBpdStore? bpdDataStore = null, ILoggerFactory? loggerFactory = null, IUpdStore? updDataStore = null)
         {
             ConnectionDetails = connection;
             Anonymous = anonymous;
@@ -105,6 +115,8 @@ namespace libfintx.FinTS
 
             BdpStore = bpdDataStore
                        ?? new BpdFileStore(Path.Combine(FinTsGlobals.ProgramBaseDir, "BPD"), _loggerFactory);
+            UpdStore = updDataStore
+                       ?? new UpdFileStore(Path.Combine(FinTsGlobals.ProgramBaseDir, "UPD"));
             activeAccount = null;
 
             // When deprecating the default file logger maybe in next MAJOR VERSION UPGRADE, use this:
@@ -132,6 +144,7 @@ namespace libfintx.FinTS
             else
             {
                 SystemId = ConnectionDetails.CustomerSystemId;
+                ApplyStoredBankParameters();
             }
 
             try
