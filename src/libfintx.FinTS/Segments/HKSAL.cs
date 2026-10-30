@@ -64,9 +64,16 @@ namespace libfintx.FinTS
             if (client.HISALS >= 7)
             {
                 StringBuilder sb = new StringBuilder();
-                sb.Append(activeAccount.AccountIban);
-                sb.Append(DEG.Separator);
-                sb.Append(activeAccount.AccountBic);
+                if (string.IsNullOrWhiteSpace(activeAccount.AccountIban))
+                {
+                    sb.Append(KTI.National(activeAccount.AccountNumber, activeAccount.SubAccountFeature, activeAccount.AccountBankCode));
+                }
+                else
+                {
+                    sb.Append(activeAccount.AccountIban);
+                    sb.Append(DEG.Separator);
+                    sb.Append(activeAccount.AccountBic);
+                }
                 sb.Append(sEG.Delimiter);
                 sb.Append(DEG.DeAdd);
                 sb.Append(sEG.Terminator);
