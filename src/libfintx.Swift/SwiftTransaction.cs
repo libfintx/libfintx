@@ -24,6 +24,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.CompilerServices;
 
 namespace libfintx.Swift;
 
@@ -210,72 +211,77 @@ public class SwiftTransaction
     /// <summary>
     /// SEPA attribute Ende-zu-Ende Referenz
     /// </summary>
-    public string EREF { get; set; }
+    public string EREF => GetSepaPurposeValue();
 
     /// <summary>
     /// SEPA attribute Kundenreferenz
     /// </summary>
-    public string KREF { get; set; }
+    public string KREF => GetSepaPurposeValue();
 
     /// <summary>
     /// SEPA attribute Mandatsreferenz
     /// </summary>
-    public string MREF { get; set; }
+    public string MREF => GetSepaPurposeValue();
 
     /// <summary>
     /// SEPA attribute Bankreferenz
     /// </summary>
-    public string BREF { get; set; }
+    public string BREF => GetSepaPurposeValue();
 
     /// <summary>
     /// SEPA attribute Retourenreferenz
     /// </summary>
-    public string RREF { get; set; }
+    public string RREF => GetSepaPurposeValue();
 
     /// <summary>
     /// SEPA attribute Creditor-ID
     /// </summary>
-    public string CRED { get; set; }
+    public string CRED => GetSepaPurposeValue();
 
     /// <summary>
     /// SEPA attribute Debitor-ID
     /// </summary>
-    public string DEBT { get; set; }
+    public string DEBT => GetSepaPurposeValue();
 
     /// <summary>
     /// SEPA attribute Zinskompensationsbetrag
     /// </summary>
-    public string COAM { get; set; }
+    public string COAM => GetSepaPurposeValue();
 
     /// <summary>
     /// SEPA attribute Ursprünglicher Umsatzbetrag
     /// </summary>
-    public string OAMT { get; set; }
+    public string OAMT => GetSepaPurposeValue();
 
     /// <summary>
     /// SEPA attribute Verwendungszweck
     /// </summary>
-    public string SVWZ { get; set; }
+    public string SVWZ => GetSepaPurposeValue();
 
     /// <summary>
     /// SEPA attribute Abweichender Auftraggeber
     /// </summary>
-    public string ABWA { get; set; }
+    public string ABWA => GetSepaPurposeValue();
 
     /// <summary>
     /// SEPA attribute Abweichender Empfänger
     /// </summary>
-    public string ABWE { get; set; }
+    public string ABWE => GetSepaPurposeValue();
 
     /// <summary>
     /// SEPA attribute IBAN des Auftraggebers
     /// </summary>
-    public string IBAN { get; set; }
+    public string IBAN => GetSepaPurposeValue();
 
     /// <summary>
     /// SEPA attribute BIC des Auftraggebers
     /// </summary>
-    public string BIC { get; set; }
-
+    public string BIC => GetSepaPurposeValue();
+    private string GetSepaPurposeValue([CallerMemberName] string propertyName = null)
+    {
+        return Enum.TryParse(typeof(SepaPurpose), propertyName, out var result)
+            ? (SepaPurposes?.GetValueOrDefault((SepaPurpose)result)?.TrimEnd()?? string.Empty)
+            : string.Empty;
+    }
     #endregion
 }
