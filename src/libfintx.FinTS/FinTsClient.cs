@@ -468,13 +468,13 @@ namespace libfintx.FinTS
                 // Dem Benutzer signalisieren, dass die Transaktion beendet ist
                 await tanDialog.OnTransactionEndAsync(!tanDialog.IsCancelWaitForApproval && !result.HasError
                     && !result.IsWaitingForApproval && result.IsSuccess);
-
-                // Steht die Freigabe noch aus, ist der Auftrag nicht ausgeführt, auch wenn die Antwort
-                // Erfolgsmeldungen wie 0010 trägt: 3956 nach der letzten erlaubten Statusabfrage oder einem
-                // Abbruch, 3955 bei einem Abbruch vor der ersten Statusabfrage.
-                if (result.IsWaitingForApproval || result.IsApprovalRequired)
-                    result = new HBCIDialogResult(result.Messages.Where(m => !m.IsSuccess), result.RawData);
             }
+
+            // Steht die Authentifizierung noch aus, ist der Auftrag nicht ausgeführt, auch wenn die Antwort
+            // Erfolgsmeldungen wie 0010 trägt: 0030 ohne eingegebene TAN, 3955 bei einem Abbruch vor der
+            // ersten Statusabfrage, 3956 nach einem Abbruch oder der letzten erlaubten Statusabfrage.
+            if (result.IsSCARequired || result.IsWaitingForApproval)
+                result = new HBCIDialogResult(result.Messages.Where(m => !m.IsSuccess), result.RawData);
 
             if (result.IsSuccess && ini)
             {
