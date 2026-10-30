@@ -61,8 +61,8 @@ namespace libfintx.Logger.Trace
         /// <param name="pin"></param>
         public static void Write(string message, string userId, string pin)
         {
-            message = Regex.Replace(message, $@"\b{Regex.Escape(userId)}", new string('X', userId.Length));
-            message = Regex.Replace(message, $@"\b{Regex.Escape(pin)}", new string('X', pin.Length));
+            // PIN and TAN are masked by the HNSHA structure, so the pin parameter is not needed
+            message = MessageMasking.MaskUserTan(message, userId);
 
             Write(message);
         }

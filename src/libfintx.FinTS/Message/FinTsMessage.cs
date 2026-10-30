@@ -817,43 +817,8 @@ namespace libfintx.FinTS.Message
         /// Masks a message for the trace log: the PIN/TAN element of HNSHA, found by the segment
         /// structure so that escaped characters cannot bypass it, and every occurrence of the user id.
         /// </summary>
-        internal static string MaskUserTan(string message, string userId)
-        {
-            var sb = new StringBuilder(message.Length);
-            int pos = 0;
-            int start;
-            while ((start = message.IndexOf("HNSHA:", pos, StringComparison.Ordinal)) >= 0)
-            {
-                // HNSHA:n:v+reference+certificate+PIN[:TAN]' -> mask everything after the third '+'
-                int i = start;
-                int plus = 0;
-                while (i < message.Length && plus < 3)
-                {
-                    if (message[i] == '?') i++;
-                    else if (message[i] == '+') plus++;
-                    i++;
-                }
-                int end = i;
-                while (end < message.Length && message[end] != '\'')
-                {
-                    if (message[end] == '?') end++;
-                    end++;
-                }
-                end = Math.Min(end, message.Length);
-                sb.Append(message, pos, i - pos);
-                if (plus == 3)
-                    sb.Append("***");
-                else
-                    sb.Append(message, i, end - i);
-                pos = end;
-            }
-            sb.Append(message, pos, message.Length - pos);
-            message = sb.ToString();
-
-            if (!string.IsNullOrEmpty(userId))
-                message = message.Replace(userId, new string('X', userId.Length), StringComparison.Ordinal);
-            return message;
-        }
+        internal static string MaskUserTan(string message, string userId) =>
+            libfintx.Logger.MessageMasking.MaskUserTan(message, userId);
 
         /// <summary>
         /// Send FinTS message
