@@ -469,9 +469,10 @@ namespace libfintx.FinTS
                 await tanDialog.OnTransactionEndAsync(!tanDialog.IsCancelWaitForApproval && !result.HasError
                     && !result.IsWaitingForApproval && result.IsSuccess);
 
-                // Steht die Freigabe nach Abbruch oder der letzten erlaubten Statusabfrage noch aus (3956),
-                // ist der Auftrag nicht ausgeführt, auch wenn die Antwort Erfolgsmeldungen wie 0010 trägt.
-                if (result.IsWaitingForApproval)
+                // Steht die Freigabe noch aus, ist der Auftrag nicht ausgeführt, auch wenn die Antwort
+                // Erfolgsmeldungen wie 0010 trägt: 3956 nach der letzten erlaubten Statusabfrage oder einem
+                // Abbruch, 3955 bei einem Abbruch vor der ersten Statusabfrage.
+                if (result.IsWaitingForApproval || result.IsApprovalRequired)
                     result = new HBCIDialogResult(result.Messages.Where(m => !m.IsSuccess), result.RawData);
             }
 
