@@ -43,6 +43,7 @@ namespace libfintx.FinTS
 
         Task<HBCIDialogResult<List<AccountInformation>>> Accounts(TANDialog tanDialog);
         Task<HBCIDialogResult<AccountBalance>> Balance(TANDialog tanDialog);
+        Task<HBCIDialogResult<List<AccountInformation>>> SepaAccounts(TANDialog tanDialog);
         Task<HBCIDialogResult> Collect(TANDialog tanDialog, string payerName, string payerIBAN, string payerBIC, decimal amount, string purpose, DateTime settlementDate, string mandateNumber, DateTime mandateDate, string creditorIdNumber, string hirms);
         Task<HBCIDialogResult> CollectiveCollect(TANDialog tanDialog, DateTime settlementDate, List<Pain00800202CcData> painData, string numberOfTransactions, decimal totalAmount, string hirms);
         Task<HBCIDialogResult> CollectiveTransfer(TANDialog tanDialog, List<Pain00100203CtData> painData, string numberOfTransactions, decimal totalAmount, string hirms);
