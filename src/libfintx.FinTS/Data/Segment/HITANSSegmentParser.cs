@@ -69,7 +69,7 @@ namespace libfintx.FinTS.Data.Segment
             if (parameters.EndsWith("'") && !parameters.EndsWith("?'"))
                 parameters = parameters.Substring(0, parameters.Length - 1);
 
-            var elements = SplitDataElementGroup(parameters);
+            var elements = Helper.SplitDataElementGroup(parameters);
             string At(int index) => index < elements.Count ? elements[index] : string.Empty;
 
             for (int i = 3; i < elements.Count; i += 26)
@@ -93,29 +93,5 @@ namespace libfintx.FinTS.Data.Segment
 
         private static bool? ParseYesNo(string value) => value == "J" ? true : value == "N" ? false : null;
 
-        /// <summary>Splits at unescaped ':'; escape sequences ("?x") are kept.</summary>
-        private static List<string> SplitDataElementGroup(string group)
-        {
-            var elements = new List<string>();
-            var current = new StringBuilder();
-            for (int i = 0; i < group.Length; i++)
-            {
-                if (group[i] == '?' && i + 1 < group.Length)
-                {
-                    current.Append(group[i]).Append(group[++i]);
-                }
-                else if (group[i] == ':')
-                {
-                    elements.Add(current.ToString());
-                    current.Clear();
-                }
-                else
-                {
-                    current.Append(group[i]);
-                }
-            }
-            elements.Add(current.ToString());
-            return elements;
-        }
     }
 }

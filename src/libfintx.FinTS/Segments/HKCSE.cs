@@ -41,74 +41,11 @@ namespace libfintx.FinTS
             string ReceiverBIC, decimal Amount, string Usage, DateTime ExecutionDay)
         {
             client.Logger.LogInformation("Starting job HKCSE: Transfer money terminated");
+
             var connectionDetails = client.ConnectionDetails;
-            string segments = string.Empty;
-
-            string sepaMessage = string.Empty;
-
             client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg3);
-
-            SEG sEG = new SEG();
-
-            if (client.HISPAS_Pain == 1)
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.Append(connectionDetails.Iban);
-                sb.Append(DEG.Separator);
-                sb.Append(connectionDetails.Bic);
-                sb.Append("+urn?:iso?:std?:iso?:20022?:tech?:xsd?:pain.001.001.03+@@");
-                segments = sEG.toSEG(new SEG_DATA
-                {
-                    Header = "HKCSE",
-                    Num = client.SEGNUM,
-                    Version = 1,
-                    RefNum = 0,
-                    RawData = sb.ToString()
-                });
-                //segments = "HKCSE:" + client.SEGNUM + ":1+" + connectionDetails.Iban + ":" + connectionDetails.Bic + "+urn?:iso?:std?:iso?:20022?:tech?:xsd?:pain.001.001.03+@@";
-                sepaMessage = pain00100103.Create(connectionDetails.AccountHolder, connectionDetails.Iban,
-                    connectionDetails.Bic, ReceiverName, ReceiverIBAN, ReceiverBIC, Amount, Usage, ExecutionDay);
-            }
-            else if (client.HISPAS_Pain == 2)
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.Append(connectionDetails.Iban);
-                sb.Append(DEG.Separator);
-                sb.Append(connectionDetails.Bic);
-                sb.Append("+urn?:iso?:std?:iso?:20022?:tech?:xsd?:pain.001.002.03+@@");
-                segments = sEG.toSEG(new SEG_DATA
-                {
-                    Header = "HKCSE",
-                    Num = client.SEGNUM,
-                    Version = 1,
-                    RefNum = 0,
-                    RawData = sb.ToString()
-                });
-                //segments = "HKCSE:" + client.SEGNUM + ":1+" + connectionDetails.Iban + ":" + connectionDetails.Bic + "+urn?:iso?:std?:iso?:20022?:tech?:xsd?:pain.001.002.03+@@";
-                sepaMessage = pain00100203.Create(connectionDetails.AccountHolder, connectionDetails.Iban,
-                    connectionDetails.Bic, ReceiverName, ReceiverIBAN, ReceiverBIC, Amount, Usage, ExecutionDay);
-            }
-            else if (client.HISPAS_Pain == 3)
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.Append(connectionDetails.Iban);
-                sb.Append(DEG.Separator);
-                sb.Append(connectionDetails.Bic);
-                sb.Append("+urn?:iso?:std?:iso?:20022?:tech?:xsd?:pain.001.003.03+@@");
-                segments = sEG.toSEG(new SEG_DATA
-                {
-                    Header = "HKCSE",
-                    Num = client.SEGNUM,
-                    Version = 1,
-                    RefNum = 0,
-                    RawData = sb.ToString()
-                });
-                //segments = "HKCSE:" + client.SEGNUM + ":1+" + connectionDetails.Iban + ":" + connectionDetails.Bic + "+urn?:iso?:std?:iso?:20022?:tech?:xsd?:pain.001.003.03+@@";
-                sepaMessage = pain00100303.Create(connectionDetails.AccountHolder, connectionDetails.Iban,
-                    connectionDetails.Bic, ReceiverName, ReceiverIBAN, ReceiverBIC, Amount, Usage, ExecutionDay);
-            }
-
-            segments = segments.Replace("@@", "@" + (sepaMessage.Length - 1) + "@") + sepaMessage;
+            string segments = Create(client, client.SEGNUM, connectionDetails.Iban + DEG.Separator + connectionDetails.Bic,
+                ReceiverName, ReceiverIBAN, ReceiverBIC, Amount, Usage, ExecutionDay);
 
             if (client.BPD.IsTANRequired("HKCSE"))
             {
@@ -122,6 +59,18 @@ namespace libfintx.FinTS
             client.Parse_Message(response);
 
             return response;
+        }
+
+        /// <summary>
+        /// HKCSE segment (terminierte SEPA-Überweisung) with the pain message in the format announced in HISPAS.
+        /// </summary>
+        internal static string Create(FinTsClient client, int segmentNumber, string kti, string receiverName,
+            string receiverIBAN, string receiverBIC, decimal amount, string usage, DateTime executionDay, string messageId = null,
+            string debtorBic = null)
+        {
+            var pain = Helper.CreatePainCreditTransfer(client, receiverName, receiverIBAN, receiverBIC, amount, usage,
+                executionDay, messageId: messageId, debtorBic: debtorBic);
+            return Helper.PaymentOrderSegment("HKCSE", 1, segmentNumber, kti, null, pain);
         }
     }
 }

@@ -29,6 +29,15 @@ namespace libfintx.FinTS
     public static class Converter
     {
         /// <summary>
+        /// Amount in the FinTS format "wrt" (Formals 2017-10-06, p. 21): decimal comma, trailing zeros of the decimals
+        /// omitted, e.g. 100,00 becomes "100," and 0,50 becomes "0,5".
+        /// </summary>
+        public static string ToFinTsAmount(decimal amount)
+        {
+            return amount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture).TrimEnd('0').Replace('.', ',');
+        }
+
+        /// <summary>
         /// Convert string from hex
         /// </summary>
         /// <param name="hexString"></param>

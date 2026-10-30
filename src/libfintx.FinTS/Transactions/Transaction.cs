@@ -44,6 +44,7 @@ using static libfintx.FinTS.HKEND;
 using static libfintx.FinTS.HKKAZ;
 using static libfintx.FinTS.HKPPD;
 using static libfintx.FinTS.HKSAL;
+using static libfintx.FinTS.HKSPA;
 using static libfintx.FinTS.HKSYN;
 using static libfintx.FinTS.HKTAB;
 using static libfintx.FinTS.INI;
@@ -73,6 +74,11 @@ namespace libfintx.FinTS
         public static async Task<String> HKSAL(FinTsClient client)
         {
             return await Init_HKSAL(client);
+        }
+
+        public static async Task<String> HKSPA(FinTsClient client)
+        {
+            return await Init_HKSPA(client);
         }
 
         public static async Task<String> HKKAZ(FinTsClient client, string FromDate, string ToDate, string Startpoint)
@@ -159,6 +165,11 @@ namespace libfintx.FinTS
         public static async Task<String> TAN(FinTsClient client, string TAN)
         {
             return await Send_TAN(client, TAN);
+        }
+
+        internal static async Task<String> TAN(FinTsClient client, string TAN, Func<int, (string Segments, int LastSegmentNumber)> extraSegments)
+        {
+            return await Send_TAN(client, TAN, extraSegments);
         }
 
         public static async Task<String> TAN4(FinTsClient client, string TAN, string MediumName)
