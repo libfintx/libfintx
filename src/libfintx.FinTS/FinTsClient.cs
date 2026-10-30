@@ -27,6 +27,7 @@ using libfintx.Sepa;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using libfintx.Globals;
 using libfintx.Logger;
@@ -377,6 +378,20 @@ namespace libfintx.FinTS
         }
 
         /// <summary>
+        /// The TAN process selected in <see cref="HIRMS"/> as announced in the BPD (HITANS), <c>null</c> if not found.
+        /// </summary>
+        internal HITANS_TanProcess GetTanProcess()
+        {
+            if (BPD?.HITANS == null || !int.TryParse(HIRMS, out var tanCode))
+                return null;
+
+            return BPD.HITANS
+                .OrderByDescending(h => h.Version)
+                .SelectMany(h => h.TanProcesses)
+                .FirstOrDefault(p => p.TanCode == tanCode);
+        }
+
+        /// <summary>
         /// Process required SCA (strong customer authentication).
         /// </summary>
         /// <param name="result"></param>
@@ -413,16 +428,29 @@ namespace libfintx.FinTS
                 // Mit automatisierter Statusabfrage
                 await tanDialog.WaitForTanAsync(); // Dem Benutzer signalisieren, dass auf die Freigabe gewartet wird
 
-                const int Delay = 2000; // Der minimale Zeitraum zwischen zwei Statusabfragen steht in HITANS, wir nehmen einfach 2 Sek
-                await Task.Delay(Delay);
+                // Wait times and maximum number of status requests from HITANS#7; requesting more often may be treated
+                // by the bank like a wrong TAN. Without these parameters as before: 2 seconds, no limit.
+                var decoupled = GetTanProcess();
+                int firstDelay = Math.Max(1, decoupled?.DecoupledWaitBeforeFirstStatusRequest ?? 2) * 1000;
+                int nextDelay = Math.Max(1, decoupled?.DecoupledWaitBeforeNextStatusRequest ?? 2) * 1000;
+                int maxRequests = decoupled?.DecoupledMaxStatusRequests > 0 ? decoupled.DecoupledMaxStatusRequests.Value : int.MaxValue;
+                int requests = 0;
+
+                await Task.Delay(firstDelay);
                 if (!tanDialog.IsCancelWaitForApproval)
-                    result = await TAN(null);
-                // Freigabe wurde noch nicht erteilt; IsCancelWaitForApproval beendet die Statusabfrage
-                while (!tanDialog.IsCancelWaitForApproval && !result.IsSuccess && !result.HasError && result.IsWaitingForApproval)
                 {
-                    await Task.Delay(Delay);
+                    result = await TAN(null);
+                    requests++;
+                }
+                // Freigabe wurde noch nicht erteilt; IsCancelWaitForApproval beendet die Statusabfrage
+                while (!tanDialog.IsCancelWaitForApproval && !result.IsSuccess && !result.HasError && result.IsWaitingForApproval && requests < maxRequests)
+                {
+                    await Task.Delay(nextDelay);
                     if (!tanDialog.IsCancelWaitForApproval)
+                    {
                         result = await TAN(null);
+                        requests++;
+                    }
                 }
 
                 // Dem Benutzer signalisieren, dass die Transaktion beendet ist
