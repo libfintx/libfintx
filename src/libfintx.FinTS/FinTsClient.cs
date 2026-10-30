@@ -392,6 +392,16 @@ namespace libfintx.FinTS
         }
 
         /// <summary>
+        /// Waits the given time between two status requests, or less once the caller cancels.
+        /// </summary>
+        private static async Task WaitUnlessCancelled(TANDialog tanDialog, int milliseconds)
+        {
+            const int Step = 250;
+            for (int waited = 0; waited < milliseconds && !tanDialog.IsCancelWaitForApproval; waited += Step)
+                await Task.Delay(Math.Min(Step, milliseconds - waited));
+        }
+
+        /// <summary>
         /// Process required SCA (strong customer authentication).
         /// </summary>
         /// <param name="result"></param>
@@ -436,16 +446,18 @@ namespace libfintx.FinTS
                 int maxRequests = decoupled?.DecoupledMaxStatusRequests > 0 ? decoupled.DecoupledMaxStatusRequests.Value : int.MaxValue;
                 int requests = 0;
 
-                await Task.Delay(firstDelay);
+                await WaitUnlessCancelled(tanDialog, firstDelay);
                 if (!tanDialog.IsCancelWaitForApproval)
                 {
                     result = await TAN(null);
                     requests++;
                 }
-                // Freigabe wurde noch nicht erteilt; IsCancelWaitForApproval beendet die Statusabfrage
-                while (!tanDialog.IsCancelWaitForApproval && !result.IsSuccess && !result.HasError && result.IsWaitingForApproval && requests < maxRequests)
+                // Solange die Bank 3956 meldet, ist die Freigabe noch nicht erteilt. Die Antwort trägt
+                // dabei auch Erfolgsmeldungen wie 0010, daher entscheidet allein 3956.
+                // IsCancelWaitForApproval beendet die Statusabfrage.
+                while (!tanDialog.IsCancelWaitForApproval && !result.HasError && result.IsWaitingForApproval && requests < maxRequests)
                 {
-                    await Task.Delay(nextDelay);
+                    await WaitUnlessCancelled(tanDialog, nextDelay);
                     if (!tanDialog.IsCancelWaitForApproval)
                     {
                         result = await TAN(null);
@@ -454,8 +466,15 @@ namespace libfintx.FinTS
                 }
 
                 // Dem Benutzer signalisieren, dass die Transaktion beendet ist
-                await tanDialog.OnTransactionEndAsync(!tanDialog.IsCancelWaitForApproval && result.IsSuccess);
+                await tanDialog.OnTransactionEndAsync(!tanDialog.IsCancelWaitForApproval && !result.HasError
+                    && !result.IsWaitingForApproval && result.IsSuccess);
             }
+
+            // Steht die Authentifizierung noch aus, ist der Auftrag nicht ausgeführt, auch wenn die Antwort
+            // Erfolgsmeldungen wie 0010 trägt: 0030 ohne eingegebene TAN, 3955 bei einem Abbruch vor der
+            // ersten Statusabfrage, 3956 nach einem Abbruch oder der letzten erlaubten Statusabfrage.
+            if (result.IsSCARequired || result.IsWaitingForApproval)
+                result = new HBCIDialogResult(result.Messages.Where(m => !m.IsSuccess), result.RawData);
 
             if (result.IsSuccess && ini)
             {

@@ -54,7 +54,7 @@ namespace libfintx.FinTS
                 return result.TypedResult<List<SwiftStatement>>();
 
             result = await ProcessSCA(result, tanDialog);
-            if (result.HasError)
+            if (result.HasError || result.IsSCARequired || result.IsWaitingForApproval)
                 return result.TypedResult<List<SwiftStatement>>();
 
             string startDateStr = startDate?.ToString("yyyyMMdd");
@@ -67,7 +67,7 @@ namespace libfintx.FinTS
                 return result.TypedResult<List<SwiftStatement>>();
 
             result = await ProcessSCA(result, tanDialog);
-            if (result.HasError)
+            if (result.HasError || result.IsSCARequired || result.IsWaitingForApproval)
                 return result.TypedResult<List<SwiftStatement>>();
 
             BankCode = result.RawData;
@@ -95,7 +95,7 @@ namespace libfintx.FinTS
                     return result.TypedResult<List<SwiftStatement>>();
 
                 result = await ProcessSCA(result, tanDialog);
-                if (result.HasError)
+                if (result.HasError || result.IsSCARequired || result.IsWaitingForApproval)
                     return result.TypedResult<List<SwiftStatement>>();
 
                 BankCode_ = result.RawData;
@@ -177,7 +177,7 @@ namespace libfintx.FinTS
                 return result.TypedResult<List<CamtStatement>>();
 
             result = await ProcessSCA(result, tanDialog);
-            if (result.HasError)
+            if (result.HasError || result.IsSCARequired || result.IsWaitingForApproval)
                 return result.TypedResult<List<CamtStatement>>();
 
             // Plain camt message
@@ -193,7 +193,7 @@ namespace libfintx.FinTS
                 return result.TypedResult<List<CamtStatement>>();
 
             result = await ProcessSCA(result, tanDialog);
-            if (result.HasError)
+            if (result.HasError || result.IsSCARequired || result.IsWaitingForApproval)
                 return result.TypedResult<List<CamtStatement>>();
 
             BankCode = result.RawData;
@@ -270,7 +270,7 @@ namespace libfintx.FinTS
                     return result.TypedResult<List<CamtStatement>>();
 
                 result = await ProcessSCA(result, tanDialog);
-                if (result.HasError)
+                if (result.HasError || result.IsSCARequired || result.IsWaitingForApproval)
                     return result.TypedResult<List<CamtStatement>>();
 
                 BankCode_ = result.RawData;
