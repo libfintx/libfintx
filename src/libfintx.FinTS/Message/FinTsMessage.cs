@@ -793,10 +793,9 @@ namespace libfintx.FinTS.Message
             return msgHead + encHead + payload + msgEnd;
         }
 
-        private static void TraceUserTan(FinTsClient client, string message, string userId, string pin)
+        private static void TraceUserTan(FinTsClient client, string message, string userId)
         {
-            message = Regex.Replace(message, $@"\b{Regex.Escape(userId)}", new string('X', userId.Length));
-            message = Regex.Replace(message, $@"\b{Regex.Escape(pin)}", new string('X', pin.Length));
+            message = MaskUserTan(message, userId);
 
             if (client.FormattedTrace)
             {
@@ -815,6 +814,48 @@ namespace libfintx.FinTS.Message
         }
 
         /// <summary>
+        /// Masks a message for the trace log: the PIN/TAN element of HNSHA, found by the segment
+        /// structure so that escaped characters cannot bypass it, and every occurrence of the user id.
+        /// </summary>
+        internal static string MaskUserTan(string message, string userId)
+        {
+            var sb = new StringBuilder(message.Length);
+            int pos = 0;
+            int start;
+            while ((start = message.IndexOf("HNSHA:", pos, StringComparison.Ordinal)) >= 0)
+            {
+                // HNSHA:n:v+reference+certificate+PIN[:TAN]' -> mask everything after the third '+'
+                int i = start;
+                int plus = 0;
+                while (i < message.Length && plus < 3)
+                {
+                    if (message[i] == '?') i++;
+                    else if (message[i] == '+') plus++;
+                    i++;
+                }
+                int end = i;
+                while (end < message.Length && message[end] != '\'')
+                {
+                    if (message[end] == '?') end++;
+                    end++;
+                }
+                end = Math.Min(end, message.Length);
+                sb.Append(message, pos, i - pos);
+                if (plus == 3)
+                    sb.Append("***");
+                else
+                    sb.Append(message, i, end - i);
+                pos = end;
+            }
+            sb.Append(message, pos, message.Length - pos);
+            message = sb.ToString();
+
+            if (!string.IsNullOrEmpty(userId))
+                message = message.Replace(userId, new string('X', userId.Length), StringComparison.Ordinal);
+            return message;
+        }
+
+        /// <summary>
         /// Send FinTS message
         /// </summary>
         /// <param name="client"></param>
@@ -825,7 +866,7 @@ namespace libfintx.FinTS.Message
             client.Logger.LogInformation("Connect to FinTS Server");
             client.Logger.LogInformation("Url: " + client.ConnectionDetails.Url);
 
-            TraceUserTan(client, Message, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.PinEscaped);
+            TraceUserTan(client, Message, client.ConnectionDetails.UserIdEscaped);
 
             return await SendAsync(client, Message);
         }
@@ -869,7 +910,7 @@ namespace libfintx.FinTS.Message
                     }
                 }
 
-                TraceUserTan(client, Message, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.PinEscaped);
+                TraceUserTan(client, FinTSMessage, client.ConnectionDetails.UserIdEscaped);
 
                 return FinTSMessage;
             }
