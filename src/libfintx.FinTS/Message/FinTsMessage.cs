@@ -795,8 +795,7 @@ namespace libfintx.FinTS.Message
 
         private static void TraceUserTan(FinTsClient client, string message, string userId, string pin)
         {
-            message = Regex.Replace(message, $@"\b{Regex.Escape(userId)}", new string('X', userId.Length));
-            message = Regex.Replace(message, $@"\b{Regex.Escape(pin)}", new string('X', pin.Length));
+            message = MaskUserTan(message, userId, pin);
 
             if (client.FormattedTrace)
             {
@@ -813,6 +812,13 @@ namespace libfintx.FinTS.Message
                 client.Logger.LogTrace(message);
             }
         }
+
+        /// <summary>
+        /// Masks a message for the trace log: the PIN/TAN element of HNSHA, found by the segment
+        /// structure so that escaped characters cannot bypass it, and every occurrence of the user id.
+        /// </summary>
+        internal static string MaskUserTan(string message, string userId, string pin = null) =>
+            libfintx.Logger.MessageMasking.MaskUserTan(message, userId, pin);
 
         /// <summary>
         /// Send FinTS message
@@ -869,7 +875,7 @@ namespace libfintx.FinTS.Message
                     }
                 }
 
-                TraceUserTan(client, Message, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.PinEscaped);
+                TraceUserTan(client, FinTSMessage, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.PinEscaped);
 
                 return FinTSMessage;
             }
