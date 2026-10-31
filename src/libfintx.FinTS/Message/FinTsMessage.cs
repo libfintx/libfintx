@@ -793,9 +793,9 @@ namespace libfintx.FinTS.Message
             return msgHead + encHead + payload + msgEnd;
         }
 
-        private static void TraceUserTan(FinTsClient client, string message, string userId)
+        private static void TraceUserTan(FinTsClient client, string message, string userId, string pin)
         {
-            message = MaskUserTan(message, userId);
+            message = MaskUserTan(message, userId, pin);
 
             if (client.FormattedTrace)
             {
@@ -817,8 +817,8 @@ namespace libfintx.FinTS.Message
         /// Masks a message for the trace log: the PIN/TAN element of HNSHA, found by the segment
         /// structure so that escaped characters cannot bypass it, and every occurrence of the user id.
         /// </summary>
-        internal static string MaskUserTan(string message, string userId) =>
-            libfintx.Logger.MessageMasking.MaskUserTan(message, userId);
+        internal static string MaskUserTan(string message, string userId, string pin = null) =>
+            libfintx.Logger.MessageMasking.MaskUserTan(message, userId, pin);
 
         /// <summary>
         /// Send FinTS message
@@ -831,7 +831,7 @@ namespace libfintx.FinTS.Message
             client.Logger.LogInformation("Connect to FinTS Server");
             client.Logger.LogInformation("Url: " + client.ConnectionDetails.Url);
 
-            TraceUserTan(client, Message, client.ConnectionDetails.UserIdEscaped);
+            TraceUserTan(client, Message, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.PinEscaped);
 
             return await SendAsync(client, Message);
         }
@@ -875,7 +875,7 @@ namespace libfintx.FinTS.Message
                     }
                 }
 
-                TraceUserTan(client, FinTSMessage, client.ConnectionDetails.UserIdEscaped);
+                TraceUserTan(client, FinTSMessage, client.ConnectionDetails.UserIdEscaped, client.ConnectionDetails.PinEscaped);
 
                 return FinTSMessage;
             }

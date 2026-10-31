@@ -20,6 +20,7 @@
 
 using System;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace libfintx.Logger
 {
@@ -28,8 +29,11 @@ namespace libfintx.Logger
         /// <summary>
         /// Masks a message for the trace log: the PIN/TAN element of HNSHA, found by the segment
         /// structure so that escaped characters cannot bypass it, and every occurrence of the user id.
+        /// As a safety net for segments that carry the PIN elsewhere (e.g. HKPAE), the PIN is also
+        /// masked wherever it forms a whole data element. It is not replaced inside other values,
+        /// which would garble them and reveal the PIN to anyone who knows the original value.
         /// </summary>
-        internal static string MaskUserTan(string message, string userId)
+        internal static string MaskUserTan(string message, string userId, string pin = null)
         {
             var sb = new StringBuilder(message.Length);
             int pos = 0;
@@ -65,6 +69,9 @@ namespace libfintx.Logger
             // string.Replace(string, string) compares ordinally
             if (!string.IsNullOrEmpty(userId))
                 message = message.Replace(userId, new string('X', userId.Length));
+
+            if (!string.IsNullOrEmpty(pin))
+                message = Regex.Replace(message, "(?<=^|[+:'])" + Regex.Escape(pin) + "(?=[+:']|$)", new string('X', pin.Length));
             return message;
         }
     }
