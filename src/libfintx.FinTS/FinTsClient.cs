@@ -486,7 +486,7 @@ namespace libfintx.FinTS
             // Steht die Authentifizierung noch aus, ist der Auftrag nicht ausgeführt, auch wenn die Antwort
             // Erfolgsmeldungen wie 0010 trägt: 0030 ohne eingegebene TAN, 3955 bei einem Abbruch vor der
             // ersten Statusabfrage, 3956 nach einem Abbruch oder der letzten erlaubten Statusabfrage.
-            if (result.IsSCARequired || result.IsWaitingForApproval)
+            if (result.IsAuthenticationPending)
                 result = new HBCIDialogResult(result.Messages.Where(m => !m.IsSuccess), result.RawData);
 
             if (result.IsSuccess && ini)
