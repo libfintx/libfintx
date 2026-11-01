@@ -66,11 +66,10 @@ public class Test_DecoupledStatusRequests
                     break;
                 }
 
+                // Counted before the answer: once the client has it, ProcessSCA may return and the count is read
+                Interlocked.Increment(ref requests);
                 using (connection)
-                {
                     await AnswerAsync(connection.GetStream());
-                    Interlocked.Increment(ref requests);
-                }
             }
         });
 
