@@ -42,6 +42,10 @@ namespace libfintx.FinTS
         {
             string segments = string.Empty;
             var connectionDetails = client.ConnectionDetails;
+            var account = string.IsNullOrWhiteSpace(connectionDetails.Iban)
+                ? KTI.National(connectionDetails.Account, connectionDetails.SubAccount, connectionDetails.Blz.ToString())
+                : connectionDetails.Iban + DEG.Separator + connectionDetails.Bic + DEG.Separator + connectionDetails.Account
+                    + DEG.Separator + DEG.Separator + SEG_COUNTRY.Germany + DEG.Separator + connectionDetails.Blz;
 
             client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg3);
 
@@ -57,16 +61,7 @@ namespace libfintx.FinTS
                         if (string.IsNullOrEmpty(Startpoint))
                         {
                             StringBuilder sb = new StringBuilder();
-                            sb.Append(connectionDetails.Iban);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Bic);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Account);
-                            sb.Append(DEG.Separator);
-                            sb.Append(DEG.Separator);
-                            sb.Append(SEG_COUNTRY.Germany);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Blz);
+                            sb.Append(account);
                             sb.Append(sEG.Delimiter);
                             sb.Append(client.HICAZS_Camt);
                             sb.Append(sEG.Delimiter);
@@ -85,16 +80,7 @@ namespace libfintx.FinTS
                         else
                         {
                             StringBuilder sb = new StringBuilder();
-                            sb.Append(connectionDetails.Iban);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Bic);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Account);
-                            sb.Append(DEG.Separator);
-                            sb.Append(DEG.Separator);
-                            sb.Append(SEG_COUNTRY.Germany);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Blz);
+                            sb.Append(account);
                             sb.Append(sEG.Delimiter);
                             sb.Append(client.HICAZS_Camt);
                             sb.Append(sEG.Delimiter);
@@ -121,16 +107,7 @@ namespace libfintx.FinTS
                         if (string.IsNullOrEmpty(Startpoint))
                         {
                             StringBuilder sb = new StringBuilder();
-                            sb.Append(connectionDetails.Iban);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Bic);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Account);
-                            sb.Append(DEG.Separator);
-                            sb.Append(DEG.Separator);
-                            sb.Append(SEG_COUNTRY.Germany);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Blz);
+                            sb.Append(account);
                             sb.Append(sEG.Delimiter);
                             sb.Append(client.HICAZS_Camt);
                             sb.Append(sEG.Delimiter);
@@ -153,16 +130,7 @@ namespace libfintx.FinTS
                         else
                         {
                             StringBuilder sb = new StringBuilder();
-                            sb.Append(connectionDetails.Iban);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Bic);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Account);
-                            sb.Append(DEG.Separator);
-                            sb.Append(DEG.Separator);
-                            sb.Append(SEG_COUNTRY.Germany);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Blz);
+                            sb.Append(account);
                             sb.Append(sEG.Delimiter);
                             sb.Append(client.HICAZS_Camt);
                             sb.Append(sEG.Delimiter);
@@ -198,16 +166,7 @@ namespace libfintx.FinTS
                         if (string.IsNullOrEmpty(Startpoint))
                         {
                             StringBuilder sb = new StringBuilder();
-                            sb.Append(connectionDetails.Iban);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Bic);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Account);
-                            sb.Append(DEG.Separator);
-                            sb.Append(DEG.Separator);
-                            sb.Append(SEG_COUNTRY.Germany);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Blz);
+                            sb.Append(account);
                             sb.Append(sEG.Delimiter);
                             sb.Append(CamtScheme.Camt053);
                             sb.Append(sEG.Delimiter);
@@ -226,16 +185,7 @@ namespace libfintx.FinTS
                         else
                         {
                             StringBuilder sb = new StringBuilder();
-                            sb.Append(connectionDetails.Iban);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Bic);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Account);
-                            sb.Append(DEG.Separator);
-                            sb.Append(DEG.Separator);
-                            sb.Append(SEG_COUNTRY.Germany);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Blz);
+                            sb.Append(account);
                             sb.Append(sEG.Delimiter);
                             sb.Append(CamtScheme.Camt053);
                             sb.Append(sEG.Delimiter);
@@ -261,16 +211,7 @@ namespace libfintx.FinTS
                         if (string.IsNullOrEmpty(Startpoint))
                         {
                             StringBuilder sb = new StringBuilder();
-                            sb.Append(connectionDetails.Iban);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Bic);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Account);
-                            sb.Append(DEG.Separator);
-                            sb.Append(DEG.Separator);
-                            sb.Append(SEG_COUNTRY.Germany);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Blz);
+                            sb.Append(account);
                             sb.Append(sEG.Delimiter);
                             sb.Append(CamtScheme.Camt053);
                             sb.Append(sEG.Delimiter);
@@ -293,16 +234,7 @@ namespace libfintx.FinTS
                         else
                         {
                             StringBuilder sb = new StringBuilder();
-                            sb.Append(connectionDetails.Iban);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Bic);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Account);
-                            sb.Append(DEG.Separator);
-                            sb.Append(DEG.Separator);
-                            sb.Append(SEG_COUNTRY.Germany);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Blz);
+                            sb.Append(account);
                             sb.Append(sEG.Delimiter);
                             sb.Append(CamtScheme.Camt053);
                             sb.Append(sEG.Delimiter);
