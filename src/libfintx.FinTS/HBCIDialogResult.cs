@@ -53,6 +53,12 @@ namespace libfintx.FinTS
         /// </summary>
         public bool IsWaitingForApproval => GetMessage("3956") != null;
 
+        /// <summary>
+        /// Returns true while the strong customer authentication is still pending (<i>0030</i>, <i>3955</i> or
+        /// <i>3956</i>): the order has not been executed, even if the answer carries success messages such as <i>0010</i>.
+        /// </summary>
+        public bool IsAuthenticationPending => IsSCARequired || IsWaitingForApproval;
+
         private readonly List<HBCIBankMessage> messages;
         public IEnumerable<HBCIBankMessage> Messages => messages;
 
