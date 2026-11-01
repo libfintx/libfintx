@@ -455,8 +455,10 @@ namespace libfintx.FinTS
                     result = await TAN(null);
                     requests++;
                 }
-                // Freigabe wurde noch nicht erteilt; IsCancelWaitForApproval beendet die Statusabfrage
-                while (!tanDialog.IsCancelWaitForApproval && !result.IsSuccess && !result.HasError && result.IsWaitingForApproval && requests < maxRequests)
+                // Solange die Bank 3956 meldet, ist die Freigabe noch nicht erteilt. Die Antwort trägt
+                // dabei auch Erfolgsmeldungen wie 0010, daher entscheidet allein 3956.
+                // IsCancelWaitForApproval beendet die Statusabfrage.
+                while (!tanDialog.IsCancelWaitForApproval && !result.HasError && result.IsWaitingForApproval && requests < maxRequests)
                 {
                     await Task.Delay(nextDelay);
                     if (!tanDialog.IsCancelWaitForApproval)
@@ -467,7 +469,8 @@ namespace libfintx.FinTS
                 }
 
                 // Dem Benutzer signalisieren, dass die Transaktion beendet ist
-                await tanDialog.OnTransactionEndAsync(!tanDialog.IsCancelWaitForApproval && result.IsSuccess);
+                await tanDialog.OnTransactionEndAsync(!tanDialog.IsCancelWaitForApproval && !result.HasError
+                    && !result.IsWaitingForApproval && result.IsSuccess);
             }
 
             if (result.IsSuccess && ini)
