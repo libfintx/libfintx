@@ -21,6 +21,7 @@ static class MessageHelper
     }
 }
 
+[Collection("UPD")]
 public class MessageParsingTest
 {
     [Fact]

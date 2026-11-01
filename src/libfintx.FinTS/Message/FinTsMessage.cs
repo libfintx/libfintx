@@ -121,14 +121,15 @@ namespace libfintx.FinTS.Message
             
             if (HIRMS_TAN != null)
             {
-                if (HIRMS_TAN.Length >= 10)
+                // "<procedure>:<TAN>": split at the first ':' only. A TAN has no minimum length (an ..99) and is
+                // escaped like the PIN.
+                var pos = HIRMS_TAN.IndexOf(':');
+                if (pos >= 0)
                 {
-                    var split = HIRMS_TAN.Split(':');
-                    if (split.Length == 2)
-                    {
-                        HIRMS_TAN = split[0];
-                        TAN_ = ":" + split[1];
-                    }
+                    var tan = HIRMS_TAN.Substring(pos + 1);
+                    HIRMS_TAN = HIRMS_TAN.Substring(0, pos);
+                    if (tan.Length > 0)
+                        TAN_ = ":" + Helper.EscapeEdifactString(tan);
                 }
             }
 
