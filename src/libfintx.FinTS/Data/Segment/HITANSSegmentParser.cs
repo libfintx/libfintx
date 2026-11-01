@@ -53,7 +53,69 @@ namespace libfintx.FinTS.Data.Segment
                 result.TanProcesses.Add(tanProcess);
             }
 
+            if (segment.Version >= 7 && segment.DataElements.Count >= 4)
+                ParseDecoupledParameters(segment.DataElements[3], result.TanProcesses);
+
             return result;
+        }
+
+        /// <summary>
+        /// Reads elements 22-26 of each TAN process from the parameter group of HITANS#7: three leading elements, then
+        /// 26 elements per process (FinTS 3.0 Security - PIN/TAN 2020-07-10, pp. 173-175). Optional elements at the end
+        /// of the group may be omitted by the bank.
+        /// </summary>
+        private static void ParseDecoupledParameters(string parameters, List<HITANS_TanProcess> tanProcesses)
+        {
+            if (parameters.EndsWith("'") && !parameters.EndsWith("?'"))
+                parameters = parameters.Substring(0, parameters.Length - 1);
+
+            var elements = SplitDataElementGroup(parameters);
+            string At(int index) => index < elements.Count ? elements[index] : string.Empty;
+
+            for (int i = 3; i < elements.Count; i += 26)
+            {
+                if (!int.TryParse(elements[i], out var tanCode))
+                    continue;
+
+                var tanProcess = tanProcesses.Find(p => p.TanCode == tanCode);
+                if (tanProcess == null)
+                    continue;
+
+                tanProcess.DecoupledMaxStatusRequests = ParseNumber(At(i + 21));
+                tanProcess.DecoupledWaitBeforeFirstStatusRequest = ParseNumber(At(i + 22));
+                tanProcess.DecoupledWaitBeforeNextStatusRequest = ParseNumber(At(i + 23));
+                tanProcess.DecoupledManualConfirmationAllowed = ParseYesNo(At(i + 24));
+                tanProcess.DecoupledAutomatedStatusRequestsAllowed = ParseYesNo(At(i + 25));
+            }
+        }
+
+        private static int? ParseNumber(string value) => int.TryParse(value, out var number) ? number : null;
+
+        private static bool? ParseYesNo(string value) => value == "J" ? true : value == "N" ? false : null;
+
+        /// <summary>Splits at unescaped ':'; escape sequences ("?x") are kept.</summary>
+        private static List<string> SplitDataElementGroup(string group)
+        {
+            var elements = new List<string>();
+            var current = new StringBuilder();
+            for (int i = 0; i < group.Length; i++)
+            {
+                if (group[i] == '?' && i + 1 < group.Length)
+                {
+                    current.Append(group[i]).Append(group[++i]);
+                }
+                else if (group[i] == ':')
+                {
+                    elements.Add(current.ToString());
+                    current.Clear();
+                }
+                else
+                {
+                    current.Append(group[i]);
+                }
+            }
+            elements.Add(current.ToString());
+            return elements;
         }
     }
 }

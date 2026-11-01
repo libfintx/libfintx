@@ -23,10 +23,12 @@
 
 using libfintx.FinTS.Data;
 using libfintx.FinTS.BankParameterData;
+using libfintx.FinTS.UserParameterData;
 using libfintx.Sepa;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using libfintx.Globals;
 using libfintx.Logger;
@@ -54,6 +56,11 @@ namespace libfintx.FinTS
         /// The bank parameter data store.
         /// </summary>
         internal IBpdStore BdpStore { get; }
+
+        /// <summary>
+        /// The user parameter data store.
+        /// </summary>
+        internal IUpdStore UpdStore { get; }
 
         /// <summary>
         /// The bank parameter data of the bank given in the connection details.
@@ -95,7 +102,11 @@ namespace libfintx.FinTS
         /// <b>Note </b> that at next major version upgrade, the default file logger will be replaced by
         /// a null logger not logging output anywhere.
         /// </param>
-        public FinTsClient(ConnectionDetails connection, bool anonymous = false, IBpdStore? bpdDataStore = null, ILoggerFactory? loggerFactory = null)
+        /// <param name="updDataStore">
+        /// A data store for the user parameter data (UPD), which lists the accounts with IBANs and account holders.
+        /// If not given, plain text files in the folder <c>FinTsGlobals.ProgramBaseDir</c> will be used.
+        /// </param>
+        public FinTsClient(ConnectionDetails connection, bool anonymous = false, IBpdStore? bpdDataStore = null, ILoggerFactory? loggerFactory = null, IUpdStore? updDataStore = null)
         {
             ConnectionDetails = connection;
             Anonymous = anonymous;
@@ -105,6 +116,8 @@ namespace libfintx.FinTS
 
             BdpStore = bpdDataStore
                        ?? new BpdFileStore(Path.Combine(FinTsGlobals.ProgramBaseDir, "BPD"), _loggerFactory);
+            UpdStore = updDataStore
+                       ?? new UpdFileStore(Path.Combine(FinTsGlobals.ProgramBaseDir, "UPD"));
             activeAccount = null;
 
             // When deprecating the default file logger maybe in next MAJOR VERSION UPGRADE, use this:
@@ -132,6 +145,7 @@ namespace libfintx.FinTS
             else
             {
                 SystemId = ConnectionDetails.CustomerSystemId;
+                ApplyStoredBankParameters();
             }
 
             try
@@ -377,6 +391,20 @@ namespace libfintx.FinTS
         }
 
         /// <summary>
+        /// The TAN process selected in <see cref="HIRMS"/> as announced in the BPD (HITANS), <c>null</c> if not found.
+        /// </summary>
+        internal HITANS_TanProcess GetTanProcess()
+        {
+            if (BPD?.HITANS == null || !int.TryParse(HIRMS, out var tanCode))
+                return null;
+
+            return BPD.HITANS
+                .OrderByDescending(h => h.Version)
+                .SelectMany(h => h.TanProcesses)
+                .FirstOrDefault(p => p.TanCode == tanCode);
+        }
+
+        /// <summary>
         /// Process required SCA (strong customer authentication).
         /// </summary>
         /// <param name="result"></param>
@@ -413,18 +441,31 @@ namespace libfintx.FinTS
                 // Mit automatisierter Statusabfrage
                 await tanDialog.WaitForTanAsync(); // Dem Benutzer signalisieren, dass auf die Freigabe gewartet wird
 
-                const int Delay = 2000; // Der minimale Zeitraum zwischen zwei Statusabfragen steht in HITANS, wir nehmen einfach 2 Sek
-                await Task.Delay(Delay);
+                // Wait times and maximum number of status requests from HITANS#7; requesting more often may be treated
+                // by the bank like a wrong TAN. Without these parameters as before: 2 seconds, no limit.
+                var decoupled = GetTanProcess();
+                int firstDelay = Math.Max(1, decoupled?.DecoupledWaitBeforeFirstStatusRequest ?? 2) * 1000;
+                int nextDelay = Math.Max(1, decoupled?.DecoupledWaitBeforeNextStatusRequest ?? 2) * 1000;
+                int maxRequests = decoupled?.DecoupledMaxStatusRequests > 0 ? decoupled.DecoupledMaxStatusRequests.Value : int.MaxValue;
+                int requests = 0;
+
+                await Task.Delay(firstDelay);
                 if (!tanDialog.IsCancelWaitForApproval)
+                {
                     result = await TAN(null);
+                    requests++;
+                }
                 // Solange die Bank 3956 meldet, ist die Freigabe noch nicht erteilt. Die Antwort trägt
                 // dabei auch Erfolgsmeldungen wie 0010, daher entscheidet allein 3956.
                 // IsCancelWaitForApproval beendet die Statusabfrage.
-                while (!tanDialog.IsCancelWaitForApproval && !result.HasError && result.IsWaitingForApproval)
+                while (!tanDialog.IsCancelWaitForApproval && !result.HasError && result.IsWaitingForApproval && requests < maxRequests)
                 {
-                    await Task.Delay(Delay);
+                    await Task.Delay(nextDelay);
                     if (!tanDialog.IsCancelWaitForApproval)
+                    {
                         result = await TAN(null);
+                        requests++;
+                    }
                 }
 
                 // Dem Benutzer signalisieren, dass die Transaktion beendet ist
