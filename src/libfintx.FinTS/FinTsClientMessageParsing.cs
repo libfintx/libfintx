@@ -158,8 +158,10 @@ public partial class FinTsClient
                         }
                         else
                         {
-                            if (!TANf.Contains(this.HIRMS))
-                                throw new Exception($"Invalid HIRMS/Tan-Mode {this.HIRMS} detected. Please choose one of the allowed modes: {TANf}");
+                            // Compare whole procedure codes: "92" is not "921"
+                            var allowed = TANf.Split(';');
+                            if (!allowed.Contains(this.HIRMS))
+                                throw new Exceptions.TanProcedureNotAllowedException(this.HIRMS, allowed);
                         }
                         this.HIRMSf = TANf;
 
