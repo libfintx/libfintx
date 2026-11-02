@@ -65,7 +65,8 @@ namespace libfintx.FinTS
         /// <summary>
         /// The HKCAZ segment, without sending it. It names the account as the bank lists it in the
         /// UPD, the same one HKKAZ names: IBAN, BIC, account number, sub-account feature, country
-        /// and bank code. Then the camt format, all accounts (N), the period, the maximum number
+        /// and bank code, or the national account when it has no IBAN (<see cref="KTI.Of"/>).
+        /// Then the camt format, all accounts (N), the period, the maximum number
         /// of entries (empty) and the touchdown point; empty trailing elements are left out.
         /// </summary>
         internal static string Segment(FinTsClient client, string fromDate, string toDate, string startpoint, CamtVersion camtVers)
@@ -77,8 +78,7 @@ namespace libfintx.FinTS
 
             string[] elements =
             {
-                string.Join(DEG.Separator, account.AccountIban, account.AccountBic, account.AccountNumber,
-                    account.SubAccountFeature, SEG_COUNTRY.Germany, account.AccountBankCode),
+                KTI.Of(account),
                 camtVers == CamtVersion.Camt052 ? Camt052Format(client) : CamtScheme.Camt053,
                 DEG.DeAdd,
                 fromDate ?? string.Empty,
