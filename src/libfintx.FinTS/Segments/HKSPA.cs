@@ -23,6 +23,7 @@
 
 using System;
 using System.Threading.Tasks;
+using libfintx.FinTS.Data;
 using libfintx.FinTS.Message;
 using Microsoft.Extensions.Logging;
 
@@ -31,23 +32,29 @@ namespace libfintx.FinTS
     public static class HKSPA
     {
         /// <summary>
-        /// Request SEPA account connection
+        /// Request SEPA account connection (SEPA-Kontoverbindung anfordern) for all accounts of the user
         /// </summary>
-        /// <param name="connectionDetails"></param>
-        /// <returns></returns>
         public static async Task<String> Init_HKSPA(FinTsClient client)
         {
             client.Logger.LogInformation("Starting job HKSPA: Request SEPA account connection");
 
-            var connectionDetails = client.ConnectionDetails;
-            string segments = string.Empty;
-
-            segments = "HKEND:" + SEG_NUM.Seg3 + "1'";
-
             client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg3);
 
-            return await FinTSMessage.Send(client, FinTSMessage.Create(client, client.HNHBS, client.HNHBK, segments,
-                client.HIRMS));
+            // No account data elements: the bank answers with the SEPA account data of all accounts of the user
+            string segments = "HKSPA" + DEG.Separator + client.SEGNUM + DEG.Separator + client.HISPAS + new SEG().Terminator;
+
+            if (client.BPD.IsTANRequired("HKSPA"))
+            {
+                client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg4);
+                segments = HKTAN.Init_HKTAN(client, segments, "HKSPA");
+            }
+
+            string message = FinTSMessage.Create(client, client.HNHBS, client.HNHBK, segments, client.HIRMS);
+            string response = await FinTSMessage.Send(client, message);
+
+            client.Parse_Message(response);
+
+            return response;
         }
     }
 }
