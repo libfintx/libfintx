@@ -131,17 +131,25 @@ namespace libfintx.FinTS
         public HBCIDialogResult<T> TypedResult<T>()
         {
             var result = new HBCIDialogResult<T>(Messages, RawData);
-            result.IgnoredSegmentReferences.UnionWith(IgnoredSegmentReferences);
-            result.UnclearOnErrorSegmentReferences.UnionWith(UnclearOnErrorSegmentReferences);
+            CopySegmentReferencesTo(result);
             return result;
         }
 
         public HBCIDialogResult<T> TypedResult<T>(T data)
         {
             var result = new HBCIDialogResult<T>(Messages, RawData, data);
+            CopySegmentReferencesTo(result);
+            return result;
+        }
+
+        /// <summary>
+        /// Copies <see cref="IgnoredSegmentReferences"/> and <see cref="UnclearOnErrorSegmentReferences"/> to a result
+        /// built from this one, so that its <see cref="GetOrderStatus"/> still leaves out the same return values.
+        /// </summary>
+        internal void CopySegmentReferencesTo(HBCIDialogResult result)
+        {
             result.IgnoredSegmentReferences.UnionWith(IgnoredSegmentReferences);
             result.UnclearOnErrorSegmentReferences.UnionWith(UnclearOnErrorSegmentReferences);
-            return result;
         }
 
         public override string ToString()

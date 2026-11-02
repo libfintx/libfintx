@@ -558,8 +558,13 @@ namespace libfintx.FinTS
             // Steht die Authentifizierung noch aus, ist der Auftrag nicht ausgeführt, auch wenn die Antwort
             // Erfolgsmeldungen wie 0010 trägt: 0030 ohne eingegebene TAN, 3955 bei einem Abbruch vor der
             // ersten Statusabfrage, 3956 nach einem Abbruch oder der letzten erlaubten Statusabfrage.
+            // The segment references stay, so that e.g. return values about HKVPA keep out of the order status.
             if (result.IsAuthenticationPending)
-                result = new HBCIDialogResult(result.Messages.Where(m => !m.IsSuccess), result.RawData);
+            {
+                var pending = new HBCIDialogResult(result.Messages.Where(m => !m.IsSuccess), result.RawData);
+                result.CopySegmentReferencesTo(pending);
+                result = pending;
+            }
 
             if (result.IsSuccess && ini)
             {

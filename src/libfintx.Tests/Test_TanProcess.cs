@@ -166,6 +166,25 @@ public class Test_TanProcess
     }
 
     [Fact]
+    public async Task Test_PendingApprovalKeepsTheSegmentReferences()
+    {
+        // ProcessSCA drops the success messages while the approval is pending (3956). The error about HKVPA still
+        // means "order does not exist or was already executed" (VOP 1.02, p. 15): unclear, not "not executed".
+        using var server = new FakeFinTsServer("HNHBK:1:3+000000000100+300+DIALOG1+1'HIRMG:2:2+9050::Teilweise fehlerhaft.'"
+            + "HIRMS:3:2:3+9210::Auftrag existiert nicht bzw. wurde bereits ausgeführt.'"
+            + "HIRMS:4:2:4+3956::Starke Kundenauthentifizierung noch ausstehend.'HNHBS:5:1+1'");
+        var dialog = new TANDialog(_ => Task.FromResult("confirmed"));
+
+        var result = await ProcessSca(CreateClient(server, 7, "903", ManualConfirmationBpd), ApprovalRequired(), dialog, Hkvpa);
+
+        Assert.Single(server.Requests);
+        Assert.True(result.IsWaitingForApproval);
+        Assert.Contains(3, result.IgnoredSegmentReferences);
+        Assert.Contains(3, result.UnclearOnErrorSegmentReferences);
+        Assert.Equal(OrderStatus.Unclear, result.GetOrderStatus());
+    }
+
+    [Fact]
     public void Test_Challenge()
     {
         var withText = new HBCIDialogResult(new List<HBCIBankMessage>(),
