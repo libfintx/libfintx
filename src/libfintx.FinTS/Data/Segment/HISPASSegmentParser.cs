@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -44,6 +45,13 @@ namespace libfintx.FinTS.Data.Segment
                 throw new ArgumentException($"Could not parse SEPA account info in segment '{segment.Name}':{Environment.NewLine}{paramSepaAccount}");
 
             result.IsAccountNationalAllowed = "J".Equals(match.Groups["2"].Value);
+
+            // Version 3: 1 single account retrieval, 2 national account allowed, 3 structured remittance information,
+            // 4 entering the number of entries, 5 reserved remittance information positions, 6.. supported formats
+            var elements = Helper.SplitDataElementGroup(paramSepaAccount.TrimEnd('\''));
+            result.PainFormats = elements.Where(e => e.Contains("pain.")).ToList();
+            if (segment.Version >= 3 && elements.Count > 4 && int.TryParse(elements[4], out var reserved))
+                result.ReservedPurposeLength = reserved;
 
             return result;
         }

@@ -34,6 +34,36 @@ namespace libfintx.FinTS
     public static class Tan
     {
         /// <summary>
+        /// TAN (process 2) or the first status request of a decoupled approval (process S) sent together with
+        /// <paramref name="extraSegments"/> in one message, e.g. HKVPA (VOP 1.02, figure 3: "HKVPA + HKTAN"). HKTAN
+        /// version 6/7: element 6 order reference, element 7 "Weitere TAN folgt" (PIN/TAN 2020-07-10, pp. 59, 65).
+        /// <paramref name="extraSegments"/> builds the segments from the first segment number and returns them with the
+        /// number of the last one.
+        /// </summary>
+        internal static async Task<String> Send_TAN(FinTsClient client, string TAN, Func<int, (string Segments, int LastSegmentNumber)> extraSegments)
+        {
+            if (client.HITANS < 6)
+                throw new NotSupportedException($"Segments together with the TAN need HKTAN version 6 or 7 (HKTAN version {client.HITANS}).");
+
+            client.Logger.LogInformation("Starting TAN process with additional segments");
+
+            var (segments, last) = extraSegments(Convert.ToInt16(SEG_NUM.Seg3));
+            SEG sEG = new SEG();
+            client.SEGNUM = last + 1;
+            segments += "HKTAN" + DEG.Separator + client.SEGNUM + DEG.Separator + client.HITANS
+                + sEG.Delimiter + (TAN != null ? "2" : "S")
+                + sEG.Delimiter + sEG.Delimiter + sEG.Delimiter + sEG.Delimiter + client.HITAN
+                + sEG.Delimiter + DEG.DeAdd + sEG.Terminator;
+
+            string message = FinTSMessage.Create(client, client.HNHBS, client.HNHBK, segments, client.HIRMS + (TAN != null ? ":" + TAN : null));
+            string response = await FinTSMessage.Send(client, message);
+
+            client.Parse_Message(response);
+
+            return response;
+        }
+
+        /// <summary>
         /// TAN
         /// </summary>
         public static async Task<String> Send_TAN(FinTsClient client, string TAN)

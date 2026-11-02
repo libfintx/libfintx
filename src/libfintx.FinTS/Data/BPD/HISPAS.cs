@@ -27,9 +27,18 @@ using libfintx.FinTS.Data.Segment;
 
 namespace libfintx.FinTS
 {
-    internal class HISPAS : SegmentBase
+    public class HISPAS : SegmentBase
     {
         public bool IsAccountNationalAllowed { get; set; }
+
+        /// <summary>Supported SEPA data formats (pain descriptors), as announced by the bank.</summary>
+        public List<string> PainFormats { get; set; } = new List<string>();
+
+        /// <summary>
+        /// Positions of the remittance information the bank reserves for itself (version 3, "Reservierte
+        /// Verwendungszweckstellen"); the client may use 140 less this number.
+        /// </summary>
+        public int ReservedPurposeLength { get; set; }
 
         public HISPAS(Segment segment) : base(segment)
         {

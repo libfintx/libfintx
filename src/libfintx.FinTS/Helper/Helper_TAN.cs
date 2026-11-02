@@ -18,6 +18,9 @@ namespace libfintx.FinTS
         /// <param name="tanDialog"></param>
         public static async Task<string> WaitForTanAsync(FinTsClient client, HBCIDialogResult dialogResult, TANDialog tanDialog)
         {
+            // a dialog may need several TANs: never show the image of an earlier challenge
+            tanDialog.MatrixCode = null;
+
             var BankCode_ = "HIRMS" + Parse_String(dialogResult.RawData, "'HIRMS", "'");
             string[] values = BankCode_.Split('+');
             foreach (var item in values)
@@ -155,8 +158,9 @@ namespace libfintx.FinTS
                 mCode.Render(tanDialog.PictureBox);
             }
 
-            // PhotoTAN
-            if (processname.Equals("photoTAN-Verfahren") || processname.Equals("photoTAN"))
+            // PhotoTAN; banks name the procedure differently, so a challenge with an image is a photoTAN as well
+            if (processname.Equals("photoTAN-Verfahren") || processname.Equals("photoTAN")
+                || (tanDialog.MatrixCode == null && HasChallengeImage(dialogResult.RawData)))
             {
                 // HITAN:5:5:4+4++nmf3VmGQDT4qZ20190130091914641+Bitte geben Sie die photoTan ein+@3031@       image/pngÃŠÂ‰PNG
                 var match = Regex.Match(dialogResult.RawData, @"HITAN.+@\d+@(.+)'(HNHBS|HNSHA)", RegexOptions.Singleline);
@@ -173,6 +177,23 @@ namespace libfintx.FinTS
 
             return await tanDialog.WaitForTanAsync();
         }
+
+        /// <summary>
+        /// Text the bank shows the user (HITAN element 5 "Challenge", escaping removed, "&lt;br&gt;" as blank); the text of
+        /// 0030/3955 when HITAN carries none.
+        /// </summary>
+        internal static string ParseChallenge(HBCIDialogResult result)
+        {
+            var match = Regex.Match(result.RawData ?? string.Empty, @"HITAN:\d+:\d+(?::\d+)?\+[^+']*\+[^+']*\+[^+']*\+((?:\?.|[^+'?@])*)");
+            if (match.Success && match.Groups[1].Value.Trim().Length > 0)
+                return Regex.Replace(Regex.Replace(match.Groups[1].Value.Trim(), @"\?(.)", "$1"), "<br>", " ", RegexOptions.IgnoreCase);
+
+            return result.GetMessage("0030") ?? result.GetMessage("3955");
+        }
+
+        /// <summary>HITAN carries an image (photoTAN/QR) in the binary challenge.</summary>
+        internal static bool HasChallengeImage(string rawData) =>
+            rawData != null && rawData.Contains("image/") && Regex.IsMatch(rawData, @"HITAN.+@\d+@(.+)'(HNHBS|HNSHA)", RegexOptions.Singleline);
 
         /// <summary>
         /// Renders the chipTAN flicker code of a HITAN segment for the <see cref="FlickerRenderer"/>.

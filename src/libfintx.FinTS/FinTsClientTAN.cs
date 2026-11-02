@@ -21,6 +21,7 @@
  * 	
  */
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -40,6 +41,24 @@ namespace libfintx.FinTS
         {
             string bankCode = await Transaction.TAN(this, TAN);
             var result = new HBCIDialogResult(Parse_BankCode(bankCode), bankCode);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Confirm order with TAN, or ask for a decoupled approval when <paramref name="TAN"/> is null, and send
+        /// <paramref name="extraSegments"/> in the same message. Their return values do not count for
+        /// <see cref="HBCIDialogResult.GetOrderStatus"/>.
+        /// </summary>
+        internal async Task<HBCIDialogResult> TAN(string TAN, Func<int, (string Segments, int LastSegmentNumber)> extraSegments)
+        {
+            string bankCode = await Transaction.TAN(this, TAN, extraSegments);
+            var result = new HBCIDialogResult(Parse_BankCode(bankCode), bankCode);
+            for (int number = Convert.ToInt16(SEG_NUM.Seg3); number < SEGNUM; number++)
+            {
+                result.IgnoredSegmentReferences.Add(number);
+                result.UnclearOnErrorSegmentReferences.Add(number);
+            }
 
             return result;
         }

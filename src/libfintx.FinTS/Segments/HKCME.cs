@@ -43,33 +43,10 @@ namespace libfintx.FinTS
         {
             client.Logger.LogInformation("Starting job HKCME: Collective transfer money terminated");
 
-            var TotalAmount_ = TotalAmount.ToString().Replace(",", ".");
-
-            client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg3);
-
             var connectionDetails = client.ConnectionDetails;
-            SEG sEG = new SEG();
-            StringBuilder sb = new StringBuilder();
-            sb.Append(connectionDetails.Iban);
-            sb.Append(DEG.Separator);
-            sb.Append(connectionDetails.Bic);
-            sb.Append(TotalAmount_);
-            sb.Append(":EUR++");
-            sb.Append(" + urn?:iso?:std?:iso?:20022?:tech?:xsd?:pain.001.002.03+@@");
-            string segments = sEG.toSEG(new SEG_DATA
-            {
-                Header = "HKCME",
-                Num = client.SEGNUM,
-                Version = 1,
-                RefNum = 0,
-                RawData = sb.ToString()
-            });
-            //string segments = "HKCME:" + client.SEGNUM + ":1+" + connectionDetails.Iban + ":" + connectionDetails.Bic + TotalAmount_ + ":EUR++" + " + urn?:iso?:std?:iso?:20022?:tech?:xsd?:pain.001.002.03+@@";
-
-            var painMessage = pain00100203.Create(connectionDetails.AccountHolder, connectionDetails.Iban,
-                connectionDetails.Bic, PainData, NumberofTransactions, TotalAmount, ExecutionDay);
-
-            segments = segments.Replace("@@", "@" + (painMessage.Length - 1) + "@") + painMessage;
+            client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg3);
+            string segments = Create(client, client.SEGNUM, connectionDetails.Iban + DEG.Separator + connectionDetails.Bic,
+                PainData, NumberofTransactions, TotalAmount, ExecutionDay);
 
             if (client.BPD.IsTANRequired("HKCME"))
             {
@@ -83,6 +60,19 @@ namespace libfintx.FinTS
             client.Parse_Message(response);
 
             return response;
+        }
+
+        /// <summary>
+        /// HKCME segment (terminierte SEPA-Sammelüberweisung), built like HKCCM; the total was appended to the BIC
+        /// without separator before.
+        /// </summary>
+        internal static string Create(FinTsClient client, int segmentNumber, string kti, List<Pain00100203CtData> painData,
+            string numberOfTransactions, decimal totalAmount, DateTime executionDay, string messageId = null, string debtorBic = null)
+        {
+            var pain = Helper.CreatePainCollectiveCreditTransfer(client, painData, numberOfTransactions, totalAmount,
+                executionDay, messageId: messageId, debtorBic: debtorBic);
+            return Helper.PaymentOrderSegment("HKCME", 1, segmentNumber, kti,
+                new[] { Converter.ToFinTsAmount(totalAmount) + DEG.Separator + "EUR", string.Empty }, pain);
         }
     }
 }

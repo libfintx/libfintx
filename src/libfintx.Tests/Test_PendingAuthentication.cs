@@ -48,7 +48,7 @@ public class Test_PendingAuthentication
 
     private static Task<HBCIDialogResult> ProcessSca(FinTsClient client, HBCIDialogResult result, TANDialog dialog) =>
         (Task<HBCIDialogResult>) typeof(FinTsClient).GetMethod("ProcessSCA", BindingFlags.Instance | BindingFlags.NonPublic)
-            .Invoke(client, new object[] { result, dialog, false });
+            .Invoke(client, new object[] { result, dialog, false, null });
 
     private static HBCIDialogResult ApprovalRequested() =>
         new(new List<HBCIBankMessage> { new("0010", "Nachricht entgegengenommen."), new("3955", "Sicherheitsfreigabe erfolgt ueber anderen Kanal.") }, Pending3955);

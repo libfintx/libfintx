@@ -95,7 +95,7 @@ namespace libfintx.FinTS
                             Accountuserid = match.Groups[3].Value;
                             Accounttype = match.Groups[4].Value;
                             Accountcurrency = match.Groups[5].Value;
-                            Accountowner = $"{match.Groups[6]} {match.Groups[7]}";
+                            Accountowner = Regex.Replace($"{match.Groups[6]} {match.Groups[7]}", @"\?(.)", "$1");
                             Accounttype = match.Groups[8].Value;
 
                             if (Accountnumber?.Length > 2 || Accountiban?.Length > 2)
@@ -120,7 +120,7 @@ namespace libfintx.FinTS
                         else // Fallback
                         {
                             Accountiban = "DE" + Helper.Parse_String(segment, "+DE", "+");
-                            Accountowner = Helper.Parse_String(segment, "EUR+", "+");
+                            Accountowner = Regex.Replace(Helper.Parse_String(segment, "EUR+", "+"), @"\?(.)", "$1");
                             Accounttype = Helper.Parse_String(segment.Replace("++EUR+", ""), "++", "++");
 
                             if (Accountnumber?.Length > 2 || Accountiban?.Length > 2)

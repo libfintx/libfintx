@@ -87,6 +87,17 @@ namespace libfintx.FinTS
         internal int HISPAS { get; set; }
         internal int HISPAS_Pain { get; set; }
         internal bool HISPAS_AccountNationalAllowed { get; set; }
+        internal int HISPAS_ReservedPurposeLength { get; set; }
+
+        /// <summary>
+        /// User id the bank announces with 3072 ("Neue Benutzerkennung") when it differs from the one used. Store it and
+        /// use it from now on: some banks reject orders with the old one (9210 "Keine gültige Kontoverbindung").
+        /// </summary>
+        public string NewUserId { get; private set; }
+
+        /// <summary>TAN procedures allowed for this user, as the bank reports them with 3920.</summary>
+        public IReadOnlyList<int> AllowedTanProcedures =>
+            (HIRMSf ?? string.Empty).Split(';').Where(s => int.TryParse(s, out _)).Select(int.Parse).ToList();
 
         /// <summary>
         /// Initializes a new FinTS client.
@@ -200,6 +211,40 @@ namespace libfintx.FinTS
                 return result.TypedResult<List<AccountInformation>>();
 
             return new HBCIDialogResult<List<AccountInformation>>(result.Messages, UPD.Value, UPD.AccountList);
+        }
+
+        /// <summary>
+        /// Retrieves the SEPA account connections (HKSPA) of all accounts of this user. Some institutes
+        /// report accounts in the UPD without IBAN and expect the client to request it this way.
+        /// The result is a list of its own and does not change the UPD: to complete the accounts from
+        /// <see cref="Accounts"/>, match them on account number and sub-account feature.
+        /// </summary>
+        /// <param name="tanDialog">The TAN Dialog</param>
+        /// <returns>
+        /// The SEPA accounts with IBAN, BIC, account number, sub-account feature and bank code;
+        /// accounts the bank reports as non-SEPA are skipped
+        /// </returns>
+        public async Task<HBCIDialogResult<List<AccountInformation>>> SepaAccounts(TANDialog tanDialog)
+        {
+            var result = await InitializeConnection();
+            if (result.HasError)
+                return result.TypedResult<List<AccountInformation>>();
+
+            result = await ProcessSCA(result, tanDialog, true);
+            if (!result.IsSuccess)
+                return result.TypedResult<List<AccountInformation>>();
+
+            string BankCode = await Transaction.HKSPA(this);
+            result = new HBCIDialogResult(Parse_BankCode(BankCode), BankCode);
+            if (result.HasError)
+                return result.TypedResult<List<AccountInformation>>();
+
+            result = await ProcessSCA(result, tanDialog);
+            if (!result.IsSuccess)
+                return result.TypedResult<List<AccountInformation>>();
+
+            BankCode = result.RawData;
+            return result.TypedResult(Parse_SepaAccounts(BankCode));
         }
 
         /// <summary>
@@ -421,7 +466,10 @@ namespace libfintx.FinTS
         /// <param name="tanDialog"></param>
         /// <param name="ini">Wenn die SCA direkt nach der Dialog-Initialisierung erforderlich ist.</param>
         /// <returns></returns>
-        private async Task<HBCIDialogResult> ProcessSCA(HBCIDialogResult result, TANDialog tanDialog, bool ini = false)
+        /// <param name="extraSegments">Segments sent together with the TAN or the first status request of a decoupled
+        /// approval, e.g. HKVPA (VOP 1.02, figure 3); nothing is sent when the user cancels.</param>
+        private async Task<HBCIDialogResult> ProcessSCA(HBCIDialogResult result, TANDialog tanDialog, bool ini = false,
+            Func<int, (string Segments, int LastSegmentNumber)> extraSegments = null)
         {
             if (!result.IsSCARequired)
             {
@@ -429,28 +477,21 @@ namespace libfintx.FinTS
             }
 
             tanDialog.DialogResult = result;
+            tanDialog.Challenge = Helper.ParseChallenge(result);
             if (result.IsTanRequired && !result.IsApprovalRequired)
             {
                 string tan = await Helper.WaitForTanAsync(this, result, tanDialog);
-                if (tan == null)
+                if (string.IsNullOrEmpty(tan))
                 {
                     // Wenn der User keine TAN eingegeben hat, können wir nichts tun
                 }
                 else
                 {
-                    result = await TAN(tan);
+                    result = extraSegments == null ? await TAN(tan) : await TAN(tan, extraSegments);
                 }
             }
             else if (result.IsApprovalRequired)
             {
-                // Ohne automatisierte Statusabfrage:
-                // await Helper.WaitForTanAsync(this, result, tanDialog);
-                // result = await TAN(null);
-
-
-                // Mit automatisierter Statusabfrage
-                await tanDialog.WaitForTanAsync(); // Dem Benutzer signalisieren, dass auf die Freigabe gewartet wird
-
                 // Wait times and maximum number of status requests from HITANS#7; requesting more often may be treated
                 // by the bank like a wrong TAN. Without these parameters as before: 2 seconds, no limit.
                 var decoupled = GetTanProcess();
@@ -458,36 +499,72 @@ namespace libfintx.FinTS
                 int nextDelay = Math.Max(1, decoupled?.DecoupledWaitBeforeNextStatusRequest ?? 2) * 1000;
                 int maxRequests = decoupled?.DecoupledMaxStatusRequests > 0 ? decoupled.DecoupledMaxStatusRequests.Value : int.MaxValue;
                 int requests = 0;
+                bool cancelled = false;
 
-                await WaitUnlessCancelled(tanDialog, firstDelay);
-                if (!tanDialog.IsCancelWaitForApproval)
+                // The first status request carries the additional segments
+                async Task<HBCIDialogResult> StatusRequest()
                 {
-                    result = await TAN(null);
+                    var answer = requests == 0 && extraSegments != null ? await TAN(null, extraSegments) : await TAN(null);
                     requests++;
+                    return answer;
                 }
-                // Solange die Bank 3956 meldet, ist die Freigabe noch nicht erteilt. Die Antwort trägt
-                // dabei auch Erfolgsmeldungen wie 0010, daher entscheidet allein 3956.
-                // IsCancelWaitForApproval beendet die Statusabfrage.
-                while (!tanDialog.IsCancelWaitForApproval && !result.HasError && result.IsWaitingForApproval && requests < maxRequests)
+
+                tanDialog.ManualApprovalConfirmation = decoupled?.DecoupledAutomatedStatusRequestsAllowed == false;
+                if (tanDialog.ManualApprovalConfirmation)
                 {
-                    await WaitUnlessCancelled(tanDialog, nextDelay);
-                    if (!tanDialog.IsCancelWaitForApproval)
+                    // Without automated status requests (HITANS#7 element 26 = N, PIN/TAN 2020-07-10, p. 117) the client
+                    // asks only after the user confirms the approval: the TAN dialog returns null to cancel.
+                    while (requests < maxRequests)
                     {
-                        result = await TAN(null);
-                        requests++;
+                        if (await tanDialog.WaitForTanAsync() == null)
+                        {
+                            cancelled = true;
+                            break;
+                        }
+
+                        // As in the automated status requests, only 3956 decides that the approval is still missing
+                        result = await StatusRequest();
+                        if (result.HasError || !result.IsWaitingForApproval)
+                            break;
+
+                        tanDialog.DialogResult = result;
+                    }
+                }
+                else
+                {
+                    // Mit automatisierter Statusabfrage
+                    await tanDialog.WaitForTanAsync(); // Dem Benutzer signalisieren, dass auf die Freigabe gewartet wird
+
+                    await WaitUnlessCancelled(tanDialog, firstDelay);
+                    if (!tanDialog.IsCancelWaitForApproval)
+                        result = await StatusRequest();
+
+                    // Solange die Bank 3956 meldet, ist die Freigabe noch nicht erteilt. Die Antwort trägt
+                    // dabei auch Erfolgsmeldungen wie 0010, daher entscheidet allein 3956.
+                    // IsCancelWaitForApproval beendet die Statusabfrage.
+                    while (!tanDialog.IsCancelWaitForApproval && !result.HasError && result.IsWaitingForApproval && requests < maxRequests)
+                    {
+                        await WaitUnlessCancelled(tanDialog, nextDelay);
+                        if (!tanDialog.IsCancelWaitForApproval)
+                            result = await StatusRequest();
                     }
                 }
 
                 // Dem Benutzer signalisieren, dass die Transaktion beendet ist
-                await tanDialog.OnTransactionEndAsync(!tanDialog.IsCancelWaitForApproval && !result.HasError
+                await tanDialog.OnTransactionEndAsync(!cancelled && !tanDialog.IsCancelWaitForApproval && !result.HasError
                     && !result.IsWaitingForApproval && result.IsSuccess);
             }
 
             // Steht die Authentifizierung noch aus, ist der Auftrag nicht ausgeführt, auch wenn die Antwort
             // Erfolgsmeldungen wie 0010 trägt: 0030 ohne eingegebene TAN, 3955 bei einem Abbruch vor der
             // ersten Statusabfrage, 3956 nach einem Abbruch oder der letzten erlaubten Statusabfrage.
+            // The segment references stay, so that e.g. return values about HKVPA keep out of the order status.
             if (result.IsAuthenticationPending)
-                result = new HBCIDialogResult(result.Messages.Where(m => !m.IsSuccess), result.RawData);
+            {
+                var pending = new HBCIDialogResult(result.Messages.Where(m => !m.IsSuccess), result.RawData);
+                result.CopySegmentReferencesTo(pending);
+                result = pending;
+            }
 
             if (result.IsSuccess && ini)
             {
