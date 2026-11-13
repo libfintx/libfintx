@@ -74,6 +74,7 @@ namespace libfintx.FinTS
                         string Accountiban = null;
                         string Accountuserid = null;
                         string Accounttype = null;
+                        int? Accountkind = null;
                         string Accountcurrency = null;
                         string Accountowner = null;
                         List<AccountPermission> Accountpermissions = new List<AccountPermission>();
@@ -93,7 +94,8 @@ namespace libfintx.FinTS
 
                             Accountiban = match.Groups[2].Value;
                             Accountuserid = match.Groups[3].Value;
-                            Accounttype = match.Groups[4].Value;
+                            if (int.TryParse(match.Groups[4].Value, out int kind))
+                                Accountkind = kind;
                             Accountcurrency = match.Groups[5].Value;
                             Accountowner = $"{match.Groups[6]} {match.Groups[7]}";
                             Accounttype = match.Groups[8].Value;
@@ -153,6 +155,7 @@ namespace libfintx.FinTS
                                 AccountIban = Accountiban,
                                 AccountUserId = Accountuserid,
                                 AccountType = Accounttype,
+                                AccountKind = Accountkind,
                                 AccountCurrency = Accountcurrency,
                                 AccountOwner = Accountowner,
                                 AccountPermissions = Accountpermissions
