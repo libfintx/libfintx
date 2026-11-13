@@ -264,6 +264,13 @@ public partial class FinTsClient
                 this.HISALS = segment.Version;
         }
 
+        // libfintx builds the securities statement request in versions 5 and 6.
+        if (segment.Name == "HIWPDS" && segment.Version is 5 or 6)
+        {
+            if (this.HIWPDS < segment.Version)
+                this.HIWPDS = segment.Version;
+        }
+
         if (segment.Name == "HITANS")
         {
             var hitans = (HITANS) segment;
