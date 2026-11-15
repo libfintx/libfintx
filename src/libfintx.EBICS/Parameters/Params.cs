@@ -28,6 +28,8 @@ namespace libfintx.EBICS.Parameters
     {
         
 
+        /// <summary>Bank-advertised service required when invoking legacy business methods over H005.</summary>
+        public Version3.BtfService BtfService { get; set; }
         public string SecurityMedium { get; set; } = "0000";
 
         static Params()

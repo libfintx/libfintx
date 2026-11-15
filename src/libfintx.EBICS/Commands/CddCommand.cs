@@ -99,7 +99,7 @@ namespace libfintx.EBICS.Commands
             }
         }
 
-        private XDocument CreateCcdDoc()
+        internal XDocument CreateCcdDoc()
         {
             XNamespace ns = Namespaces.Cdd;
             var sum = 0m;

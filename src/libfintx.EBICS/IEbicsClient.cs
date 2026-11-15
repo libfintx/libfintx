@@ -29,6 +29,7 @@ namespace libfintx.EBICS
     public interface IEbicsClient
     {
         Config Config { get; set; }
+        Version3.Ebics3Client Version3 => throw new System.NotSupportedException("H005 is not supported by this implementation.");
         HpbResponse HPB(HpbParams p);
         PtkResponse PTK(PtkParams p);
         StaResponse STA(StaParams p);

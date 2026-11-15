@@ -187,6 +187,9 @@ namespace libfintx.EBICSConfig
 
         public void Save(Action<byte[]> writebytes)
         {
+            // H005 certificate fingerprints cannot be reconstructed from an RSA public key.
+            // Preserve the public certificate (never the private key) when one is available.
+            if (Certificate != null) { writebytes(Certificate.RawData); return; }
             using (var ms = new MemoryStream())
             {
                 Org.BouncyCastle.Crypto.Parameters.RsaKeyParameters rsa = new Org.BouncyCastle.Crypto.Parameters.RsaKeyParameters(false,
@@ -204,6 +207,8 @@ namespace libfintx.EBICSConfig
         }
         public void Load(byte[] bytes)
         {
+            if (bytes == null || bytes.Length == 0) throw new ArgumentException("Empty key data.", nameof(bytes));
+            if (bytes[0] == 0x30) { Certificate = new X509Certificate2(bytes); return; }
             using (var ms=new MemoryStream(bytes))
             using (var sr = new StreamReader(ms))
             {
