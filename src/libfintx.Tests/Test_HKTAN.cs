@@ -74,7 +74,7 @@ public class Test_HKTAN
     }
 
     /// <summary>Data elements of the first segment <paramref name="name"/> inside the encrypted part of a message.</summary>
-    private static List<string> Elements(string message, string name)
+    internal static List<string> Elements(string message, string name)
     {
         var match = Regex.Match(message, @"HNVSD:\d+:\d+\+@(\d+)@");
         Assert.True(match.Success, "No HNVSD in message");
@@ -88,7 +88,7 @@ public class Test_HKTAN
     }
 
     /// <summary>Lets the client send one message to a local listener and returns it as plain text.</summary>
-    private static async Task<string> CaptureAsync(Func<FinTsClient, Task> action, int hktanVersion, string tanMedium)
+    internal static async Task<string> CaptureAsync(Func<FinTsClient, Task> action, int hktanVersion, string tanMedium)
     {
         var listener = new TcpListener(IPAddress.Loopback, 0);
         listener.Start();

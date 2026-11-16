@@ -51,6 +51,10 @@ namespace libfintx.FinTS
             {
                 case CamtVersion.Camt052:
                     client.Logger.LogInformation("Starting job HKCAZ: Request transactions in camt052 format");
+                    // BPD may not have supplied HICAZS (for example with a stored system ID).
+                    var camtFormat = string.IsNullOrWhiteSpace(client.HICAZS_Camt)
+                        ? CamtScheme.Camt052_001_08
+                        : client.HICAZS_Camt;
 
                     if (string.IsNullOrEmpty(FromDate))
                     {
@@ -68,7 +72,7 @@ namespace libfintx.FinTS
                             sb.Append(DEG.Separator);
                             sb.Append(connectionDetails.Blz);
                             sb.Append(sEG.Delimiter);
-                            sb.Append(client.HICAZS_Camt);
+                            sb.Append(camtFormat);
                             sb.Append(sEG.Delimiter);
                             sb.Append(DEG.DeAdd);
                             sb.Append(sEG.Terminator);
@@ -96,7 +100,7 @@ namespace libfintx.FinTS
                             sb.Append(DEG.Separator);
                             sb.Append(connectionDetails.Blz);
                             sb.Append(sEG.Delimiter);
-                            sb.Append(client.HICAZS_Camt);
+                            sb.Append(camtFormat);
                             sb.Append(sEG.Delimiter);
                             sb.Append(DEG.DeAdd);
                             sb.Append(sEG.Delimiter);
@@ -132,7 +136,7 @@ namespace libfintx.FinTS
                             sb.Append(DEG.Separator);
                             sb.Append(connectionDetails.Blz);
                             sb.Append(sEG.Delimiter);
-                            sb.Append(client.HICAZS_Camt);
+                            sb.Append(camtFormat);
                             sb.Append(sEG.Delimiter);
                             sb.Append(DEG.DeAdd);
                             sb.Append(sEG.Delimiter);
@@ -164,7 +168,7 @@ namespace libfintx.FinTS
                             sb.Append(DEG.Separator);
                             sb.Append(connectionDetails.Blz);
                             sb.Append(sEG.Delimiter);
-                            sb.Append(client.HICAZS_Camt);
+                            sb.Append(camtFormat);
                             sb.Append(sEG.Delimiter);
                             sb.Append(DEG.DeAdd);
                             sb.Append(sEG.Delimiter);
