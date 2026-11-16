@@ -1,4 +1,4 @@
-﻿/*	
+/*	
  * 	
  *  This file is part of libfintx.
  *  
@@ -31,14 +31,16 @@ namespace libfintx.FinTS.Data.Segment
     {
         public Segment ParseSegment(Segment segment)
         {
-            var match = Regex.Match(segment.Value, @"^(?<Name>[A-Z]+):(?<Number>\d+):(?<Version>\d+)(:(?<Ref>\d+))?\+(?<Payload>.*)");
+            // The reference to a segment of the request is optional; some banks send its colon
+            // without a number ("HIRMG:2:2:+0010::...").
+            var match = Regex.Match(segment.Value, @"^(?<Name>[A-Z]+):(?<Number>\d+):(?<Version>\d+)(:(?<Ref>\d*))?\+(?<Payload>.*)");
             if (!match.Success)
                 throw new ArgumentException($"Segment has invalid format.{Environment.NewLine}{segment.Value}");
 
             segment.Name = match.Groups["Name"].Value;
             segment.Number = Convert.ToInt32(match.Groups["Number"].Value);
             segment.Version = Convert.ToInt32(match.Groups["Version"].Value);
-            if (match.Groups["Ref"].Success)
+            if (match.Groups["Ref"].Success && match.Groups["Ref"].Value.Length > 0)
                 segment.Ref = Convert.ToInt32(match.Groups["Ref"].Value);
             segment.Payload = match.Groups["Payload"].Value;
 

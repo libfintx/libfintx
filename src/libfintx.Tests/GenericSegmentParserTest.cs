@@ -33,4 +33,17 @@ public class GenericSegmentParserTest
         Assert.Equal(3, segment.DataElements.Count);
         Assert.Equal("eNmo9/2dEocBAACRO?+gjhW?+owAQA", segment.DataElements[2]);
     }
+
+    [Fact]
+    public void TestEmptyReference()
+    {
+        var segment = new Segment("HIRMG:2:2:+0010::Nachricht entgegengenommen.");
+        segment = new GenericSegmentParser().ParseSegment(segment);
+
+        Assert.Equal("HIRMG", segment.Name);
+        Assert.Equal(2, segment.Number);
+        Assert.Equal(2, segment.Version);
+        Assert.Null(segment.Ref);
+        Assert.Equal("0010::Nachricht entgegengenommen.", segment.Payload);
+    }
 }
