@@ -35,303 +35,18 @@ namespace libfintx.FinTS
     public static class HKCAZ
     {
         /// <summary>
-        /// Transactions in camt053 format
+        /// Transactions in camt format: camt.052 in the version the bank offers (HICAZS), or camt.053
         /// </summary>
         public static async Task<String> Init_HKCAZ(FinTsClient client, string FromDate, string ToDate,
             string Startpoint, CamtVersion camtVers)
         {
-            string segments = string.Empty;
-            var connectionDetails = client.ConnectionDetails;
+            if (camtVers != CamtVersion.Camt052 && camtVers != CamtVersion.Camt053)
+                return string.Empty;
 
-            client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg3);
+            client.Logger.LogInformation("Starting job HKCAZ: Request transactions in {Format} format",
+                camtVers == CamtVersion.Camt052 ? "camt052" : "camt053");
 
-            SEG sEG = new SEG();
-
-            switch (camtVers)
-            {
-                case CamtVersion.Camt052:
-                    client.Logger.LogInformation("Starting job HKCAZ: Request transactions in camt052 format");
-
-                    if (string.IsNullOrEmpty(FromDate))
-                    {
-                        if (string.IsNullOrEmpty(Startpoint))
-                        {
-                            StringBuilder sb = new StringBuilder();
-                            sb.Append(connectionDetails.Iban);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Bic);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Account);
-                            sb.Append(DEG.Separator);
-                            sb.Append(DEG.Separator);
-                            sb.Append(SEG_COUNTRY.Germany);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Blz);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(client.HICAZS_Camt);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(DEG.DeAdd);
-                            sb.Append(sEG.Terminator);
-                            segments = sEG.toSEG(new SEG_DATA
-                            {
-                                Header = "HKCAZ",
-                                Num = client.SEGNUM,
-                                Version = client.HICAZS,
-                                RefNum = 0,
-                                RawData = sb.ToString()
-                            });
-                            //segments = "HKCAZ:" + client.SEGNUM + ":" + client.HICAZS + "+" + connectionDetails.Iban + ":" + connectionDetails.Bic + ":" + connectionDetails.Account + "::280:" + connectionDetails.Blz + "+" + CamtScheme.Camt052 + "+N'";
-                        }
-                        else
-                        {
-                            StringBuilder sb = new StringBuilder();
-                            sb.Append(connectionDetails.Iban);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Bic);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Account);
-                            sb.Append(DEG.Separator);
-                            sb.Append(DEG.Separator);
-                            sb.Append(SEG_COUNTRY.Germany);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Blz);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(client.HICAZS_Camt);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(DEG.DeAdd);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(Startpoint);
-                            sb.Append(sEG.Terminator);
-                            segments = sEG.toSEG(new SEG_DATA
-                            {
-                                Header = "HKCAZ",
-                                Num = client.SEGNUM,
-                                Version = client.HICAZS,
-                                RefNum = 0,
-                                RawData = sb.ToString()
-                            });
-                            //segments = "HKCAZ:" + client.SEGNUM + ":" + client.HICAZS + "+" + connectionDetails.Iban + ":" + connectionDetails.Bic + ":" + connectionDetails.Account + "::280:" + connectionDetails.Blz + "+" + CamtScheme.Camt052 + "+N++++" + Startpoint + "'";
-                        }
-                    }
-                    else
-                    {
-                        if (string.IsNullOrEmpty(Startpoint))
-                        {
-                            StringBuilder sb = new StringBuilder();
-                            sb.Append(connectionDetails.Iban);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Bic);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Account);
-                            sb.Append(DEG.Separator);
-                            sb.Append(DEG.Separator);
-                            sb.Append(SEG_COUNTRY.Germany);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Blz);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(client.HICAZS_Camt);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(DEG.DeAdd);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(FromDate);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(ToDate);
-                            sb.Append(sEG.Terminator);
-                            segments = sEG.toSEG(new SEG_DATA
-                            {
-                                Header = "HKCAZ",
-                                Num = client.SEGNUM,
-                                Version = client.HICAZS,
-                                RefNum = 0,
-                                RawData = sb.ToString()
-                            });
-                            //segments = "HKCAZ:" + client.SEGNUM + ":" + client.HICAZS + "+" + connectionDetails.Iban + ":" + connectionDetails.Bic + ":" + connectionDetails.Account + "::280:" + connectionDetails.Blz + "+" + CamtScheme.Camt052 + "+N+" + FromDate + "+" + ToDate + "'";
-                        }
-                        else
-                        {
-                            StringBuilder sb = new StringBuilder();
-                            sb.Append(connectionDetails.Iban);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Bic);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Account);
-                            sb.Append(DEG.Separator);
-                            sb.Append(DEG.Separator);
-                            sb.Append(SEG_COUNTRY.Germany);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Blz);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(client.HICAZS_Camt);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(DEG.DeAdd);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(FromDate);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(ToDate);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(Startpoint);
-                            sb.Append(sEG.Terminator);
-                            segments = sEG.toSEG(new SEG_DATA
-                            {
-                                Header = "HKCAZ",
-                                Num = client.SEGNUM,
-                                Version = client.HICAZS,
-                                RefNum = 0,
-                                RawData = sb.ToString()
-                            });
-                            //segments = "HKCAZ:" + client.SEGNUM + ":" + client.HICAZS + "+" + connectionDetails.Iban + ":" + connectionDetails.Bic + ":" + connectionDetails.Account + "::280:" + connectionDetails.Blz + "+" + CamtScheme.Camt052 + "+N+" + FromDate + "+" + ToDate + "++" + Startpoint + "'";
-                        }
-                    }
-
-                    client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg3);
-                    break;
-
-                case CamtVersion.Camt053:
-                    client.Logger.LogInformation("Starting job HKCAZ: Request transactions in camt053 format");
-
-                    if (string.IsNullOrEmpty(FromDate))
-                    {
-                        if (string.IsNullOrEmpty(Startpoint))
-                        {
-                            StringBuilder sb = new StringBuilder();
-                            sb.Append(connectionDetails.Iban);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Bic);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Account);
-                            sb.Append(DEG.Separator);
-                            sb.Append(DEG.Separator);
-                            sb.Append(SEG_COUNTRY.Germany);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Blz);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(CamtScheme.Camt053);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(DEG.DeAdd);
-                            sb.Append(sEG.Terminator);
-                            segments = sEG.toSEG(new SEG_DATA
-                            {
-                                Header = "HKCAZ",
-                                Num = client.SEGNUM,
-                                Version = client.HICAZS,
-                                RefNum = 0,
-                                RawData = sb.ToString()
-                            });
-                            //segments = "HKCAZ:" + client.SEGNUM + ":" + client.HICAZS + "+" + connectionDetails.Iban + ":" + connectionDetails.Bic + ":" + connectionDetails.Account + "::280:" + connectionDetails.Blz + "+" + CamtScheme.Camt053 + "+N'";
-                        }
-                        else
-                        {
-                            StringBuilder sb = new StringBuilder();
-                            sb.Append(connectionDetails.Iban);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Bic);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Account);
-                            sb.Append(DEG.Separator);
-                            sb.Append(DEG.Separator);
-                            sb.Append(SEG_COUNTRY.Germany);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Blz);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(CamtScheme.Camt053);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(DEG.DeAdd);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(sEG.Terminator);
-                            segments = sEG.toSEG(new SEG_DATA
-                            {
-                                Header = "HKCAZ",
-                                Num = client.SEGNUM,
-                                Version = client.HICAZS,
-                                RefNum = 0,
-                                RawData = sb.ToString()
-                            });
-                            //segments = "HKCAZ:" + client.SEGNUM + ":" + client.HICAZS + "+" + connectionDetails.Iban + ":" + connectionDetails.Bic + ":" + connectionDetails.Account + "::280:" + connectionDetails.Blz + "+" + CamtScheme.Camt053 + "+N++++" + Startpoint + "'";
-                        }
-                    }
-                    else
-                    {
-                        if (string.IsNullOrEmpty(Startpoint))
-                        {
-                            StringBuilder sb = new StringBuilder();
-                            sb.Append(connectionDetails.Iban);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Bic);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Account);
-                            sb.Append(DEG.Separator);
-                            sb.Append(DEG.Separator);
-                            sb.Append(SEG_COUNTRY.Germany);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Blz);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(CamtScheme.Camt053);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(DEG.DeAdd);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(FromDate);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(ToDate);
-                            sb.Append(sEG.Terminator);
-                            segments = sEG.toSEG(new SEG_DATA
-                            {
-                                Header = "HKCAZ",
-                                Num = client.SEGNUM,
-                                Version = client.HICAZS,
-                                RefNum = 0,
-                                RawData = sb.ToString()
-                            });
-                            //segments = "HKCAZ:" + client.SEGNUM + ":" + client.HICAZS + "+" + connectionDetails.Iban + ":" + connectionDetails.Bic + ":" + connectionDetails.Account + "::280:" + connectionDetails.Blz + "+" + CamtScheme.Camt053 + "+N+" + FromDate + "+" + ToDate + "'";
-                        }
-                        else
-                        {
-                            StringBuilder sb = new StringBuilder();
-                            sb.Append(connectionDetails.Iban);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Bic);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Account);
-                            sb.Append(DEG.Separator);
-                            sb.Append(DEG.Separator);
-                            sb.Append(SEG_COUNTRY.Germany);
-                            sb.Append(DEG.Separator);
-                            sb.Append(connectionDetails.Blz);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(CamtScheme.Camt053);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(DEG.DeAdd);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(FromDate);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(ToDate);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(sEG.Delimiter);
-                            sb.Append(Startpoint);
-                            sb.Append(sEG.Terminator);
-                            segments = sEG.toSEG(new SEG_DATA
-                            {
-                                Header = "HKCAZ",
-                                Num = client.SEGNUM,
-                                Version = client.HICAZS,
-                                RefNum = 0,
-                                RawData = sb.ToString()
-                            });
-                            //segments = "HKCAZ:" + client.SEGNUM + ":" + client.HICAZS + "+" + connectionDetails.Iban + ":" + connectionDetails.Bic + ":" + connectionDetails.Account + "::280:" + connectionDetails.Blz + "+" + CamtScheme.Camt053 + "+N+" + FromDate + "+" + ToDate + "++" + Startpoint + "'";
-                        }
-                    }
-
-                    break;
-
-                default: // -> Will never happen, only for compiler
-                    return string.Empty;
-            }
+            string segments = Segment(client, FromDate, ToDate, Startpoint, camtVers);
 
             if (client.BPD.IsTANRequired("HKCAZ"))
             {
@@ -345,6 +60,44 @@ namespace libfintx.FinTS
             client.Parse_Message(response);
 
             return response;
+        }
+
+        /// <summary>
+        /// The HKCAZ segment, without sending it. It names the account as the bank lists it in the
+        /// UPD, the same one HKKAZ names: IBAN, BIC, account number, sub-account feature, country
+        /// and bank code. Then the camt format, all accounts (N), the period, the maximum number
+        /// of entries (empty) and the touchdown point; empty trailing elements are left out.
+        /// </summary>
+        internal static string Segment(FinTsClient client, string fromDate, string toDate, string startpoint, CamtVersion camtVers)
+        {
+            AccountInformation account = HKKAZ.ResolveAccount(client);
+
+            client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg3);
+            SEG sEG = new SEG();
+
+            string[] elements =
+            {
+                string.Join(DEG.Separator, account.AccountIban, account.AccountBic, account.AccountNumber,
+                    account.SubAccountFeature, SEG_COUNTRY.Germany, account.AccountBankCode),
+                camtVers == CamtVersion.Camt052 ? client.HICAZS_Camt : CamtScheme.Camt053,
+                DEG.DeAdd,
+                fromDate ?? string.Empty,
+                toDate ?? string.Empty,
+                string.Empty,
+                startpoint ?? string.Empty,
+            };
+            int used = elements.Length;
+            while (used > 3 && elements[used - 1].Length == 0)
+                used--;
+
+            return sEG.toSEG(new SEG_DATA
+            {
+                Header = "HKCAZ",
+                Num = client.SEGNUM,
+                Version = client.HICAZS,
+                RefNum = 0,
+                RawData = string.Join(sEG.Delimiter, elements, 0, used) + sEG.Terminator
+            });
         }
     }
 }
