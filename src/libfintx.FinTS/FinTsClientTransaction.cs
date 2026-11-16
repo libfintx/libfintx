@@ -180,9 +180,6 @@ namespace libfintx.FinTS
             if (result.HasError || result.IsAuthenticationPending)
                 return result.TypedResult<List<CamtStatement>>();
 
-            // Plain camt message
-            string camt = string.Empty;
-
             string startDateStr = startDate?.ToString("yyyyMMdd");
             string endDateStr = endDate?.ToString("yyyyMMdd");
 
@@ -199,65 +196,9 @@ namespace libfintx.FinTS
             BankCode = result.RawData;
             var statements = new List<CamtStatement>();
 
-            Camt052Parser camt052Parser = null;
-            Camt053Parser camt053Parser = null;
-            var encoding = Encoding.GetEncoding("ISO-8859-1");
+            ReadCamtDocuments(BankCode, camtVers, saveCamtFile, statements);
 
             string BankCode_ = BankCode;
-
-            // Es kann sein, dass in der payload mehrere Dokumente enthalten sind
-            int xmlStartIdx = BankCode_.IndexOf("<?xml version=");
-            if (xmlStartIdx < 0) // Manche Banken liefern das XML ohne Header (Hypo Vereinsbank)
-                xmlStartIdx = BankCode_.IndexOf("<Document");
-            int xmlEndIdx = BankCode_.IndexOf("</Document>") + "</Document>".Length;
-            while (xmlStartIdx >= 0)
-            {
-                if (xmlStartIdx > xmlEndIdx)
-                    break;
-
-                camt = BankCode_.Substring(xmlStartIdx, xmlEndIdx - xmlStartIdx);
-                if (!camt.StartsWith("<?xml"))
-                    camt = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + camt;
-
-                switch (camtVers)
-                {
-                    case CamtVersion.Camt052:
-                        if (camt052Parser == null)
-                            camt052Parser = new Camt052Parser(_loggerFactory);
-
-                        if (saveCamtFile)
-                        {
-                            // Save camt052 statement to file
-                            Camt052File.Save(ConnectionDetails.Account, camt, encoding);
-                        }
-                        camt052Parser.ProcessDocument(camt, encoding);
-
-                        statements.AddRange(camt052Parser.statements);
-                        break;
-                    case CamtVersion.Camt053:
-                        if (camt053Parser == null)
-                            camt053Parser = new Camt053Parser(_loggerFactory);
-
-                        if (saveCamtFile)
-                        {
-                            // Save camt053 statement to file
-                            Camt053File.Save(ConnectionDetails.Account, camt, encoding);
-                        }
-                        camt053Parser.ProcessDocument(camt, encoding);
-
-                        statements.AddRange(camt053Parser.statements);
-                        break;
-                }
-
-                BankCode_ = BankCode_.Substring(xmlEndIdx);
-                xmlStartIdx = BankCode_.IndexOf("<?xml version");
-                if (xmlStartIdx < 0) // Manche Banken liefern das XML ohne Header (Hypo Vereinsbank)
-                    xmlStartIdx = BankCode_.IndexOf("<Document");
-                xmlEndIdx = BankCode_.IndexOf("</Document>") + "</Document>".Length;
-            }
-
-            BankCode_ = BankCode;
-
             while (BankCode_.Contains("+3040::"))
             {
                 Parse_Message(BankCode_);
@@ -274,61 +215,55 @@ namespace libfintx.FinTS
                     return result.TypedResult<List<CamtStatement>>();
 
                 BankCode_ = result.RawData;
-
-                // Es kann sein, dass in der payload mehrere Dokumente enthalten sind
-                xmlStartIdx = BankCode_.IndexOf("<?xml version=");
-                if (xmlStartIdx < 0) // Manche Banken liefern das XML ohne Header (Hypo Vereinsbank)
-                    xmlStartIdx = BankCode_.IndexOf("<Document");
-                xmlEndIdx = BankCode_.IndexOf("</Document>") + "</Document>".Length;
-
-                while (xmlStartIdx >= 0)
-                {
-                    if (xmlStartIdx > xmlEndIdx)
-                        break;
-
-                    camt = BankCode_.Substring(xmlStartIdx, xmlEndIdx - xmlStartIdx);
-                    if (!camt.StartsWith("<?xml"))
-                        camt = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + camt;
-
-                    switch (camtVers)
-                    {
-                        case CamtVersion.Camt052:
-                            if (camt052Parser == null)
-                                camt052Parser = new Camt052Parser();
-
-                            if (saveCamtFile)
-                            {
-                                // Save camt052 statement to file
-                                Camt052File.Save(ConnectionDetails.Account, camt, encoding);
-                            }
-                            camt052Parser.ProcessDocument(camt, encoding);
-
-                            statements.AddRange(camt052Parser.statements);
-                            break;
-                        case CamtVersion.Camt053:
-                            if (camt053Parser == null)
-                                camt053Parser = new Camt053Parser();
-
-                            if (saveCamtFile)
-                            {
-                                // Save camt053 statement to file
-                                Camt053File.Save(ConnectionDetails.Account, camt, encoding);
-                            }
-                            camt053Parser.ProcessDocument(camt, encoding);
-
-                            statements.AddRange(camt053Parser.statements);
-                            break;
-                    }
-
-                    BankCode_ = BankCode_.Substring(xmlEndIdx);
-                    xmlStartIdx = BankCode_.IndexOf("<?xml version");
-                    if (xmlStartIdx < 0) // Manche Banken liefern das XML ohne Header (Hypo Vereinsbank)
-                        xmlStartIdx = BankCode_.IndexOf("<Document");
-                    xmlEndIdx = BankCode_.IndexOf("</Document>") + "</Document>".Length;
-                }
+                ReadCamtDocuments(BankCode_, camtVers, saveCamtFile, statements);
             }
 
             return result.TypedResult(statements);
+        }
+
+        /// <summary>
+        /// Reads every camt document of a bank answer into <paramref name="statements"/>. An answer
+        /// can hold several documents: the booked reports and the one of pending transactions.
+        /// Some banks send the XML without its declaration (Hypo Vereinsbank).
+        /// </summary>
+        private void ReadCamtDocuments(string bankCode, CamtVersion camtVers, bool saveCamtFile, List<CamtStatement> statements)
+        {
+            var encoding = Encoding.GetEncoding("ISO-8859-1");
+            string rest = bankCode;
+            while (true)
+            {
+                int start = rest.IndexOf("<?xml version");
+                if (start < 0)
+                    start = rest.IndexOf("<Document");
+                int end = rest.IndexOf("</Document>");
+                if (start < 0 || end < start)
+                    return;
+                end += "</Document>".Length;
+
+                string camt = rest.Substring(start, end - start);
+                if (!camt.StartsWith("<?xml"))
+                    camt = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + camt;
+
+                switch (camtVers)
+                {
+                    case CamtVersion.Camt052:
+                        if (saveCamtFile)
+                            Camt052File.Save(ConnectionDetails.Account, camt, encoding);
+                        var camt052Parser = new Camt052Parser(_loggerFactory);
+                        camt052Parser.ProcessDocument(camt, encoding);
+                        statements.AddRange(camt052Parser.statements);
+                        break;
+                    case CamtVersion.Camt053:
+                        if (saveCamtFile)
+                            Camt053File.Save(ConnectionDetails.Account, camt, encoding);
+                        var camt053Parser = new Camt053Parser(_loggerFactory);
+                        camt053Parser.ProcessDocument(camt, encoding);
+                        statements.AddRange(camt053Parser.statements);
+                        break;
+                }
+
+                rest = rest.Substring(end);
+            }
         }
 
         /// <summary>

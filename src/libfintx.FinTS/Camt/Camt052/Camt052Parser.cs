@@ -178,6 +178,7 @@ namespace libfintx.FinTS.Camt.Camt052
                 string ownName = nm ?? "AccountNameFor" + stmt.BankCode + "/" + stmt.AccountCode;
 
                 Camt052_002.CashBalance3[] balances = accReport.Bal;
+                bool closingBooked = false;
                 if (balances != null)
                 {
                     foreach (Camt052_002.CashBalance3 balance in balances)
@@ -207,9 +208,23 @@ namespace libfintx.FinTS.Camt.Camt052
                             }
 
                             stmt.EndDate = balance.Dt.Item;
+                            stmt.HasEndBalance = true;
+                            closingBooked = true;
+                        }
+                        // ITBD: InterimBooked, the booked balance of a report during the day;
+                        // it stands for the end balance when the report has no closing balance
+                        else if (balance.Tp?.CdOrPrtry?.Item?.ToString() == "ITBD" && !closingBooked)
+                        {
+                            stmt.EndBalance = balance.Amt.Value;
+                            if (balance.CdtDbtInd == Camt052_002.CreditDebitCode.DBIT)
+                            {
+                                stmt.EndBalance *= -1.0m;
+                            }
+
+                            stmt.EndDate = balance.Dt.Item;
+                            stmt.HasEndBalance = true;
                         }
 
-                        // ITBD: InterimBooked
                         // CLAV: ClosingAvailable
                         // FWAV: ForwardAvailable
                     }
@@ -245,7 +260,7 @@ namespace libfintx.FinTS.Camt.Camt052
                     foreach (Camt052_002.ReportEntry2 entry in entries)
                     {
                         bool pending = entry.Sts == Camt052_002.EntryStatus2Code.PDNG;
-                        if (!pending && entry.Amt.Ccy != stmt.Currency)
+                        if (!pending && stmt.Currency != null && entry.Amt.Ccy != stmt.Currency)
                         {
                             throw new Exception($"Transaction currency '{entry.Amt.Ccy}' does not match the bank statement currency '{stmt.Currency}'.");
                         }
@@ -295,6 +310,10 @@ namespace libfintx.FinTS.Camt.Camt052
                             txDetails?.RltdPties?.Cdtr?.Nm :
                             txDetails?.RltdPties?.Dbtr?.Nm;
 
+                        tr.UltimatePartnerName = debit ?
+                            txDetails?.RltdPties?.UltmtCdtr?.Nm :
+                            txDetails?.RltdPties?.UltmtDbtr?.Nm;
+
                         object account = debit ?
                             txDetails?.RltdPties?.CdtrAcct?.Id?.Item :
                             txDetails?.RltdPties?.DbtrAcct?.Id?.Item;
@@ -328,12 +347,14 @@ namespace libfintx.FinTS.Camt.Camt052
 
                         tr.CustomerRef = entry.AcctSvcrRef;
 
-                        if (txDetails?.BkTxCd.Prtry.Cd != null)
+                        // The code of the transaction details, else the one of the entry
+                        string bankTransactionCode = txDetails?.BkTxCd?.Prtry?.Cd ?? entry.BkTxCd?.Prtry?.Cd;
+                        if (bankTransactionCode != null)
                         {
                             // NTRF+177+9310+997
                             // NSTO+152+00900. look for SEPA Geschäftsvorfallcodes
                             // see the codes: https://www.hettwer-beratung.de/business-portfolio/zahlungsverkehr/elektr-kontoinformationen-swift-mt-940/
-                            string[] GVCCode = txDetails?.BkTxCd?.Prtry?.Cd?.Split(new char[] { '+' });
+                            string[] GVCCode = bankTransactionCode.Split(new char[] { '+' });
                             if (GVCCode.Length > 0)
                                 tr.TransactionTypeId = GVCCode[0];
                             if (GVCCode.Length > 1)
@@ -345,7 +366,7 @@ namespace libfintx.FinTS.Camt.Camt052
                         }
 
                         // for SEPA direct debit batches, there are multiple TxDtls records
-                        if (entryDetails.TxDtls?.Count() > 1)
+                        if (entryDetails?.TxDtls?.Count() > 1)
                         {
                             tr.PartnerName = string.Empty;
                             tr.Description = string.Format("SEPA Sammel-Basislastschrift mit {0} Lastschriften", entryDetails.TxDtls?.Count());
@@ -377,8 +398,8 @@ namespace libfintx.FinTS.Camt.Camt052
                 object accReportAccount = accReport.Acct?.Id?.Item;
                 if (accReportAccount is string)
                     stmt.AccountCode = (string) accReportAccount;
-                else if (accReportAccount is Camt052_002.GenericAccountIdentification1)
-                    stmt.AccountCode = ((Camt052_002.GenericAccountIdentification1) accReportAccount).Id;
+                else if (accReportAccount is Camt052_008.GenericAccountIdentification1)
+                    stmt.AccountCode = ((Camt052_008.GenericAccountIdentification1) accReportAccount).Id;
 
                 stmt.BankCode = accReport.Acct?.Svcr?.FinInstnId?.BICFI;
                 stmt.Currency = accReport.Acct?.Ccy;
@@ -388,6 +409,7 @@ namespace libfintx.FinTS.Camt.Camt052
                 string ownName = nm ?? "AccountNameFor" + stmt.BankCode + "/" + stmt.AccountCode;
 
                 Camt052_008.CashBalance8[] balances = accReport.Bal;
+                bool closingBooked = false;
                 if (balances != null)
                 {
                     foreach (Camt052_008.CashBalance8 balance in balances)
@@ -430,9 +452,23 @@ namespace libfintx.FinTS.Camt.Camt052
                             }
 
                             stmt.EndDate = balance.Dt.Item;
+                            stmt.HasEndBalance = true;
+                            closingBooked = true;
+                        }
+                        // ITBD: InterimBooked, the booked balance of a report during the day;
+                        // it stands for the end balance when the report has no closing balance
+                        else if (balance.Tp?.CdOrPrtry?.Item?.ToString() == "ITBD" && !closingBooked)
+                        {
+                            stmt.EndBalance = balance.Amt.Value;
+                            if (balance.CdtDbtInd == Camt052_008.CreditDebitCode.DBIT)
+                            {
+                                stmt.EndBalance *= -1.0m;
+                            }
+
+                            stmt.EndDate = balance.Dt.Item;
+                            stmt.HasEndBalance = true;
                         }
 
-                        // ITBD: InterimBooked
                         // CLAV: ClosingAvailable
                         // FWAV: ForwardAvailable
                     }
@@ -468,7 +504,7 @@ namespace libfintx.FinTS.Camt.Camt052
                     foreach (Camt052_008.ReportEntry10 entry in entries)
                     {
                         bool pending = entry.Sts.Item == "PDNG";
-                        if (!pending && entry.Amt.Ccy != stmt.Currency)
+                        if (!pending && stmt.Currency != null && entry.Amt.Ccy != stmt.Currency)
                         {
                             throw new Exception($"Transaction currency '{entry.Amt.Ccy}' does not match the bank statement currency '{stmt.Currency}'.");
                         }
@@ -520,6 +556,11 @@ namespace libfintx.FinTS.Camt.Camt052
                         if (partnerIdentification is Camt052_008.PartyIdentification135)
                             tr.PartnerName = (partnerIdentification as Camt052_008.PartyIdentification135)?.Nm;
 
+                        object ultimatePartner = debit ?
+                            txDetails?.RltdPties?.UltmtCdtr?.Item :
+                            txDetails?.RltdPties?.UltmtDbtr?.Item;
+                        tr.UltimatePartnerName = (ultimatePartner as Camt052_008.PartyIdentification135)?.Nm;
+
                         object account = debit ?
                             txDetails?.RltdPties?.CdtrAcct?.Id?.Item :
                             txDetails?.RltdPties?.DbtrAcct?.Id?.Item;
@@ -558,12 +599,14 @@ namespace libfintx.FinTS.Camt.Camt052
 
                         tr.CustomerRef = entry.AcctSvcrRef;
 
-                        if (txDetails?.BkTxCd.Prtry.Cd != null)
+                        // The code of the transaction details, else the one of the entry
+                        string bankTransactionCode = txDetails?.BkTxCd?.Prtry?.Cd ?? entry.BkTxCd?.Prtry?.Cd;
+                        if (bankTransactionCode != null)
                         {
                             // NTRF+177+9310+997
                             // NSTO+152+00900. look for SEPA Geschäftsvorfallcodes
                             // see the codes: https://www.hettwer-beratung.de/business-portfolio/zahlungsverkehr/elektr-kontoinformationen-swift-mt-940/
-                            string[] GVCCode = txDetails?.BkTxCd?.Prtry?.Cd?.Split(new char[] { '+' });
+                            string[] GVCCode = bankTransactionCode.Split(new char[] { '+' });
                             if (GVCCode.Length > 0)
                                 tr.TransactionTypeId = GVCCode[0];
                             if (GVCCode.Length > 1)
@@ -575,7 +618,7 @@ namespace libfintx.FinTS.Camt.Camt052
                         }
 
                         // for SEPA direct debit batches, there are multiple TxDtls records
-                        if (entryDetails.TxDtls?.Count() > 1)
+                        if (entryDetails?.TxDtls?.Count() > 1)
                         {
                             tr.PartnerName = string.Empty;
                             tr.Description = string.Format("SEPA Sammel-Basislastschrift mit {0} Lastschriften", entryDetails.TxDtls?.Count());

@@ -55,6 +55,12 @@ namespace libfintx.FinTS.Camt
         public DateTime EndDate { get; set; }
 
         /// <summary>
+        /// The report carries a booked end balance (closing or, during the day, interim booked);
+        /// a report of pending transactions only has none.
+        /// </summary>
+        public bool HasEndBalance { get; set; }
+
+        /// <summary>
         /// Across several years
         /// </summary>
         public bool SeveralYears { get; set; }
