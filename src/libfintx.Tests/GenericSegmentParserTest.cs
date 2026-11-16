@@ -35,6 +35,18 @@ public class GenericSegmentParserTest
     }
 
     [Fact]
+    public void TestHicazWithBinaryCamt()
+    {
+        const string camt = "<?xml version=\"1.0\"?><Document><Ustrd>A+B?C'D</Ustrd></Document>";
+        var segmentCode = $"HICAZ:5:1:3+DE02120300000000202051:BYLADEM1001+urn?:iso?:std?:iso?:20022?:tech?:xsd?:camt.052.001.08+@{camt.Length}@{camt}";
+        var segment = new GenericSegmentParser().ParseSegment(new Segment(segmentCode));
+
+        Assert.Equal("HICAZ", segment.Name);
+        Assert.Equal(3, segment.DataElements.Count);
+        Assert.Equal($"@{camt.Length}@{camt}", segment.DataElements[2]);
+    }
+
+    [Fact]
     public void TestEmptyReference()
     {
         var segment = new Segment("HIRMG:2:2:+0010::Nachricht entgegengenommen.");

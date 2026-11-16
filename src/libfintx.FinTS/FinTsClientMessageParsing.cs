@@ -36,7 +36,7 @@ public partial class FinTsClient
         }
         catch (Exception ex)
         {
-            Logger.LogInformation($"Couldn't parse segment: {ex.Message}{Environment.NewLine}{segmentCode}");
+            Logger.LogInformation($"Couldn't parse segment: {ex.Message}{Environment.NewLine}{Helper.Truncate(segmentCode, 200)}");
         }
         return segment;
     }

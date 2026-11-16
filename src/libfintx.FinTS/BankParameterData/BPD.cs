@@ -75,7 +75,7 @@ namespace libfintx.FinTS.BankParameterData
                 }
                 catch (Exception ex)
                 {
-                    logger.LogInformation($"Couldn't parse segment: {ex.Message}{Environment.NewLine}{rawSegment}");
+                    logger.LogInformation($"Couldn't parse segment: {ex.Message}{Environment.NewLine}{Helper.Truncate(rawSegment, 200)}");
                 }
             }
 
