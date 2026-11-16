@@ -25,7 +25,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using libfintx.FinTS.Depot;
+using libfintx.Swift;
 
 namespace libfintx.FinTS
 {
@@ -36,18 +36,18 @@ namespace libfintx.FinTS
         /// prices and values as the bank reports them. Fetches all parts of a long statement.
         /// Fails with a message when the bank offers no securities statement in version 5 or 6.
         /// </summary>
-        public async Task<HBCIDialogResult<SecuritiesStatement>> Holdings(TANDialog tanDialog)
+        public async Task<HBCIDialogResult<MT535>> Holdings(TANDialog tanDialog)
         {
             var result = await InitializeConnection();
             if (result.HasError)
-                return result.TypedResult<SecuritiesStatement>();
+                return result.TypedResult<MT535>();
 
             result = await ProcessSCA(result, tanDialog);
             if (result.HasError || result.IsAuthenticationPending)
-                return result.TypedResult<SecuritiesStatement>();
+                return result.TypedResult<MT535>();
 
             if (HIWPDS == 0)
-                return new HBCIDialogResult<SecuritiesStatement>(
+                return new HBCIDialogResult<MT535>(
                     new[] { new HBCIBankMessage("9000", "Die Bank bietet keine Depotaufstellung (HKWPD) an.") }, null);
 
             var mt535 = new StringBuilder();
@@ -57,11 +57,11 @@ namespace libfintx.FinTS
                 string bankCode = await Transaction.HKWPD(this, touchdown);
                 result = new HBCIDialogResult(Parse_BankCode(bankCode), bankCode);
                 if (result.HasError)
-                    return result.TypedResult<SecuritiesStatement>();
+                    return result.TypedResult<MT535>();
 
                 result = await ProcessSCA(result, tanDialog);
                 if (result.HasError || result.IsAuthenticationPending)
-                    return result.TypedResult<SecuritiesStatement>();
+                    return result.TypedResult<MT535>();
 
                 mt535.Append(Mt535Of(result.RawData));
                 touchdown = result.RawData.Contains("+3040::") ? Parse_Transactions_Startpoint(result.RawData) : null;
@@ -70,7 +70,7 @@ namespace libfintx.FinTS
             }
             while (!string.IsNullOrEmpty(touchdown));
 
-            return result.TypedResult(Mt535Parser.Parse(mt535.ToString()));
+            return result.TypedResult(new MT535Parser(_loggerFactory).Parse(mt535.ToString()));
         }
 
         /// <summary>The MT535 text in the HIWPD segments of a response, read by its binary length.</summary>

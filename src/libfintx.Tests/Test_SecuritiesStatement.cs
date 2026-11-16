@@ -1,7 +1,7 @@
 using System;
 using libfintx.FinTS;
 using libfintx.FinTS.Data;
-using libfintx.FinTS.Depot;
+using libfintx.Swift;
 using Xunit;
 
 namespace libfintx.Tests;
@@ -55,12 +55,12 @@ public class Test_SecuritiesStatement
     [Fact]
     public void TheStatement_GivesSharesPricesAndValues()
     {
-        SecuritiesStatement statement = Mt535Parser.Parse(Statement);
+        MT535 statement = new MT535Parser().Parse(Statement);
 
         Assert.Equal(new DateTime(2026, 11, 12), statement.StatementDate);
         Assert.Equal(2, statement.Holdings.Count);
 
-        SecurityHolding fund = statement.Holdings[0];
+        MT535Holding fund = statement.Holdings[0];
         Assert.Equal("IE00B4L5Y983", fund.Isin);
         Assert.Equal("ISHSIII-CORE MSCI WORLD U.ETF REGISTERED SHS USD (ACC)", fund.Name);
         Assert.Equal(142.318m, fund.Quantity);
@@ -75,7 +75,7 @@ public class Test_SecuritiesStatement
     [Fact]
     public void ABond_HasItsNominalAndAPriceInPercent()
     {
-        SecurityHolding bond = Mt535Parser.Parse(Statement).Holdings[1];
+        MT535Holding bond = new MT535Parser().Parse(Statement).Holdings[1];
 
         Assert.Equal("DE0001102580", bond.Isin);
         Assert.True(bond.IsNominal);
@@ -86,11 +86,60 @@ public class Test_SecuritiesStatement
     }
 
     [Fact]
+    public void TheGeneralBlock_AndFurtherFields_AreRead()
+    {
+        MT535 statement = new MT535Parser().Parse(Statement);
+
+        Assert.Equal("NONREF", statement.Reference);
+        Assert.Equal(1, statement.PageNumber);
+        Assert.True(statement.IsLastPage);
+        Assert.Equal("CUST", statement.StatementType);
+        Assert.Equal("10050000/1234567890", statement.SafekeepingAccount);
+        Assert.True(statement.HasHoldings);
+        Assert.Equal(19710.65m, statement.TotalValue);
+        Assert.Equal("EUR", statement.TotalValueCurrency);
+
+        MT535Holding fund = statement.Holdings[0];
+        Assert.Equal("A0RPWH", fund.Wkn);
+        Assert.Equal(142.318m, fund.AvailableQuantity);
+        Assert.Equal("ACTU", fund.PriceType);
+        Assert.Equal("XETR", fund.PriceSource);
+    }
+
+    [Fact]
+    public void TheAttributesOfABond_AreRead()
+    {
+        var statement = new MT535Parser().Parse(
+            ":16R:FIN\n:35B:ISIN DE0001102580\nBUND\n:16R:FIA\n:11A::DENO//EUR\n:98A::MATU//20320215\n:92A::INTR//2,5\n:16S:FIA\n" +
+            ":90A::MRKT//PRCT/97,85\n:93B::AGGR//FAMT/5000,\n:19A::ACRU//EUR31,25\n:92B::EXCH//EUR/USD/1,0812\n:16S:FIN\n-");
+
+        MT535Holding bond = Assert.Single(statement.Holdings);
+        Assert.Equal("EUR", bond.Denomination);
+        Assert.Equal(new DateTime(2032, 2, 15), bond.MaturityDate);
+        Assert.Equal(2.5m, bond.InterestRate);
+        Assert.Equal(31.25m, bond.AccruedInterest);
+        Assert.Equal("EUR", bond.AccruedInterestCurrency);
+        Assert.Equal(1.0812m, bond.ExchangeRate);
+        Assert.Equal("EUR/USD", bond.ExchangeRateCurrencies);
+    }
+
+    [Fact]
+    public void AnAmountThatCannotBeRead_IsSkipped_NotTheStatement()
+    {
+        var statement = new MT535Parser().Parse(
+            ":16R:FIN\n:35B:ISIN DE0008404005\nALLIANZ SE\n:93B::AGGR//UNIT/10,\n:90B::MRKT//ACTU/EUR1,2,3\n:16S:FIN\n-");
+
+        MT535Holding holding = Assert.Single(statement.Holdings);
+        Assert.Equal(10m, holding.Quantity);
+        Assert.Null(holding.Price);
+    }
+
+    [Fact]
     public void APositionWithoutPrice_IsKeptWithoutOne()
     {
-        var statement = Mt535Parser.Parse(":16R:FIN\n:35B:ISIN DE0008404005\nALLIANZ SE\n:93B::AGGR//UNIT/10,\n:16S:FIN\n-");
+        var statement = new MT535Parser().Parse(":16R:FIN\n:35B:ISIN DE0008404005\nALLIANZ SE\n:93B::AGGR//UNIT/10,\n:16S:FIN\n-");
 
-        SecurityHolding holding = Assert.Single(statement.Holdings);
+        MT535Holding holding = Assert.Single(statement.Holdings);
         Assert.Equal(10m, holding.Quantity);
         Assert.Null(holding.Price);
         Assert.Null(holding.Value);
