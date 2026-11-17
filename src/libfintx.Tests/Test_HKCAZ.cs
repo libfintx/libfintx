@@ -44,6 +44,28 @@ public class Test_HKCAZ
         }
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void WithoutAFormatFromTheBank_Camt052Version08IsRequested(string format)
+    {
+        var previous = UPD.AccountList;
+        UPD.AccountList = new List<AccountInformation>();
+        try
+        {
+            var client = Client();
+            client.HICAZS_Camt = format;
+            Assert.Equal(
+                "HKCAZ:3:1+::15910698::280:12030000+urn?:iso?:std?:iso?:20022?:tech?:xsd?:camt.052.001.08+N'",
+                HKCAZ.Segment(client, null, null, null, CamtVersion.Camt052));
+        }
+        finally
+        {
+            UPD.AccountList = previous;
+        }
+    }
+
     [Fact]
     public void ThePeriodAndTheTouchdownPoint_FollowTheFormat()
     {

@@ -79,7 +79,7 @@ namespace libfintx.FinTS
             {
                 string.Join(DEG.Separator, account.AccountIban, account.AccountBic, account.AccountNumber,
                     account.SubAccountFeature, SEG_COUNTRY.Germany, account.AccountBankCode),
-                camtVers == CamtVersion.Camt052 ? client.HICAZS_Camt : CamtScheme.Camt053,
+                camtVers == CamtVersion.Camt052 ? Camt052Format(client) : CamtScheme.Camt053,
                 DEG.DeAdd,
                 fromDate ?? string.Empty,
                 toDate ?? string.Empty,
@@ -99,5 +99,12 @@ namespace libfintx.FinTS
                 RawData = string.Join(sEG.Delimiter, elements, 0, used) + sEG.Terminator
             });
         }
+
+        /// <summary>
+        /// The camt.052 version the bank offers in HICAZS, or camt.052.001.08 when the client has
+        /// none, for example after a dialog with a stored system ID that did not fetch the BPD.
+        /// </summary>
+        private static string Camt052Format(FinTsClient client) =>
+            string.IsNullOrWhiteSpace(client.HICAZS_Camt) ? CamtScheme.Camt052_001_08 : client.HICAZS_Camt;
     }
 }
