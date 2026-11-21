@@ -32,7 +32,7 @@ This project follows [Semantic Versioning](https://semver.org/): a major version
 - :bug: *fix* reduce SEPA text to the SEPA charset before XML escaping
 - :bug: *fix* log and skip malformed MT940 closing balances
 
-## Version 1.4.0 (2026-06-09)
+## Version 1.4.0 (2026-07-31)
 
 - :rocket: add .NET 10 to the target frameworks ([#64](https://github.com/libfintx/libfintx/pull/64))
 - :rocket: complete EBICS C53 implementation and use Latin1 encoding
