@@ -78,6 +78,12 @@ namespace libfintx.FinTS.Camt
         /// </summary>
         public string PartnerName { get; set; }
 
+        /// <summary>
+        /// Name of the ultimate counterpart: the ultimate creditor of a debit, the ultimate debtor
+        /// of a credit (for example the shop behind a payment service)
+        /// </summary>
+        public string UltimatePartnerName { get; set; }
+
         public string EndToEndId { get; set; }
 
         public string MandateId { get; set; }

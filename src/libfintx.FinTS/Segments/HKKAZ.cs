@@ -44,7 +44,7 @@ namespace libfintx.FinTS
 
             SEG sEG = new SEG();
             string segments = string.Empty;
-            var activeAccount = ResolveAccountForHkkaz(client);
+            var activeAccount = ResolveAccount(client);
 
             client.SEGNUM = Convert.ToInt16(SEG_NUM.Seg3);
 
@@ -285,12 +285,17 @@ namespace libfintx.FinTS
             return response;
         }
 
-        private static AccountInformation ResolveAccountForHkkaz(FinTsClient client)
+        /// <summary>
+        /// The account of the client as the bank lists it in the UPD (IBAN, BIC, sub-account
+        /// feature), matched to the connection details; the connection details themselves when
+        /// the UPD hold no matching account. The statement requests (HKKAZ, HKCAZ) name it.
+        /// </summary>
+        internal static AccountInformation ResolveAccount(FinTsClient client)
         {
             if (client.activeAccount != null)
             {
                 client.Logger.LogInformation(
-                    "Kontozuordnung (HKKAZ): bereits gesetztes aktives Konto wird verwendet. IBAN={Iban}, Konto={Account}, Unterkonto={SubAccount}, BLZ={Blz}",
+                    "Kontozuordnung (Umsätze): bereits gesetztes aktives Konto wird verwendet. IBAN={Iban}, Konto={Account}, Unterkonto={SubAccount}, BLZ={Blz}",
                     MaskValue(client.activeAccount.AccountIban),
                     MaskValue(client.activeAccount.AccountNumber),
                     MaskValue(client.activeAccount.SubAccountFeature),
@@ -303,7 +308,7 @@ namespace libfintx.FinTS
             if (candidates.Count == 0)
             {
                 client.Logger.LogInformation(
-                    "Kontozuordnung (HKKAZ): keine UPD-Konten vorhanden, konfiguriertes Konto wird verwendet. IBAN={Iban}, Konto={Account}, Unterkonto={SubAccount}, BLZ={Blz}",
+                    "Kontozuordnung (Umsätze): keine UPD-Konten vorhanden, konfiguriertes Konto wird verwendet. IBAN={Iban}, Konto={Account}, Unterkonto={SubAccount}, BLZ={Blz}",
                     MaskValue(fallbackAccount.AccountIban),
                     MaskValue(fallbackAccount.AccountNumber),
                     MaskValue(fallbackAccount.SubAccountFeature),
@@ -333,7 +338,7 @@ namespace libfintx.FinTS
             if (bestIdentityScore <= 0)
             {
                 client.Logger.LogInformation(
-                    "Kontozuordnung (HKKAZ): kein passendes UPD-Konto gefunden, konfiguriertes Konto wird verwendet. IBAN={Iban}, Konto={Account}, Unterkonto={SubAccount}, BLZ={Blz}",
+                    "Kontozuordnung (Umsätze): kein passendes UPD-Konto gefunden, konfiguriertes Konto wird verwendet. IBAN={Iban}, Konto={Account}, Unterkonto={SubAccount}, BLZ={Blz}",
                     MaskValue(fallbackAccount.AccountIban),
                     MaskValue(fallbackAccount.AccountNumber),
                     MaskValue(fallbackAccount.SubAccountFeature),
@@ -355,7 +360,7 @@ namespace libfintx.FinTS
             {
                 var selected = topCandidates[0];
                 client.Logger.LogInformation(
-                    "Kontozuordnung (HKKAZ): UPD-Konto ausgewählt. IBAN={Iban}, Konto={Account}, Unterkonto={SubAccount}, BLZ={Blz}, HKKAZ={HasHkkaz}",
+                    "Kontozuordnung (Umsätze): UPD-Konto ausgewählt. IBAN={Iban}, Konto={Account}, Unterkonto={SubAccount}, BLZ={Blz}, HKKAZ={HasHkkaz}",
                     MaskValue(selected.AccountIban),
                     MaskValue(selected.AccountNumber),
                     MaskValue(selected.SubAccountFeature),
@@ -382,7 +387,7 @@ namespace libfintx.FinTS
             }
 
             client.Logger.LogInformation(
-                "Kontozuordnung (HKKAZ): konfiguriertes Konto wird verwendet. IBAN={Iban}, Konto={Account}, Unterkonto={SubAccount}, BLZ={Blz}",
+                "Kontozuordnung (Umsätze): konfiguriertes Konto wird verwendet. IBAN={Iban}, Konto={Account}, Unterkonto={SubAccount}, BLZ={Blz}",
                 MaskValue(fallbackAccount.AccountIban),
                 MaskValue(fallbackAccount.AccountNumber),
                 MaskValue(fallbackAccount.SubAccountFeature),

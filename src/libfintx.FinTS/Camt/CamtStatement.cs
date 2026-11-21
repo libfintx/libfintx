@@ -48,7 +48,11 @@ namespace libfintx.FinTS.Camt
 
         public decimal StartBalance { get; set; }
 
-        public decimal EndBalance { get; set; }
+        /// <summary>
+        /// The booked end balance: the closing one or, during the day, the interim booked one.
+        /// Null when the report has none, as a report of pending transactions only.
+        /// </summary>
+        public decimal? EndBalance { get; set; }
 
         public DateTime StartDate { get; set; }
 

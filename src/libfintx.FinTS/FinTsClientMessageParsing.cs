@@ -306,10 +306,11 @@ public partial class FinTsClient
 
         if (segment.Name == "HICAZS")
         {
-            if (segment.Payload.Contains("camt.052.001.02"))
-                this.HICAZS_Camt = CamtScheme.Camt052_001_02;
-            else if (segment.Payload.Contains("camt.052.001.08"))
+            // The newer version first: banks that offer both keep it after the older one ends
+            if (segment.Payload.Contains("camt.052.001.08"))
                 this.HICAZS_Camt = CamtScheme.Camt052_001_08;
+            else if (segment.Payload.Contains("camt.052.001.02"))
+                this.HICAZS_Camt = CamtScheme.Camt052_001_02;
             else // Fallback
                 this.HICAZS_Camt = CamtScheme.Camt052_001_02;
         }

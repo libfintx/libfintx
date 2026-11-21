@@ -270,7 +270,7 @@ namespace libfintx.FinTS.Camt.Camt053
                             else if (ownName != string.Empty)
                             {
                                 // sometimes donors write the project or recipient in the field where the organisation is supposed to be
-                                _logger.LogInformation("CrdtName is not like expected: " + tr.Description + " --- " + CrdtName);
+                                _logger.LogDebug("CrdtName is not like expected: " + tr.Description + " --- " + CrdtName);
                             }
                         }
 
@@ -308,7 +308,7 @@ namespace libfintx.FinTS.Camt.Camt053
 
                         stmt.Transactions.Add(tr);
 
-                        _logger.LogInformation("count : " + stmt.Transactions.Count.ToString());
+                        _logger.LogDebug("count : " + stmt.Transactions.Count.ToString());
                     }
                 }
 
