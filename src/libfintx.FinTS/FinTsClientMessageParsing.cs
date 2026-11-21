@@ -37,6 +37,8 @@ public partial class FinTsClient
         catch (Exception ex)
         {
             Logger.LogInformation($"Couldn't parse segment: {ex.Message}{Environment.NewLine}{Helper.Truncate(segmentCode, 200)}");
+            // The whole segment, which can be large (a camt document), only at debug level
+            Logger.LogDebug("Segment that couldn't be parsed: {Segment}", segmentCode);
         }
         return segment;
     }
