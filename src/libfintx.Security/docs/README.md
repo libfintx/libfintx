@@ -7,4 +7,4 @@ This is a helper library for [libfintx.EBICS](https://www.nuget.org/packages/lib
 
 Licensed under **GNU LESSER GENERAL PUBLIC LICENSE Version 3, 29 June 2007**. Please read the [LICENSE](https://github.com/libfintx/libfintx/blob/main/LICENSE) file.
 
-Copyright (c) 2016 - 2024 **Torsten Klinger**
+Copyright (c) 2016 - 2026 **Torsten Klinger**

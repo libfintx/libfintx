@@ -3,14 +3,20 @@
 
 A .NET client library for **EBICS H004** and **EBICS H005**.
 
-The Electronic Banking Internet Communication Standard (EBICS) is a German transmission protocol developed by the German Banking Industry Committee for sending payment information between banks over the Internet. It grew out of the earlier BCS-FTAM protocol that was developed in 1995, with the aim of being able to use internet connections and TCP/IP. It is mandated for use by German banks and has also been adopted by France and Switzerland. [Wikipedia](https://en.wikipedia.org/wiki/Electronic_Banking_Internet_Communication_Standard).
+The Electronic Banking Internet Communication Standard (EBICS) is a German transmission protocol developed by the German Banking Industry Committee for sending payment information between banks over the Internet. It is mandated for use by German banks and has also been adopted by France and Switzerland. [Wikipedia](https://en.wikipedia.org/wiki/Electronic_Banking_Internet_Communication_Standard).
 
-This client library supports all four APIs, HBCI 2.2, FinTS 3.0 and EBICS H004 and H005.
+# Features
 
-It can be used to read the balance of a bank account, receive an account statement, and make a SEPA payment using **PIN/TAN** and **EBICS**.
+* Initialization (**INI**, **HIA**, **HPB**) and the INI and HIA letters
+* Credit transfers (**CCT**) and direct debits (**CDD**)
+* Statements as SWIFT (**STA**) and camt.052/053 (**C52**, **C53**)
+* Customer protocol (**PTK**) and suspending access (**SPR**)
+* **E002** encryption, **X002** authentication, **A005** and **A006** signatures
+
+The full list of features, the limitations and sample code are in [docs/EBICS.md](https://github.com/libfintx/libfintx/blob/main/docs/EBICS.md).
 
 # Copyright & License
 
 Licensed under **GNU LESSER GENERAL PUBLIC LICENSE Version 3, 29 June 2007**. Please read the [LICENSE](https://github.com/libfintx/libfintx/blob/main/LICENSE) file.
 
-Copyright (c) 2016 - 2024 **Torsten Klinger**
+Copyright (c) 2016 - 2026 **Torsten Klinger**

@@ -1,88 +1,24 @@
 # libfintx.FinTS
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
-A .NET client library for **HBCI 2.2**, **FinTS 3.0**.
+A .NET client library for **HBCI 2.2** and **FinTS 3.0** with **PIN/TAN**.
 
-In 1995 the ZKA announced a common online banking standard called *Homebanking Computer Interface* (HBCI). In 2003 they published the next generation of this protocol standard and named it *Financial Transaction Services* (FinTS).
-
-Today most of all german banks support this online banking standards.
-
-It can be used to read the balance of a bank account, receive an account statement, and make a SEPA payment using **PIN/TAN**.
+In 1995 the ZKA announced a common online banking standard called *Homebanking Computer Interface* (HBCI). In 2003 they published the next generation of this protocol standard and named it *Financial Transaction Services* (FinTS). Today most German banks support these online banking standards.
 
 # Features
 
-* Get Balance (**HKSAL**)
-* Request Transactions (**HKKAZ**)
-* Transfer money (**HKCCS**)
-* Transfer money at a certain time (**HKCCS**)
-* Collective transfer money (**HKCCM**)
-* Collective transfer money terminated (**HKCME**)
-* Rebook money from one to another account (**HKCUM**)
-* Collect money (**HKDSE**)
-* Collective collect money (**HKDME**)
-* Load mobile phone prepaid card (**HKPPD**)
-* Submit banker's order (**HKCDE**)
-* Get banker's orders (**HKCSB**)
-* Send Credit Transfer Initiation (**CCT**)
-* Send Direct Debit Initiation (**CDD**)
-* Pick up Swift daily statements (**STA**)
+* Accounts, balance (**HKSAL**) and transactions as MT940 (**HKKAZ**) or camt.052/053 (**HKCAZ**)
+* Securities holdings as MT535 (**HKWPD**)
+* Transfers, scheduled transfers, collective transfers, direct debits and banker's orders
+* Strong customer authentication: TAN process 2, decoupled approval in the banking app (HKTAN#7), chipTAN flicker code and photoTAN
+* Cached bank and user parameter data, stored where you choose (`IBpdStore`, `IUpdStore`)
 
-# Specification
+The full list of features, the segments behind them and sample code are in [docs/FinTS.md](https://github.com/libfintx/libfintx/blob/main/docs/FinTS.md).
 
-For exact information please refer to the [german version of the specification](http://www.hbci-zka.de/spec/spezifikation.htm).
-
-# Tested banks
-
-* Raiffeisenbanken
-* Sparkassen
-* DKB
-* DiBa
-* Consorsbank
-* Sparda
-* Postbank
-* Norisbank
-* Deutsche Bank
-* Unicredit Bank
-* Commerzbank
-
-# Sample code (FinTS)
-
-Check account balance.
-
-```csharp
-/// <summary>
-/// Kontostand abfragen
-/// </summary>
-/// <param name="sender"></param>
-/// <param name="e"></param>
-private async void btn_kontostand_abfragen_Click(object sender, EventArgs e)
-{
-    var connectionDetails = GetConnectionDetails();
-    var client = new FinTsClient(connectionDetails);
-    var sync = await client.Synchronization();
-
-    HBCIOutput(sync.Messages);
-
-    if (sync.IsSuccess)
-    {
-        // TAN-Verfahren
-        client.HIRMS = txt_tanverfahren.Text;
-
-        if (!await InitTANMedium(client))
-            return;
-
-        var balance = await client.Balance(_tanDialog);
-
-        HBCIOutput(balance.Messages);
-
-        if (balance.IsSuccess)
-            SimpleOutput("Kontostand: " + Convert.ToString(balance.Data.Balance));
-    }
-}
-```
+For the specification see the [FinTS documents of the Deutsche Kreditwirtschaft](https://www.hbci-zka.de/spec/spezifikation.htm).
 
 # Copyright & License
 
 Licensed under **GNU LESSER GENERAL PUBLIC LICENSE Version 3, 29 June 2007**. Please read the [LICENSE](https://github.com/libfintx/libfintx/blob/main/LICENSE) file.
 
-Copyright (c) 2016 - 2024 **Torsten Klinger**
+Copyright (c) 2016 - 2026 **Torsten Klinger**
