@@ -2,6 +2,10 @@
 
 This project follows [Semantic Versioning](https://semver.org/): a major version for breaking changes, a minor version for new features and a patch version for bug fixes.
 
+## Version 2.0.0 (unreleased)
+
+- :boom: *breaking* `CamtStatement.EndBalance` is now `decimal?` and null when a camt report has no booked balance (instead of 0). Callers assigning it to a `decimal` need `.Value` or `?? 0`; `HasEndBalance` stays and tells whether it is set ([#94](https://github.com/libfintx/libfintx/pull/94))
+
 ## Version 1.5.0 (2026-11-21)
 
 - :tada: add securities statement (Depotaufstellung) via HKWPD and MT535: `FinTsClient.Holdings` and the new `MT535Parser` in `libfintx.Swift` ([#95](https://github.com/libfintx/libfintx/pull/95))
