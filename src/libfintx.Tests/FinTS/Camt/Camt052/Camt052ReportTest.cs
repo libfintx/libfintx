@@ -63,7 +63,9 @@ public class Camt052ReportTest
         const string interim = """<Bal><Tp><CdOrPrtry><Cd>ITBD</Cd></CdOrPrtry></Tp><Amt Ccy="EUR">20.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Dt><Dt>2026-11-16</Dt></Dt></Bal>""";
         Assert.Contains(interim, Report);
 
-        Assert.Null(Parse(Report.Replace(interim, string.Empty)).EndBalance);
+        var statement = Parse(Report.Replace(interim, string.Empty));
+        Assert.False(statement.HasEndBalance);
+        Assert.Equal(0m, statement.EndBalance);
     }
 
     [Fact]
@@ -73,6 +75,7 @@ public class Camt052ReportTest
 
         Assert.Equal("DE02430609670000000001", statement.AccountCode);
         Assert.Equal(100.00m, statement.StartBalance);
+        Assert.True(statement.HasEndBalance);
         Assert.Equal(-20.00m, statement.EndBalance);
         Assert.Equal(new System.DateTime(2026, 11, 16), statement.EndDate);
     }
