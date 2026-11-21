@@ -50,11 +50,20 @@ public class Camt052ReportTest
         </Document>
         """;
 
-    private static libfintx.FinTS.Camt.CamtStatement Parse()
+    private static libfintx.FinTS.Camt.CamtStatement Parse(string report = Report)
     {
         var parser = new Camt052Parser();
-        parser.ProcessDocument(Report, Encoding.UTF8);
+        parser.ProcessDocument(report, Encoding.UTF8);
         return Assert.Single(parser.statements);
+    }
+
+    [Fact]
+    public void A_report_without_booked_balance_has_no_end_balance()
+    {
+        const string interim = """<Bal><Tp><CdOrPrtry><Cd>ITBD</Cd></CdOrPrtry></Tp><Amt Ccy="EUR">20.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Dt><Dt>2026-11-16</Dt></Dt></Bal>""";
+        Assert.Contains(interim, Report);
+
+        Assert.Null(Parse(Report.Replace(interim, string.Empty)).EndBalance);
     }
 
     [Fact]
@@ -64,7 +73,6 @@ public class Camt052ReportTest
 
         Assert.Equal("DE02430609670000000001", statement.AccountCode);
         Assert.Equal(100.00m, statement.StartBalance);
-        Assert.True(statement.HasEndBalance);
         Assert.Equal(-20.00m, statement.EndBalance);
         Assert.Equal(new System.DateTime(2026, 11, 16), statement.EndDate);
     }

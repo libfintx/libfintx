@@ -163,7 +163,6 @@ namespace libfintx.FinTS.Camt.Camt053
                             }
 
                             stmt.EndDate = balance.Dt.Item;
-                            stmt.HasEndBalance = true;
                         }
 
                         // ITBD: InterimBooked

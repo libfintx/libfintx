@@ -208,7 +208,6 @@ namespace libfintx.FinTS.Camt.Camt052
                             }
 
                             stmt.EndDate = balance.Dt.Item;
-                            stmt.HasEndBalance = true;
                             closingBooked = true;
                         }
                         // ITBD: InterimBooked, the booked balance of a report during the day;
@@ -222,7 +221,6 @@ namespace libfintx.FinTS.Camt.Camt052
                             }
 
                             stmt.EndDate = balance.Dt.Item;
-                            stmt.HasEndBalance = true;
                         }
 
                         // CLAV: ClosingAvailable
@@ -452,7 +450,6 @@ namespace libfintx.FinTS.Camt.Camt052
                             }
 
                             stmt.EndDate = balance.Dt.Item;
-                            stmt.HasEndBalance = true;
                             closingBooked = true;
                         }
                         // ITBD: InterimBooked, the booked balance of a report during the day;
@@ -466,7 +463,6 @@ namespace libfintx.FinTS.Camt.Camt052
                             }
 
                             stmt.EndDate = balance.Dt.Item;
-                            stmt.HasEndBalance = true;
                         }
 
                         // CLAV: ClosingAvailable
