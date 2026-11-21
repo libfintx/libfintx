@@ -80,6 +80,8 @@ namespace libfintx.FinTS
         internal string HNHBK { get; set; }
         internal int HNHBS { get; set; }
         internal int HISALS { get; set; }
+        /// <summary>The HKWPD version for the securities statement: the highest of 5 and 6 the bank offers, 0 for none.</summary>
+        internal int HIWPDS { get; set; }
         internal int HIKAZS { get; set; }
         internal int HICAZS => 1;
         public string HICAZS_Camt { get; set; }

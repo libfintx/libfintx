@@ -35,7 +35,15 @@ namespace libfintx.FinTS
         public string AccountBankCode { get; set; }
         public string AccountUserId { get; set; }
         public string AccountOwner { get; set; }
+        /// <summary>The bank's name for the account product, e.g. "Sparkassenbuch Gold".</summary>
         public string AccountType { get; set; }
+        /// <summary>
+        /// The FinTS account kind (Kontoart, 1-99) the bank reports in the UPD, or null when it
+        /// sends none. The ranges name the kind: 1-9 current account, 10-19 savings,
+        /// 20-29 fixed deposit, 30-39 securities account, 40-49 loan, 50-59 credit card,
+        /// 60-69 fund account, 70-79 building savings, 80-89 insurance, 90-99 other.
+        /// </summary>
+        public int? AccountKind { get; set; }
         public string AccountCurrency { get; set; }
         public string AccountBic { get; set; }
 
