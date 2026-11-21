@@ -62,6 +62,27 @@ namespace libfintx.FinTS
         public MatrixCode MatrixCode { get; internal set; }
 
         /// <summary>
+        /// Text the bank shows the user for this TAN or approval (HITAN "Challenge"), or the return value 0030/3955
+        /// when it sends none.
+        /// </summary>
+        public string Challenge { get; internal set; }
+
+        /// <summary>
+        /// Called with the result of the verification of payee before a credit transfer is released; return true to
+        /// execute it. Without it an order is only executed when the bank requires no confirmation.
+        /// </summary>
+        public Func<VerificationOfPayeeResult, Task<bool>> ConfirmVerificationOfPayeeAsync { get; set; }
+
+        /// <summary>
+        /// Decoupled approval without automated status requests (HITANS#7 element 26 = N): the waitForTanAsync callback
+        /// has to return only after the user confirms the approval (null cancels).
+        /// </summary>
+        public bool ManualApprovalConfirmation { get; internal set; }
+
+        /// <summary>Result of the last verification of payee in this dialog.</summary>
+        public VerificationOfPayeeResult VerificationOfPayee { get; internal set; }
+
+        /// <summary>
         /// Bei Verwendung des Decoupled-Verfahren (HKTAN#7) setzen.
         /// </summary>
         public bool IsDecoupled { get; set; }
