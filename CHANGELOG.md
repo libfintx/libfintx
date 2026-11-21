@@ -1,5 +1,7 @@
 # Changelog
 
+This project follows [Semantic Versioning](https://semver.org/): a major version for breaking changes, a minor version for new features and a patch version for bug fixes.
+
 ## Version 1.5.0 (2026-11-21)
 
 - :tada: add securities statement (Depotaufstellung) via HKWPD and MT535: `FinTsClient.Holdings` and the new `MT535Parser` in `libfintx.Swift` ([#95](https://github.com/libfintx/libfintx/pull/95))
@@ -8,7 +10,7 @@
 - :rocket: use the decoupled status request parameters from HITANS#7 ([#83](https://github.com/libfintx/libfintx/pull/83))
 - :rocket: add `AccountInformation.AccountKind` with the FinTS account kind from the UPD ([#95](https://github.com/libfintx/libfintx/pull/95))
 - :rocket: add `HBCIDialogResult.IsAuthenticationPending` ([#88](https://github.com/libfintx/libfintx/pull/88))
-- :rocket: *change* `CamtStatement.EndBalance` is now `decimal?` and stays null when a camt report has no booked balance (breaking: use `.Value` or `?? 0`) ([#94](https://github.com/libfintx/libfintx/pull/94))
+- :rocket: add `CamtStatement.HasEndBalance`, false when a camt report has no booked balance (`EndBalance` is then 0) ([#94](https://github.com/libfintx/libfintx/pull/94))
 - :rocket: add `CamtTransaction.UltimatePartnerName`, and prefer camt.052.001.08 when the bank offers both versions ([#94](https://github.com/libfintx/libfintx/pull/94))
 - :rocket: *change* rename `Helper.EscapeHbciString` to `EscapeEdifactString` (the old name is obsolete)
 - :bug: *fix* read the camt.052.001.08 reports banks send without MT940 (no account currency, entries without transaction details or bank transaction code, interim booked balance as end balance) ([#94](https://github.com/libfintx/libfintx/pull/94))
