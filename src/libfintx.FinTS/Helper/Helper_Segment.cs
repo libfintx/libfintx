@@ -65,12 +65,15 @@ namespace libfintx.FinTS
         private static DelimiterMatch FindNextDataElementDelimiter(string message)
         {
             var escapeMatch = Regex.Match(message, @"\?");
+            var binaryMatch = Regex.Match(message, @"@\d+@");
             var dataElementMatch = Regex.Match(message, @"\+");
 
-            var result = new Match[] { escapeMatch, dataElementMatch }.Where(m => m.Success).OrderBy(m => m.Index).FirstOrDefault();
+            var result = new Match[] { escapeMatch, binaryMatch, dataElementMatch }.Where(m => m.Success).OrderBy(m => m.Index).FirstOrDefault();
 
             if (result == escapeMatch)
                 return new DelimiterMatch(Delimiter.Escape, result.Index, result.Value);
+            if (result == binaryMatch)
+                return new DelimiterMatch(Delimiter.Binary, result.Index, result.Value);
             if (result == dataElementMatch)
                 return new DelimiterMatch(Delimiter.DataElement, result.Index, result.Value);
 
@@ -108,6 +111,22 @@ namespace libfintx.FinTS
 
                             currentDataElement.Append(code.Substring(0, length));
                             code = code.Substring(length);
+
+                            break;
+                        }
+                    case Delimiter.Binary:
+                        {
+                            // Binary data (such as a camt document) is taken over as it is: its length
+                            // is given, and it holds +, ? and ' without escaping.
+                            var binaryLength = Convert.ToInt32(match.Value.Substring(1, match.Value.Length - 2));
+                            var length = match.Index + match.Value.Length + binaryLength;
+                            if (code.Length < length)
+                                throw new ArgumentException($"Invalid code. Given binary length {binaryLength} exceeds actual code length. Code is: {Truncate(code)}");
+
+                            currentDataElement.Append(code.Substring(0, length));
+                            code = code.Substring(length);
+                            if (code.Length == 0)
+                                dataElements.Add(currentDataElement.ToString());
 
                             break;
                         }
@@ -251,7 +270,7 @@ namespace libfintx.FinTS
             }
         }
 
-        private static string Truncate(string s, int length = 15)
+        internal static string Truncate(string s, int length = 15)
         {
             if (s == null)
                 return null;

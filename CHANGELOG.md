@@ -17,6 +17,8 @@ This project follows [Semantic Versioning](https://semver.org/): a major version
 - :rocket: add `CamtStatement.HasEndBalance`, false when a camt report has no booked balance (`EndBalance` is then 0) ([#94](https://github.com/libfintx/libfintx/pull/94))
 - :rocket: add `CamtTransaction.UltimatePartnerName`, and prefer camt.052.001.08 when the bank offers both versions ([#94](https://github.com/libfintx/libfintx/pull/94))
 - :rocket: *change* rename `Helper.EscapeHbciString` to `EscapeEdifactString` (the old name is obsolete)
+- :rocket: *change* reference `Microsoft.Extensions.Logging(.Abstractions)` 10.0.14, so applications on .NET 10 build against libfintx ([#93](https://github.com/libfintx/libfintx/pull/93))
+- :rocket: log an excerpt of a segment that cannot be parsed, and the whole segment at debug level ([#93](https://github.com/libfintx/libfintx/pull/93))
 - :bug: *fix* read the camt.052.001.08 reports banks send without MT940 (no account currency, entries without transaction details or bank transaction code, interim booked balance as end balance) ([#94](https://github.com/libfintx/libfintx/pull/94))
 - :bug: *fix* HKCAZ names the account from the UPD like HKKAZ does, and requests camt.052.001.08 when HICAZS names no format ([#94](https://github.com/libfintx/libfintx/pull/94))
 - :bug: *fix* keep polling for a decoupled approval while the bank reports 3956 ([#86](https://github.com/libfintx/libfintx/pull/86))
@@ -25,6 +27,8 @@ This project follows [Semantic Versioning](https://semver.org/): a major version
 - :bug: *fix* HKTAN process 2/S segments and the TAN in the signature ([#82](https://github.com/libfintx/libfintx/pull/82))
 - :bug: *fix* read the chipTAN flicker code from the HHD_UC element and show the challenge text when it is malformed ([#80](https://github.com/libfintx/libfintx/pull/80))
 - :bug: *fix* mask PIN, TAN and user id in the trace log by segment structure, and trace the bank's response instead of the request twice ([#89](https://github.com/libfintx/libfintx/pull/89))
+- :bug: *fix* accept a segment header with an empty reference (`HIRMG:2:2:+...`) and lists of languages and HBCI versions in HIBPA ([#93](https://github.com/libfintx/libfintx/pull/93))
+- :bug: *fix* take binary data (`@len@`) over whole when splitting data elements, so camt answers (HICAZ) are parsed ([#93](https://github.com/libfintx/libfintx/pull/93))
 - :bug: *fix* send the actual cached BPD version in the INI dialog instead of a hardcoded 0
 - :bug: *fix* encode outgoing FinTS messages and decode Base64 as ISO-8859-1 instead of ASCII
 - :bug: *fix* escape FinTS syntax characters in the TAN medium name and PIN

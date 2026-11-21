@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text.RegularExpressions;
 using libfintx.FinTS.Segments;
 
@@ -12,8 +12,10 @@ internal class HIBPASegmentParser : ISegmentParser
 
         // HIBPA:5:3:3+39+280:10090000+Berliner Volksbank+1+1+300+1000'
         // HIBPA:6:3:4+54+280:53070394+Postbank+0+1+300+9999
+        // HIBPA:6:3:4+2+280:76030080+Consors+0+1:2+201:210:220:300:400+100
         // payload: 54+280:53070394+Postbank+0+1+300+9999
-        var match = Regex.Match(segment.Payload, @"^(?<bdpversion>\d*)\+(?<bankcountry>\d*):(?<bankcode>\d*)\+(?<bankname>.*)\+(?<notransactions>\d*)\+(?<supportedLanguages>\d*)\+(?<maxMessageSize>\d+)?");
+        // Languages and HBCI versions are lists separated by colons.
+        var match = Regex.Match(segment.Payload, @"^(?<bdpversion>\d*)\+(?<bankcountry>\d*):(?<bankcode>\d*)\+(?<bankname>.*?)\+(?<notransactions>\d*)\+(?<supportedLanguages>[\d:]*)\+(?<supportedVersions>[\d:]*)");
         if (!match.Success)
             throw new ArgumentException($"Could not parse segment{Environment.NewLine}{segment.Payload}");
 

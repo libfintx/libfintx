@@ -75,7 +75,9 @@ namespace libfintx.FinTS.BankParameterData
                 }
                 catch (Exception ex)
                 {
-                    logger.LogInformation($"Couldn't parse segment: {ex.Message}{Environment.NewLine}{rawSegment}");
+                    logger.LogInformation($"Couldn't parse segment: {ex.Message}{Environment.NewLine}{Helper.Truncate(rawSegment, 200)}");
+                    // The whole segment, which can be large (a camt document), only at debug level
+                    logger.LogDebug("Segment that couldn't be parsed: {Segment}", rawSegment);
                 }
             }
 
