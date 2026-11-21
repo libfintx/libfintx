@@ -101,6 +101,9 @@ private async void btn_kontostand_abfragen_Click(object sender, EventArgs e)
 
         if (balance.IsSuccess)
             SimpleOutput("Kontostand: " + Convert.ToString(balance.Data.Balance));
+
+        // Every business transaction opens a dialog; end it once nothing is outstanding
+        await client.EndDialog();
     }
 }
 ```
