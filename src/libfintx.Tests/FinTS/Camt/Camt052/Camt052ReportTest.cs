@@ -65,7 +65,7 @@ public class Camt052ReportTest
 
         var statement = Parse(Report.Replace(interim, string.Empty));
         Assert.False(statement.HasEndBalance);
-        Assert.Equal(0m, statement.EndBalance);
+        Assert.Null(statement.EndBalance);
     }
 
     [Fact]
