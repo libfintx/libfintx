@@ -5,6 +5,10 @@ This project follows [Semantic Versioning](https://semver.org/): a major version
 ## Version 2.0.0 (unreleased)
 
 - :boom: *breaking* `CamtStatement.EndBalance` is now `decimal?` and null when a camt report has no booked balance (instead of 0). Callers assigning it to a `decimal` need `.Value` or `?? 0`; `HasEndBalance` stays and tells whether it is set ([#94](https://github.com/libfintx/libfintx/pull/94))
+- :boom: *breaking* `libfintx.Security`, `libfintx.EBICSConfig` and `libfintx.EBICS` reference `BouncyCastle.Cryptography` 2.7.0 instead of the unmaintained `Portable.BouncyCastle` 1.9.0. Both use the `Org.BouncyCastle` namespaces; an application that references `Portable.BouncyCastle` itself has to switch too
+- :rocket: *change* `libfintx.EBICS` compresses order data with `System.IO.Compression.ZLibStream` and no longer references `Iconic.Zlib.Netstandard`, which pulled in `NETStandard.Library` 1.6.0 with vulnerable `System.Net.Http` and `System.Security.Cryptography.X509Certificates` 4.1.0
+- :rocket: *change* reference `System.Security.Cryptography.Xml` 10.0.15 (was 8.0.0, with known vulnerabilities), `Microsoft.Extensions.Logging(.Abstractions)` 10.0.15 and `Newtonsoft.Json` 13.0.4
+- :rocket: *change* reference `SixLabors.ImageSharp` 3.1.12 and `SixLabors.ImageSharp.Drawing` 2.1.7 when `USE_LIB_SixLabors_ImageSharp` is set
 
 ## Version 1.5.0 (2026-11-21)
 
