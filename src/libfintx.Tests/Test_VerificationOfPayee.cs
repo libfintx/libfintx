@@ -281,6 +281,34 @@ public class Test_VerificationOfPayee
     }
 
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    [InlineData(null)]
+    public async Task Test_DeviationWithoutVopIdNeedsConsent(bool? consent)
+    {
+        // neither 3945 nor a VOP id (e.g. the further results did not arrive): HKVPA cannot be sent, but a deviation
+        // still needs the user's consent before the TAN goes out
+        using var server = Bank("HIRMS:3:2:3+0020::Namensabgleich ausgeführt'" + TanRequired + "HIVPP:6:1:3++++++" + Payee + "::Max Mustermann::RVNM'");
+        var dialog = consent is bool c ? Dialog(c).Dialog : new TANDialog(_ => Task.FromResult("123456"));
+
+        var result = await Transfer(CreateClient(server), dialog);
+
+        Assert.True(dialog.VerificationOfPayee.ConfirmationRequired);
+        Assert.Equal(VerificationOfPayeeMatch.NoMatch, Assert.Single(dialog.VerificationOfPayee.Items).Result);
+        Assert.DoesNotContain(server.Requests, r => r.Contains("HKVPA"));
+        if (consent == true)
+        {
+            Assert.Contains("+2++++REF-1+N'", server.Requests.Last());
+            Assert.Equal(OrderStatus.Accepted, result.GetOrderStatus());
+        }
+        else
+        {
+            Assert.Contains("HKCCS:4:1", server.Requests.Last());   // no TAN sent after the order
+            Assert.Equal(OrderStatus.NotExecuted, result.GetOrderStatus());
+        }
+    }
+
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public async Task Test_ExecutionOrderErrorIsUnclear(bool afterDeviation)

@@ -488,7 +488,9 @@ namespace libfintx.FinTS
             var withTan = !confirm && !withoutExecutionOrder && !alreadyExecuted && answer.VopId != null && result.IsSCARequired;
 
             var check = VerificationOfPayee.Evaluate(answer, payees, reports, vop.ExplanationStructured, false, codes.Contains("0025"));
-            check.ConfirmationRequired = confirm || (withTan && !check.AllMatch);
+            // A deviation needs the user's consent unless the bank needs no confirmation (3091), also when no VOP id came
+            // (e.g. the further results did not arrive) and the order can only be released with the TAN alone
+            check.ConfirmationRequired = confirm || (!check.AllMatch && !withoutExecutionOrder && !alreadyExecuted);
             if (tanDialog != null)
                 tanDialog.VerificationOfPayee = check;
 
