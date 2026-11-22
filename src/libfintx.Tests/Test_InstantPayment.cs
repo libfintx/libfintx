@@ -106,6 +106,45 @@ public class Test_InstantPayment
         Assert.Equal("3", result.Data.StatusCode);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Test_InstantTransfer_FirstRunWithoutStoredBpd(bool statusRequest)
+    {
+        // no BPD stored yet: they come with the dialog initialisation, and the order goes on in the same dialog
+        using var server = new FakeFinTsServer(request =>
+            request.Contains("HKIDN:") ? Message("HIRMG:2:2+0010::Nachricht entgegengenommen.'" + Bpd)
+            : request.Contains("HKIPZ:") ? Message("HIRMS:3:2:3+3045::SEPA-Instant Payment Statusabfrage HKIPS veranlassen.'HIIPZ:4:1:3+ORDER-5++3'")
+            : request.Contains("HKIPS:") ? Message("HIRMS:3:2:3+0020::Auftrag ausgeführt.'HIIPS:4:1:3+" + OwnIban + ":DEUTDEFFXXX+" + Pain09 + "++ORDER-5++7'")
+            : FakeFinTsServer.DefaultResponse);
+        var client = CreateClient(server);
+        client.BPD = null;
+
+        var result = statusRequest
+            ? await client.GetInstantPaymentStatus(null, "ORDER-5")
+            : await client.InstantTransfer(null, "Max Muster", Payee, null, 0.01m, "Test", null);
+
+        Assert.Equal(1, server.Requests.Count(r => r.Contains("HKIDN:")));
+        Assert.Equal("ORDER-5", result.Data.OrderId);
+        Assert.Equal(statusRequest ? InstantPaymentStatus.Executed : InstantPaymentStatus.Pending, result.Data.Status);
+    }
+
+    [Fact]
+    public async Task Test_FirstRunNotOfferedEndsTheDialog()
+    {
+        // the BPD of the initialisation offer no instant payments: nothing more than the end of that dialog is sent
+        using var server = new FakeFinTsServer(request =>
+            request.Contains("HKIDN:") ? Message("HIRMG:2:2+0010::Nachricht entgegengenommen.'HIBPA:5:3:3+12+280:10070000+Testbank+0+1+300+500'")
+            : FakeFinTsServer.DefaultResponse);
+        var client = CreateClient(server);
+        client.BPD = null;
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => client.InstantTransfer(null, "Max Muster", Payee, null, 1m, "Test", null));
+
+        Assert.Equal(2, server.Requests.Count);
+        Assert.Contains("HKEND:", server.Requests.Last());
+    }
+
     [Fact]
     public async Task Test_InstantTransfer_ConversionOnlyWhenOffered()
     {

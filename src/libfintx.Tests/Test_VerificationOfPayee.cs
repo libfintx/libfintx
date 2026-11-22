@@ -413,6 +413,28 @@ public class Test_VerificationOfPayee
     }
 
     [Fact]
+    public async Task Test_CollectiveWithOneTransactionFirstRunWithoutStoredBpd()
+    {
+        // no BPD stored yet: HIVPPS comes with the dialog initialisation and still decides, in the same dialog
+        using var server = new FakeFinTsServer(request =>
+            request.Contains("HKIDN:") ? Message("HIRMG:2:2+0010::Nachricht entgegengenommen.'" + Bpd)
+            : request.Contains("HKVPP:3:1") && request.Contains("HKCCS:4:1")
+                ? Message("HIRMS:3:2:3+0020::Namensabgleich ausgeführt'" + TanRequired + "HIVPP:6:1:3+@4@V-10+++++" + Payee + "::::RCVC'")
+            : request.Contains("HKTAN:") ? Message(Executed)
+            : FakeFinTsServer.DefaultResponse);
+        var client = CreateClient(server);
+        client.BPD = null;
+        var items = new List<Pain00100203CtData> { new Pain00100203CtData { Receiver = "Max Muster", ReceiverIban = Payee, Amount = 1m, Usage = "x" } };
+
+        var result = await client.CollectiveTransfer(Dialog(true).Dialog, items, "1", 1m, null);
+
+        Assert.Equal(1, server.Requests.Count(r => r.Contains("HKIDN:")));
+        Assert.Contains(server.Requests, r => r.Contains("HKCCS:4:1"));
+        Assert.DoesNotContain(server.Requests, r => r.Contains("HKCCM"));
+        Assert.Equal(OrderStatus.Accepted, result.GetOrderStatus());
+    }
+
+    [Fact]
     public async Task Test_MaximumNumberOfPayees()
     {
         using var server = Bank("");

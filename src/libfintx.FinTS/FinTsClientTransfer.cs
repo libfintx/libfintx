@@ -52,9 +52,15 @@ namespace libfintx.FinTS
         public async Task<HBCIDialogResult> Transfer(TANDialog tanDialog, string receiverName, string receiverIBAN, string receiverBIC,
             decimal amount, string purpose, string hirms)
         {
-            return await SubmitPaymentOrder(tanDialog, hirms, "HKCCS", new[] { (receiverName, receiverIBAN) },
-                (number, account, messageId) => (HKCCS.Create(this, number, account.Kti, receiverName, receiverIBAN, receiverBIC, amount, purpose, messageId, account.Bic), number));
+            return await SubmitTransfer(null, tanDialog, receiverName, receiverIBAN, receiverBIC, amount, purpose, hirms);
         }
+
+        /// <summary><see cref="Transfer"/> in the dialog <paramref name="opened"/> by <see cref="CheckBankParameters"/>, if any.</summary>
+        private Task<HBCIDialogResult> SubmitTransfer(HBCIDialogResult opened, TANDialog tanDialog, string receiverName, string receiverIBAN,
+            string receiverBIC, decimal amount, string purpose, string hirms) =>
+            SubmitPaymentOrder(tanDialog, hirms, "HKCCS", new[] { (receiverName, receiverIBAN) },
+                (number, account, messageId) => (HKCCS.Create(this, number, account.Kti, receiverName, receiverIBAN, receiverBIC, amount, purpose, messageId, account.Bic), number),
+                opened: opened);
 
         /// <summary>
         /// Transfer money at a certain time - General method
@@ -73,9 +79,15 @@ namespace libfintx.FinTS
         public async Task<HBCIDialogResult> Transfer_Terminated(TANDialog tanDialog, string receiverName, string receiverIBAN, string receiverBIC,
             decimal amount, string purpose, DateTime executionDay, string hirms)
         {
-            return await SubmitPaymentOrder(tanDialog, hirms, "HKCSE", new[] { (receiverName, receiverIBAN) },
-                (number, account, messageId) => (HKCSE.Create(this, number, account.Kti, receiverName, receiverIBAN, receiverBIC, amount, purpose, executionDay, messageId, account.Bic), number));
+            return await SubmitTransferTerminated(null, tanDialog, receiverName, receiverIBAN, receiverBIC, amount, purpose, executionDay, hirms);
         }
+
+        /// <summary><see cref="Transfer_Terminated"/> in the dialog <paramref name="opened"/> by <see cref="CheckBankParameters"/>, if any.</summary>
+        private Task<HBCIDialogResult> SubmitTransferTerminated(HBCIDialogResult opened, TANDialog tanDialog, string receiverName, string receiverIBAN,
+            string receiverBIC, decimal amount, string purpose, DateTime executionDay, string hirms) =>
+            SubmitPaymentOrder(tanDialog, hirms, "HKCSE", new[] { (receiverName, receiverIBAN) },
+                (number, account, messageId) => (HKCSE.Create(this, number, account.Kti, receiverName, receiverIBAN, receiverBIC, amount, purpose, executionDay, messageId, account.Bic), number),
+                opened: opened);
 
 
         /// <summary>
@@ -93,12 +105,22 @@ namespace libfintx.FinTS
             string numberOfTransactions, decimal totalAmount, string hirms)
         {
             // A collective order with one transaction goes as single transfer when the bank does not allow it (HIVPPS)
-            if (painData?.Count == 1 && BPD?.HIVPPS?.CollectiveWithOneTransactionAllowed == false)
-                return await Transfer(tanDialog, painData[0].Receiver, painData[0].ReceiverIban, painData[0].ReceiverBic, painData[0].Amount, painData[0].Usage, hirms);
+            var single = false;
+            var opened = await CheckBankParameters(() =>
+            {
+                single = SingleInsteadOfCollective(painData);
+                if (!single)
+                    CheckMaximumTransactions("HKCCM", "HICCMS", painData.Count);
+            });
+            if (opened?.HasError == true)
+                return opened;
 
-            CheckMaximumTransactions("HKCCM", "HICCMS", painData.Count);
+            if (single)
+                return await SubmitTransfer(opened, tanDialog, painData[0].Receiver, painData[0].ReceiverIban, painData[0].ReceiverBic, painData[0].Amount, painData[0].Usage, hirms);
+
             return await SubmitPaymentOrder(tanDialog, hirms, "HKCCM", painData.Select(p => (p.Receiver, p.ReceiverIban)).ToList(),
-                (number, account, messageId) => (HKCCM.Create(this, number, account.Kti, painData, numberOfTransactions, totalAmount, messageId, account.Bic), number));
+                (number, account, messageId) => (HKCCM.Create(this, number, account.Kti, painData, numberOfTransactions, totalAmount, messageId, account.Bic), number),
+                opened: opened);
         }
 
         /// <summary>
@@ -116,12 +138,22 @@ namespace libfintx.FinTS
         public async Task<HBCIDialogResult> CollectiveTransfer_Terminated(TANDialog tanDialog, List<Pain00100203CtData> painData,
             string numberOfTransactions, decimal totalAmount, DateTime executionDay, string hirms)
         {
-            if (painData?.Count == 1 && BPD?.HIVPPS?.CollectiveWithOneTransactionAllowed == false)
-                return await Transfer_Terminated(tanDialog, painData[0].Receiver, painData[0].ReceiverIban, painData[0].ReceiverBic, painData[0].Amount, painData[0].Usage, executionDay, hirms);
+            var single = false;
+            var opened = await CheckBankParameters(() =>
+            {
+                single = SingleInsteadOfCollective(painData);
+                if (!single)
+                    CheckMaximumTransactions("HKCME", "HICMES", painData.Count);
+            });
+            if (opened?.HasError == true)
+                return opened;
 
-            CheckMaximumTransactions("HKCME", "HICMES", painData.Count);
+            if (single)
+                return await SubmitTransferTerminated(opened, tanDialog, painData[0].Receiver, painData[0].ReceiverIban, painData[0].ReceiverBic, painData[0].Amount, painData[0].Usage, executionDay, hirms);
+
             return await SubmitPaymentOrder(tanDialog, hirms, "HKCME", painData.Select(p => (p.Receiver, p.ReceiverIban)).ToList(),
-                (number, account, messageId) => (HKCME.Create(this, number, account.Kti, painData, numberOfTransactions, totalAmount, executionDay, messageId, account.Bic), number));
+                (number, account, messageId) => (HKCME.Create(this, number, account.Kti, painData, numberOfTransactions, totalAmount, executionDay, messageId, account.Bic), number),
+                opened: opened);
         }
 
         /// <summary>
@@ -252,6 +284,7 @@ namespace libfintx.FinTS
         /// <summary>
         /// The bank offers instant payments (HIIPZS, or HIIPMS for collective orders).
         /// </summary>
+        /// <remarks>Read from the stored BPD: false before the first dialog with the bank.</remarks>
         public bool InstantPaymentAvailable(bool collective = false) => InstantPaymentParameters.Read(BPD, collective) != null;
 
         /// <summary>
@@ -274,14 +307,25 @@ namespace libfintx.FinTS
         public async Task<HBCIDialogResult<InstantPaymentResult>> InstantTransfer(TANDialog tanDialog, string receiverName,
             string receiverIBAN, string receiverBIC, decimal amount, string purpose, string hirms, bool allowConversion = false)
         {
-            var parameters = RequireInstantPayment(false);
+            InstantPaymentParameters parameters = null;
+            var opened = await CheckBankParameters(() => parameters = RequireInstantPayment(false));
+            if (opened?.HasError == true)
+                return opened.TypedResult<InstantPaymentResult>();
+
+            return await SubmitInstantTransfer(opened, parameters, tanDialog, receiverName, receiverIBAN, receiverBIC, amount, purpose, hirms, allowConversion);
+        }
+
+        /// <summary><see cref="InstantTransfer"/> in the dialog <paramref name="opened"/> by <see cref="CheckBankParameters"/>, if any.</summary>
+        private async Task<HBCIDialogResult<InstantPaymentResult>> SubmitInstantTransfer(HBCIDialogResult opened, InstantPaymentParameters parameters,
+            TANDialog tanDialog, string receiverName, string receiverIBAN, string receiverBIC, decimal amount, string purpose, string hirms, bool allowConversion)
+        {
             var version = Math.Min(parameters.Version, 2);
             bool? conversion = parameters.ConversionAllowed ? allowConversion : (bool?) null;
             string orderAnswer = null;
 
             var result = await SubmitPaymentOrder(tanDialog, hirms, "HKIPZ", new[] { (receiverName, receiverIBAN) },
                 (number, account, messageId) => (HKIPZ.Create(this, number, version, account.Kti, receiverName, receiverIBAN, receiverBIC, amount, purpose, conversion, messageId, account.Bic), number),
-                instantPayment: true, orderAnswer: answer => orderAnswer = answer);
+                instantPayment: true, orderAnswer: answer => orderAnswer = answer, opened: opened);
 
             return result.TypedResult(InstantPaymentAnswer(result, orderAnswer, "HIIPZ", false));
         }
@@ -291,11 +335,21 @@ namespace libfintx.FinTS
             List<Pain00100203CtData> painData, string numberOfTransactions, decimal totalAmount, string hirms, bool allowConversion = false)
         {
             // A collective order with one transaction goes as single order when the bank does not allow it (HIVPPS)
-            if (painData?.Count == 1 && BPD?.HIVPPS?.CollectiveWithOneTransactionAllowed == false)
-                return await InstantTransfer(tanDialog, painData[0].Receiver, painData[0].ReceiverIban, painData[0].ReceiverBic, painData[0].Amount, painData[0].Usage, hirms, allowConversion);
+            var single = false;
+            InstantPaymentParameters parameters = null;
+            var opened = await CheckBankParameters(() =>
+            {
+                single = SingleInsteadOfCollective(painData);
+                parameters = RequireInstantPayment(!single);
+                if (!single)
+                    CheckMaximumTransactions("HKIPM", "HIIPMS", painData.Count);
+            });
+            if (opened?.HasError == true)
+                return opened.TypedResult<InstantPaymentResult>();
 
-            var parameters = RequireInstantPayment(true);
-            CheckMaximumTransactions("HKIPM", "HIIPMS", painData.Count);
+            if (single)
+                return await SubmitInstantTransfer(opened, parameters, tanDialog, painData[0].Receiver, painData[0].ReceiverIban, painData[0].ReceiverBic,
+                    painData[0].Amount, painData[0].Usage, hirms, allowConversion);
 
             var version = Math.Min(parameters.Version, 2);
             bool? conversion = parameters.ConversionAllowed ? allowConversion : (bool?) null;
@@ -303,7 +357,7 @@ namespace libfintx.FinTS
 
             var result = await SubmitPaymentOrder(tanDialog, hirms, "HKIPM", painData.Select(p => (p.Receiver, p.ReceiverIban)).ToList(),
                 (number, account, messageId) => (HKIPM.Create(this, number, version, account.Kti, painData, numberOfTransactions, totalAmount, conversion, messageId, account.Bic), number),
-                instantPayment: true, orderAnswer: answer => orderAnswer = answer);
+                instantPayment: true, orderAnswer: answer => orderAnswer = answer, opened: opened);
 
             return result.TypedResult(InstantPaymentAnswer(result, orderAnswer, "HIIPM", true));
         }
@@ -315,11 +369,15 @@ namespace libfintx.FinTS
         /// </summary>
         public async Task<HBCIDialogResult<InstantPaymentResult>> GetInstantPaymentStatus(TANDialog tanDialog, string orderId, bool collective = false)
         {
-            var parameters = RequireInstantPayment(collective);
-            if (parameters.StatusVersion == 0)
-                throw new InvalidOperationException($"The bank offers no status request for instant payments ({(collective ? "HIISSS" : "HIIPSS")}).");
+            InstantPaymentParameters parameters = null;
+            var result = await CheckBankParameters(() =>
+            {
+                parameters = RequireInstantPayment(collective);
+                if (parameters.StatusVersion == 0)
+                    throw new InvalidOperationException($"The bank offers no status request for instant payments ({(collective ? "HIISSS" : "HIIPSS")}).");
+            });
 
-            var result = await InitializeConnection();
+            result ??= await InitializeConnection();
             if (result.HasError)
                 return result.TypedResult<InstantPaymentResult>();
 
@@ -339,6 +397,47 @@ namespace libfintx.FinTS
             var codes = result.Messages.Select(m => m.Code).ToList();
             return result.TypedResult(new InstantPaymentResult(id ?? orderId, InstantPayment.Status(statusCode, codes, statusRequest: true), statusCode, collective));
         }
+
+        /// <summary>
+        /// Runs <paramref name="check"/>, which decides from the BPD before an order is built (instant payments offered,
+        /// maximum number of transactions, collective order with one transaction). On a first run no BPD are stored yet;
+        /// they come with the dialog initialisation, so the dialog is opened first then and returned to send the order in
+        /// it. When the check throws, that dialog is ended again. Returns <c>null</c> when the BPD were known already.
+        /// </summary>
+        private async Task<HBCIDialogResult> CheckBankParameters(Action check)
+        {
+            HBCIDialogResult opened = null;
+            if (BPD == null)
+            {
+                opened = await InitializeConnection();
+                if (opened.HasError)
+                    return opened;
+            }
+
+            try
+            {
+                check();
+            }
+            catch (Exception) when (opened != null)
+            {
+                try
+                {
+                    await EndDialog();
+                }
+                catch (Exception e)
+                {
+                    Logger.LogDebug(e, "Ending the dialog failed.");
+                }
+
+                throw;
+            }
+
+            return opened;
+        }
+
+        /// <summary>A collective order with one transaction goes as single order when the bank does not allow it (HIVPPS).</summary>
+        private bool SingleInsteadOfCollective(List<Pain00100203CtData> painData) =>
+            painData?.Count == 1 && BPD?.HIVPPS?.CollectiveWithOneTransactionAllowed == false;
 
         private InstantPaymentParameters RequireInstantPayment(bool collective)
         {
@@ -378,13 +477,14 @@ namespace libfintx.FinTS
         /// <paramref name="payees"/> are name and IBAN of each transfer in pain order; <paramref name="buildOrder"/> builds
         /// the order segments from the first segment number, the account (KTI and BIC) and the pain message id and returns
         /// them with the number of the last segment. Once the order may have reached the bank, a missing or unreadable
-        /// answer throws <see cref="PaymentOrderUncertainException"/>.
+        /// answer throws <see cref="PaymentOrderUncertainException"/>. <paramref name="opened"/> is the dialog
+        /// <see cref="CheckBankParameters"/> opened, if any.
         /// </summary>
         private async Task<HBCIDialogResult> SubmitPaymentOrder(TANDialog tanDialog, string hirms, string segmentId,
             IReadOnlyList<(string Name, string Iban)> payees, Func<int, (string Kti, string Bic), string, (string Segments, int LastSegmentNumber)> buildOrder,
-            bool instantPayment = false, Action<string> orderAnswer = null)
+            bool instantPayment = false, Action<string> orderAnswer = null, HBCIDialogResult opened = null)
         {
-            var result = await InitializeConnection();
+            var result = opened ?? await InitializeConnection();
             if (result.HasError)
                 return result;
 
