@@ -356,11 +356,19 @@ namespace libfintx.FinTS
             if (id == null)
                 (id, statusCode) = InstantPayment.ParseAnswer(orderAnswer, segmentId);
 
-            // only return values about the order: 0010 in HIRMG means "message received"
+            // only return values about the order, as in GetOrderStatus: 0010 in HIRMG means "message received", and the
+            // return values about the verification of payee (HKVPP/HKVPA) do not describe the payment
             var codes = result.Messages
-                .Where(m => (m.SegmentReference != null && !result.IgnoredSegmentReferences.Contains(m.SegmentReference.Value)) || m.IsError)
+                .Where(m => m.SegmentReference is int s ? !result.IgnoredSegmentReferences.Contains(s) : m.IsError)
                 .Select(m => m.Code).ToList();
-            return new InstantPaymentResult(id, InstantPayment.Status(statusCode, codes), statusCode, collective);
+            var status = InstantPayment.Status(statusCode, codes);
+
+            // Without a status field an unclear outcome (e.g. HKVPA 9210 "Auftrag existiert nicht bzw. wurde bereits
+            // ausgeführt") is never "rejected": resubmitting could pay twice
+            if (status == InstantPaymentStatus.Rejected && statusCode == null && result.GetOrderStatus(instantPayment: true) == OrderStatus.Unclear)
+                status = InstantPaymentStatus.Unknown;
+
+            return new InstantPaymentResult(id, status, statusCode, collective);
         }
 
         /// <summary>

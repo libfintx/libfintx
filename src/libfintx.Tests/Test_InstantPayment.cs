@@ -139,6 +139,27 @@ public class Test_InstantPayment
     }
 
     [Fact]
+    public async Task Test_InstantTransfer_ExecutionOrderErrorIsUnknown()
+    {
+        // HKVPA 9210 "Auftrag existiert nicht bzw. wurde bereits ausgeführt" (VOP 1.02, p. 15): the outcome is unclear,
+        // so the payment must not look rejected; resubmitting could pay twice
+        var bpd = Bpd + "HIVPPS:40:1:4+1+1+0+0:J:V:N:N:" + Psr + ":HKIPZ:HKIPM'";
+        using var server = new FakeFinTsServer(request =>
+            request.Contains("HKVPP:3:1") && request.Contains("HKIPZ:4:1")
+                ? Message("HIRMS:4:2:5+3945::Freigabe kann nicht erteilt werden'HIVPP:6:1:3+@4@V-09+++++" + Payee + "::Max Mustermann::RVMC+Bitte prüfen'")
+            : request.Contains("HKVPA:3:1")
+                ? Message("HIRMG:2:2+9050::Teilweise fehlerhaft.'HIRMS:3:2:3+9210::Auftrag existiert nicht bzw. wurde bereits ausgeführt'")
+            : FakeFinTsServer.DefaultResponse);
+        var dialog = new TANDialog(_ => Task.FromResult("123456")) { ConfirmVerificationOfPayeeAsync = _ => Task.FromResult(true) };
+
+        var result = await CreateClient(server, bpd).InstantTransfer(dialog, "Max Muster", Payee, null, 1m, "Test", null);
+
+        Assert.Contains(server.Requests, r => r.Contains("HKVPA:3:1+@4@V-09'") && r.Contains("HKIPZ:4:1"));
+        Assert.Equal(OrderStatus.Unclear, result.GetOrderStatus(instantPayment: true));
+        Assert.Equal(InstantPaymentStatus.Unknown, result.Data.Status);
+    }
+
+    [Fact]
     public async Task Test_StatusRequest()
     {
         using var server = Bank("", status: "HIRMS:3:2:3+0020::Auftrag ausgeführt.'HIIPS:4:1:3+" + OwnIban + ":DEUTDEFFXXX+" + Pain09 + "++ORDER-1++7'");
