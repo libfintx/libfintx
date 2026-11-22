@@ -69,7 +69,8 @@ namespace libfintx.FinTS
 
         /// <summary>
         /// Called with the result of the verification of payee before a credit transfer is released; return true to
-        /// execute it. Without it an order is only executed when the bank requires no confirmation.
+        /// execute it. Without it an order is only executed when the bank requires no confirmation. Not called when the
+        /// bank already executed the order without TAN (e.g. 3076): the result is then only in <see cref="VerificationOfPayee"/>.
         /// </summary>
         public Func<VerificationOfPayeeResult, Task<bool>> ConfirmVerificationOfPayeeAsync { get; set; }
 

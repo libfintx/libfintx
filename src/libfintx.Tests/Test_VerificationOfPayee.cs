@@ -316,12 +316,17 @@ public class Test_VerificationOfPayee
     [Fact]
     public async Task Test_AlreadyExecutedWithoutTanStaysAccepted()
     {
-        // 3076: executed without strong authentication; refusing afterwards cannot stop it any more
+        // 3076: executed without strong authentication; the user is not asked whether to execute it, refusing could not
+        // stop it any more
         using var server = Bank("HIRMS:3:2:3+0020::Namensabgleich ausgeführt'HIRMS:4:2:4+0020::Auftrag ausgeführt.'"
             + "HIRMS:5:2:5+3076::Keine starke Authentifizierung erforderlich+3091::Ausführung ohne Bestätigung'HIVPP:6:1:3+@4@V-05+++++" + Payee + "::::RCVC'");
+        var (dialog, shown) = Dialog(false);
 
-        var result = await Transfer(CreateClient(server), Dialog(false).Dialog);
+        var result = await Transfer(CreateClient(server), dialog);
 
+        Assert.Empty(shown);
+        Assert.Equal(VerificationOfPayeeMatch.Match, Assert.Single(dialog.VerificationOfPayee.Items).Result);
+        Assert.False(dialog.VerificationOfPayee.ConfirmationRequired);
         Assert.Equal(OrderStatus.Accepted, result.GetOrderStatus());
         Assert.Contains("HKCCS:4:1", server.Requests.Last());   // nothing sent after the order
         Assert.DoesNotContain(server.Requests, r => r.Contains("HKVPA"));

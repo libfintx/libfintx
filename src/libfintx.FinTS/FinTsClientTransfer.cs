@@ -492,16 +492,17 @@ namespace libfintx.FinTS
             if (tanDialog != null)
                 tanDialog.VerificationOfPayee = check;
 
+            if (alreadyExecuted)
+            {
+                // Executed without TAN (e.g. 3076 small amount): it cannot be stopped any more, so the user is not asked
+                // whether to execute it; the result stays in TANDialog.VerificationOfPayee
+                Logger.LogInformation("The bank executed the order without TAN, the verification of payee cannot stop it any more.");
+                return result;
+            }
+
             var consent = tanDialog?.ConfirmVerificationOfPayeeAsync != null
                 ? await tanDialog.ConfirmVerificationOfPayeeAsync(check)
                 : !check.ConfirmationRequired;
-
-            if (alreadyExecuted)
-            {
-                // Executed without TAN (e.g. 3076 small amount): it cannot be stopped any more
-                Logger.LogInformation("The bank executed the order without TAN, it cannot be cancelled after the verification of payee.");
-                return result;
-            }
 
             if (!consent)
             {
