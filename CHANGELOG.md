@@ -5,6 +5,10 @@ This project follows [Semantic Versioning](https://semver.org/): a major version
 ## Version 2.0.0 (unreleased)
 
 - :boom: *breaking* `CamtStatement.EndBalance` is now `decimal?` and null when a camt report has no booked balance (instead of 0). Callers assigning it to a `decimal` need `.Value` or `?? 0`; `HasEndBalance` stays and tells whether it is set ([#94](https://github.com/libfintx/libfintx/pull/94))
+- :boom: *breaking* `libfintx.Security`, `libfintx.EBICSConfig` and `libfintx.EBICS` reference `BouncyCastle.Cryptography` 2.7.0 instead of the unmaintained `Portable.BouncyCastle` 1.9.0. Both use the `Org.BouncyCastle` namespaces; an application that references `Portable.BouncyCastle` itself has to switch too
+- :rocket: *change* `libfintx.EBICS` compresses order data with `System.IO.Compression.ZLibStream` and no longer references `Iconic.Zlib.Netstandard`, which pulled in `NETStandard.Library` 1.6.0 with vulnerable `System.Net.Http` and `System.Security.Cryptography.X509Certificates` 4.1.0
+- :rocket: *change* reference `System.Security.Cryptography.Xml` 10.0.15 (was 8.0.0, with known vulnerabilities), `Microsoft.Extensions.Logging(.Abstractions)` 10.0.15 and `Newtonsoft.Json` 13.0.4
+- :rocket: *change* reference `SixLabors.ImageSharp` 3.1.12 and `SixLabors.ImageSharp.Drawing` 2.1.7 when `USE_LIB_SixLabors_ImageSharp` is set
 
 ## Version 1.5.0 (2026-11-21)
 
@@ -17,6 +21,8 @@ This project follows [Semantic Versioning](https://semver.org/): a major version
 - :rocket: add `CamtStatement.HasEndBalance`, false when a camt report has no booked balance (`EndBalance` is then 0) ([#94](https://github.com/libfintx/libfintx/pull/94))
 - :rocket: add `CamtTransaction.UltimatePartnerName`, and prefer camt.052.001.08 when the bank offers both versions ([#94](https://github.com/libfintx/libfintx/pull/94))
 - :rocket: *change* rename `Helper.EscapeHbciString` to `EscapeEdifactString` (the old name is obsolete)
+- :rocket: *change* reference `Microsoft.Extensions.Logging(.Abstractions)` 10.0.14, so applications on .NET 10 build against libfintx ([#93](https://github.com/libfintx/libfintx/pull/93))
+- :rocket: log an excerpt of a segment that cannot be parsed, and the whole segment at debug level ([#93](https://github.com/libfintx/libfintx/pull/93))
 - :bug: *fix* read the camt.052.001.08 reports banks send without MT940 (no account currency, entries without transaction details or bank transaction code, interim booked balance as end balance) ([#94](https://github.com/libfintx/libfintx/pull/94))
 - :bug: *fix* HKCAZ names the account from the UPD like HKKAZ does, and requests camt.052.001.08 when HICAZS names no format ([#94](https://github.com/libfintx/libfintx/pull/94))
 - :bug: *fix* keep polling for a decoupled approval while the bank reports 3956 ([#86](https://github.com/libfintx/libfintx/pull/86))
@@ -25,6 +31,8 @@ This project follows [Semantic Versioning](https://semver.org/): a major version
 - :bug: *fix* HKTAN process 2/S segments and the TAN in the signature ([#82](https://github.com/libfintx/libfintx/pull/82))
 - :bug: *fix* read the chipTAN flicker code from the HHD_UC element and show the challenge text when it is malformed ([#80](https://github.com/libfintx/libfintx/pull/80))
 - :bug: *fix* mask PIN, TAN and user id in the trace log by segment structure, and trace the bank's response instead of the request twice ([#89](https://github.com/libfintx/libfintx/pull/89))
+- :bug: *fix* accept a segment header with an empty reference (`HIRMG:2:2:+...`) and lists of languages and HBCI versions in HIBPA ([#93](https://github.com/libfintx/libfintx/pull/93))
+- :bug: *fix* take binary data (`@len@`) over whole when splitting data elements, so camt answers (HICAZ) are parsed ([#93](https://github.com/libfintx/libfintx/pull/93))
 - :bug: *fix* send the actual cached BPD version in the INI dialog instead of a hardcoded 0
 - :bug: *fix* encode outgoing FinTS messages and decode Base64 as ISO-8859-1 instead of ASCII
 - :bug: *fix* escape FinTS syntax characters in the TAN medium name and PIN

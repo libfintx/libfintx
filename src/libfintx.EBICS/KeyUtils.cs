@@ -33,6 +33,7 @@ using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
+using Org.BouncyCastle.X509.Extension;
 
 namespace libfintx.EBICS
 {
@@ -71,9 +72,9 @@ namespace libfintx.EBICS
             gen.SetNotAfter(notAfter);
             gen.SetPublicKey(kp.Public);
             gen.AddExtension(X509Extensions.BasicConstraints, false, new BasicConstraints(true));
-            var subjectKeyIdentifier = new SubjectKeyIdentifier(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public));
+            var subjectKeyIdentifier = X509ExtensionUtilities.CreateSubjectKeyIdentifier(kp.Public);
             gen.AddExtension(X509Extensions.SubjectKeyIdentifier, false, subjectKeyIdentifier);
-            var authorityKeyIdentifier = new AuthorityKeyIdentifier(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public), new GeneralNames(new GeneralName(subject)), serial);
+            var authorityKeyIdentifier = X509ExtensionUtilities.CreateAuthorityKeyIdentifier(kp.Public, new GeneralNames(new GeneralName(subject)), serial);
             gen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false, authorityKeyIdentifier);
             ////gen.AddExtension(X509Extensions.ExtendedKeyUsage, false, new ExtendedKeyUsage(KeyPurposeID.IdKPEmailProtection));
 
@@ -94,7 +95,7 @@ namespace libfintx.EBICS
             bouncyCert.CheckValidity();
             bouncyCert.Verify(kp.Public);
 
-            var store = new Pkcs12Store();
+            var store = new Pkcs12StoreBuilder().Build();
             var certificateEntry = new X509CertificateEntry(bouncyCert);
             store.SetCertificateEntry(bouncyCert.SubjectDN.ToString(), certificateEntry);
             store.SetKeyEntry(bouncyCert.SubjectDN.ToString(), new AsymmetricKeyEntry(kp.Private), new[] { certificateEntry });

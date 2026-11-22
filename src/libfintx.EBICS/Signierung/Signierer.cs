@@ -7,7 +7,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Ionic.Crc;
 using libfintx.EBICSConfig;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;

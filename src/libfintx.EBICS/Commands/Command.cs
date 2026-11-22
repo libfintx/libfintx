@@ -29,7 +29,6 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
 using System.Xml;
 using System.Xml.Linq;
-using Ionic.Zlib;
 using Microsoft.Extensions.Logging;
 using libfintx.EBICS.Exceptions;
 using libfintx.EBICS.Handler;
@@ -245,15 +244,7 @@ namespace libfintx.EBICS.Commands
         {
             using (new MethodLogger(s_logger))
             {
-                using (var output = new MemoryStream())
-                {
-                    using (var zs = new ZlibStream(output, CompressionMode.Decompress))
-                    {
-                        zs.Write(buffer, 0, buffer.Length);
-                    }
-
-                    return output.ToArray();
-                }
+                return Zlib.Decompress(buffer);
             }
         }
 
@@ -261,15 +252,7 @@ namespace libfintx.EBICS.Commands
         {
             using (new MethodLogger(s_logger))
             {
-                using (var output = new MemoryStream())
-                {
-                    using (var zs = new ZlibStream(output, CompressionMode.Compress))
-                    {
-                        zs.Write(buffer, 0, buffer.Length);
-                    }
-
-                    return output.ToArray();
-                }
+                return Zlib.Compress(buffer);
             }
         }
 
